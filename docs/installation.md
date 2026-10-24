@@ -17,7 +17,7 @@
 
 整个 Agent 流程可以跳过。跳过不会把示例 DeepSeek 身份显示为已配置成员。读取目录不进行推理，也不把公开目录误认为已登录或拥有所有模型权限。
 
-API 接入沿用用户环境变量。点击“配置 API 环境变量”设置相应变量，然后重新检查。DeepSeek Harness 当前 ACP 接入需要 API 凭据，可在引导中用 Windows DPAPI 加密保存；桌面登录与 ACP 的 API 凭据并不等价。
+API 接入沿用用户环境变量。点击“配置 API 环境变量”设置相应变量，然后重新打开应用并检查。DeepSeek Harness 优先通过官方账号服务复用 DSH 登录，无需另外填写 API Key；旧 API 凭据方式与账号钱包分开。手动扩展见 [接入指南](HARNESS_INTEGRATION.md)。
 
 有些 Harness 没有可靠的独立账号检测接口。这时引导会打开官方界面，并明确要求用户确认已登录，随后读取目录；不会声称完成了实际推理验证。
 
@@ -66,7 +66,7 @@ def setup_login(registry, connection):
 
 ## 构建
 
-`desktop/hub_installer_bundle.spec` 构建两个独立 EXE，共享一个不可变依赖目录；入口 `desktop/launch_installed.py` 根据可执行文件名选择程序，不改变主程序启动参数和任务调度代码。
+`desktop/hub_installer_bundle.spec` 构建主程序、独立配置程序和控制台 MCP 工具通道，共享一个不可变依赖目录；入口 `desktop/launch_installed.py` 根据可执行文件名选择程序。`desktop/build_installer.ps1` 另行构建独立诊断导出工具，一并加入安装包。
 
 构建后在同目录放置 `installation.json`：
 
