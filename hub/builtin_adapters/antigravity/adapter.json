@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "id": "antigravity",
+  "name": "Antigravity",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "default"
+  ],
+  "provider": "antigravity",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://antigravity.google/download",
+    "login_args": [],
+    "terminal": true,
+    "note": "在 Antigravity CLI 中完成 Google 登录；不切换到企业或 API 计费。"
+  }
+}

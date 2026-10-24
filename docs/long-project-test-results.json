@@ -1,0 +1,16 @@
+{
+  "tests": 66,
+  "success": true,
+  "errors": 0,
+  "failures": 0,
+  "seconds": 15.41,
+  "date": "2026-10-18",
+  "new_inference_calls": 0,
+  "verified": [
+    "parallel slots and per-agent exclusion",
+    "multi-day and large call limits",
+    "quota wait without inference",
+    "Codex installation discovery without PATH",
+    "existing control/MCP/HTTP/recovery regressions"
+  ]
+}

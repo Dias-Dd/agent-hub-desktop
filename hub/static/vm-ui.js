@@ -1,0 +1,198 @@
+"use strict";
+(() => {
+  const H=window.HubDesktop, $=H.$;
+  let busy=false, polling=false,lastState={},preferenceEdited=false;
+  $('vmUnattended').addEventListener('change',()=>{preferenceEdited=true;});
+  $('vmSelect').addEventListener('change',()=>{preferenceEdited=false;const saved=lastState.saved_connections?.find(s=>s.vm===$('vmSelect').value);$('vmUnattended').checked=saved?.unattended!==false;});
+  const status=message=>{$('vmConnectionStatus').textContent=message;};
+  const call=args=>{H.ready();return H.client.postAction('vm_control',args);};
+  async function wait(request) {
+    const deadline=Date.now()+360000;
+    while(Date.now()<deadline) {
+      const result=await call({action:'result',request_id:request.request_id});
+      if(result.state==='completed')return result;
+      if(!['queued','running'].includes(result.state))throw Error(result.error||'虚拟机操作未完成');
+      await new Promise(resolve=>setTimeout(resolve,700));
+    }
+    throw Error('连接仍在处理，请稍后查看状态；不会自动重复提交凭据。');
+  }
+  async function operate(fn) {
+    if(busy)return;busy=true;
+    const buttons=[...$('vmConnectForm').querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
+    try{H.ready();await fn();}catch(error){status(error.message);$('vmAgentStatus').textContent=error.message;}
+    finally{busy=false;buttons.forEach(b=>b.disabled=false);}
+  }
+  $('vmRefresh').addEventListener('click',()=>operate(async()=>{
+    status('正在读取，如 Windows 请求管理员授权，请确认…');
+    const result=await wait(await call({action:'list'}));const selected=$('vmSelect').value;
+    $('vmSelect').replaceChildren();
+    for(const vm of result.vms||[]) {
+      const option=document.createElement('option');option.value=vm.name;
+      option.textContent=vm.name+' · '+vm.state+' · 第 '+vm.generation+' 代';$('vmSelect').append(option);
+    }
+    if([...$('vmSelect').options].some(o=>o.value===selected))$('vmSelect').value=selected;
+    status(result.vms?.length?'请选择虚拟机，填写该系统的账号密码后连接。':'没有发现 Hyper-V 虚拟机。');
+  }));
+  $('vmConnectForm').addEventListener('submit',event=>{
+    event.preventDefault();void operate(async()=>{
+      status('正在连接并验证命令执行、双向文件传输…');
+      const args={action:'connect',vm_name:$('vmSelect').value,username:$('vmUsername').value,password:$('vmPassword').value,remember:$('vmRemember').checked,unattended:$('vmUnattended').checked};
+      let pending;
+      try{pending=call(args);}finally{$('vmPassword').value='';}
+      let request;try{request=await pending;}finally{args.password='';}
+      const result=await wait(request);
+      status('已连接 '+result.vm+' · '+result.account+' · 文件传输测试通过'+(result.credential_saved?' · 凭据已加密保存':'')+(result.unattended_warning?' · '+result.unattended_warning:result.unattended_configured?' · 无人值守'+(result.unattended_enabled?'已配置':'已关闭'):'')+(result.desktop_warning?' · 桌面：'+result.desktop_warning:''));
+    });
+  });
+  $('vmReconnectSaved').addEventListener('click',()=>operate(async()=>{
+    status('正在使用已保存凭据连接…');
+    const result=await wait(await call({action:'connect_saved',vm_name:$('vmSelect').value,unattended:$('vmUnattended').checked}));
+    status('已连接 '+result.vm+' · '+result.account+(result.unattended_warning?' · '+result.unattended_warning:result.unattended_configured?' · 无人值守'+(result.unattended_enabled?'已配置':'已关闭'):'')+(result.desktop_warning?' · 桌面：'+result.desktop_warning:''));
+  }));
+  $('vmForget').addEventListener('click',()=>operate(async()=>{
+    await call({action:'forget',vm_name:$('vmSelect').value});status('已删除已保存凭据；当前连接保持不变。');
+  }));
+  $('vmDisconnect').addEventListener('click',()=>operate(async()=>{
+    await wait(await call({action:'disconnect'}));$('vmPassword').value='';status('已断开；虚拟机仍保持原状态。');
+  }));
+  const powerName=()=>lastState.vm||$('vmSelect').value||lastState.saved_connections?.[0]?.vm;
+  async function power(action){const run=async()=>{
+    const name=powerName();if(!name)throw Error('请先在配置中选择虚拟机。');
+    $('vmAgentStatus').textContent=name+' · 正在处理电源操作…';
+    await wait(await call({action,vm_name:name}));
+    if(action==='power_on'&&lastState.saved_connections?.some(s=>s.vm===name))await wait(await call({action:'connect_saved',vm_name:name}));
+    await refreshPower();
+  };if(action==='power_force'){try{H.ready();await run();}catch(error){status(error.message);}return;}return operate(run);}
+  $('vmPowerOn').addEventListener('click',()=>power('power_on'));
+  $('vmPowerOff').addEventListener('click',()=>power('power_off'));
+  const forceDialog=H.node('dialog','','new-project-dialog project-delete-dialog');forceDialog.id='vmForceDialog';
+  const forceHeader=H.node('header','','new-project-header');forceHeader.append(H.node('h2','强制关闭虚拟机？'));
+  const forceClose=H.node('button','×','dialog-close');forceClose.type='button';forceClose.setAttribute('aria-label','关闭');forceClose.onclick=()=>forceDialog.close();forceHeader.append(forceClose);
+  const forceCancel=H.node('button','取消','secondary-btn');forceCancel.type='button';forceCancel.onclick=()=>forceDialog.close();
+  const forceConfirm=H.node('button','强制关机','danger-btn');forceConfirm.type='button';forceConfirm.onclick=()=>{forceDialog.close();void power('power_force');};
+  forceDialog.append(forceHeader,H.node('p','会中断虚拟机内的程序，未保存的内容可能丢失。'),forceCancel,forceConfirm);document.body.append(forceDialog);
+  $('vmPowerForce').addEventListener('click',()=>forceDialog.showModal());
+  function displayPower(value){
+    lastState=value;if(!preferenceEdited){const saved=value.saved_connections?.find(s=>s.vm===($('vmSelect').value||value.vm));if(saved)$('vmUnattended').checked=saved.unattended!==false;}const labels={Running:'运行中',Off:'已关机',Starting:'正在开机',Stopping:'正在关机',Saved:'已保存',Paused:'已暂停',Unknown:'状态未知'};
+    const state=value.helper_alive?value.power_state:'Unknown';
+    const phases={reconnecting:'正在自动重连',waiting_windows:'等待 Windows 启动',credentials_required:'需要更新凭据',helper_offline:'连接服务未运行',helper_busy:'连接服务正在更新状态',booting:'连接服务启动中',deploying:'正在部署桌面通道'};
+    const connectionLabel=value.connected?(value.desktop?.ready===false?'命令已连接 · 等待桌面就绪':'已连接'):(phases[value.connection_phase]||'未连接');
+    $('vmSettingsBadge').textContent=connectionLabel;$('vmSettingsBadge').classList.toggle('is-connected',!!value.connected);
+    $('vmAgentStatus').textContent=(value.vm||value.saved_connections?.[0]?.vm||'虚拟机')+' · '+(labels[state]||'状态未知')+' · '+connectionLabel;
+    $('vmPowerOn').disabled=state==='Running'||state==='Starting';
+    $('vmPowerOff').disabled=state==='Off';$('vmPowerForce').disabled=state==='Off';
+    window.dispatchEvent(new CustomEvent('hub-vm-status',{detail:value}));
+  }
+  async function refreshPower(){const value=await call({action:'status'});displayPower(value);return value;}
+  async function refreshStatus() {
+    if(busy||polling||!H.client.hasToken()||document.hidden)return;
+    polling=true;
+    try{const value=await refreshPower();
+      for(const saved of value.saved_connections||[]){if(![...$('vmSelect').options].some(o=>o.value===saved.vm)){const o=document.createElement('option');o.value=saved.vm;o.textContent=saved.vm+' · 已保存凭据';$('vmSelect').append(o);if(!$('vmSelect').value)$('vmSelect').value=saved.vm;}}
+      status(value.connected?'已连接 '+value.vm+(value.busy?' · 正在执行任务':value.power_warning?' · '+value.power_warning:value.unattended?.warning?' · '+value.unattended.warning:value.desktop?.ready===false?' · '+(value.desktop.warning||'等待 Windows 用户登录'):' · 待命'):value.connection_error||({reconnecting:'命令连接已断开，正在自动重连。',waiting_windows:'等待 Windows 启动，随后自动恢复命令连接。',credentials_required:'请更新虚拟机账号或密码。',helper_offline:'管理员连接服务未运行，请重开 Hub 或手动连接。',booting:'管理员连接服务正在启动，请稍候。',deploying:'正在部署虚拟机桌面通道。',helper_busy:'连接服务仍在运行，正在等待状态更新。'}[value.connection_phase])||(value.helper_alive?'连接服务已就绪，尚未连接虚拟机。':'尚未连接虚拟机。'));}
+    catch(error){status(error.message);}finally{polling=false;}
+    if(lastState.helper_alive&&!thumbCaptured)void thumbnail(true);
+  }
+  let thumbBusy=false,thumbName='',thumbCaptured=false,thumbAttempt=0;
+  const previewVisible=()=>$('configModalToggle').checked&&!$('vmSettings').classList.contains('settings-section-inactive')&&!document.hidden;
+  async function thumbnail(prefetch=false){
+    if(thumbBusy||(!previewVisible()&&prefetch!==true)||!H.client.hasToken())return;
+    if(prefetch===true&&Date.now()-thumbAttempt<15000)return;
+    const name=$('vmSelect').value||lastState.vm;if(!name)return;
+    thumbBusy=true;thumbAttempt=Date.now();const canvas=$('vmThumbnail'),label=$('vmThumbnailStatus');
+    if(name!==thumbName){canvas.hidden=true;$('vmThumbnailEmpty').hidden=false;thumbName=name;thumbCaptured=false;}
+    $('vmPreviewName').textContent=name;label.textContent='正在读取控制台预览…';
+    try{
+      const data=await wait(await call({action:'thumbnail',vm_name:name}));
+      if(name!==($('vmSelect').value||lastState.vm))return;
+      if(!data.available){canvas.hidden=true;$('vmThumbnailEmpty').hidden=false;label.textContent=data.note||'暂无屏幕预览';return;}
+      const raw=atob(data.image_data||''),width=Number(data.width),height=Number(data.height);
+      if(data.format!=='rgb565le'||width<1||height<1||width>640||height>480||raw.length!==width*height*2)throw Error('缩略图数据格式不正确');
+      canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d'),frame=ctx.createImageData(width,height);
+      for(let i=0;i<width*height;i++){const pixel=raw.charCodeAt(i*2)|(raw.charCodeAt(i*2+1)<<8);frame.data[i*4]=Math.round(((pixel>>11)&31)*255/31);frame.data[i*4+1]=Math.round(((pixel>>5)&63)*255/63);frame.data[i*4+2]=Math.round((pixel&31)*255/31);frame.data[i*4+3]=255;}
+      ctx.putImageData(frame,0,0);thumbCaptured=true;canvas.hidden=false;$('vmThumbnailEmpty').hidden=true;label.textContent='控制台预览 · '+new Date().toLocaleTimeString();
+    }catch(error){label.textContent=(canvas.hidden?'预览暂不可用：':'预览未更新，保留上一帧：')+error.message;}finally{thumbBusy=false;}
+  }
+  $('vmOpenManager').addEventListener('click',async()=>{try{await call({action:'open_manager'});}catch(error){status(error.message);}});
+  $('vmThumbnailRefresh').addEventListener('click',thumbnail);$('vmSelect').addEventListener('change',thumbnail);
+  window.addEventListener('hub-settings-section',()=>void thumbnail());setInterval(thumbnail,15000);
+  $('configModalToggle').addEventListener('change',()=>{
+    if(!$('configModalToggle').checked)$('vmPassword').value='';else {void refreshStatus().then(thumbnail);}
+  });
+  window.addEventListener('pagehide',()=>{$('vmPassword').value='';});
+  setInterval(refreshStatus,5000);
+  void refreshStatus();
+})();
+
+"use strict";
+(()=>{
+ const H=window.HubDesktop,$=H.$;let loading=false,dirty=false;
+ const bytes=n=>{const u=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++;}return n.toLocaleString(undefined,{maximumFractionDigits:i?1:0})+' '+u[i];};
+ $('storageRoot').addEventListener('input',()=>{dirty=true;});
+ const cleanDialog=document.createElement('dialog');cleanDialog.id='projectCleanupDialog';cleanDialog.className='project-cleanup-dialog';
+ const cleanTitle=H.node('h2','清理项目文件'),cleanWarning=H.node('p','','cleanup-warning'),cleanPaths=H.node('ul','','cleanup-paths'),cleanStatus=H.node('p','','config-status-text');cleanStatus.setAttribute('role','status');
+ const cleanHeader=H.node('header','','project-dialog-header'),cleanClose=H.button('×',()=>cleanDialog.close());cleanClose.className='dialog-close';cleanClose.setAttribute('aria-label','关闭');cleanHeader.append(cleanTitle,cleanClose);
+ const cleanCancel=H.button('取消',()=>cleanDialog.close()),cleanConfirm=H.button('清理全部文件',async()=>{
+  if(!cleanupPlan)return;
+  if(!cleanupPlan.removed&&cleanupStep===0){cleanupStep=1;cleanStatus.textContent='这个项目仍保留在项目列表中。继续将删除它的项目文件和独立工作区，但保留聊天与模型上下文。请再次确认。';cleanConfirm.textContent='确认清理保留项目的文件';cleanCancel.focus();return;}
+  cleanConfirm.disabled=true;cleanCancel.disabled=true;cleanClose.disabled=true;cleanStatus.textContent='正在清理项目文件…';
+  try{const result=await H.client.postAction('project_cleanup',{project_id:cleanupPlan.project_id,confirmed:true,inventory_key:cleanupPlan.inventory_key});
+   cleanStatus.textContent=result.ok?'已清理全部关联文件。':('部分文件未能清理：\n'+result.errors.map(e=>e.path+'：'+e.error).join('\n'));cleanupPlan=null;
+   await refresh();if(result.ok)cleanDialog.close();
+  }catch(error){cleanStatus.textContent=error.message;}finally{cleanCancel.disabled=false;cleanClose.disabled=false;cleanConfirm.disabled=!cleanupPlan;}
+ });cleanConfirm.className='danger-btn';cleanCancel.className='secondary-btn';
+ const cleanFooter=H.node('footer','','delete-dialog-actions');cleanFooter.append(cleanCancel,cleanConfirm);cleanDialog.append(cleanHeader,cleanWarning,cleanPaths,cleanStatus,cleanFooter);document.body.append(cleanDialog);let cleanupPlan=null,cleanupStep=0;
+ async function cleanProject(project){
+  try{H.ready();cleanupPlan=await H.client.postAction('project_cleanup',{project_id:project.id});cleanupStep=0;cleanConfirm.textContent=cleanupPlan.removed?'清理全部文件':'下一步';cleanTitle.textContent='清理“'+project.name+'”的文件';
+   cleanWarning.textContent=(cleanupPlan.removed?'':'这个项目会保留在列表中。清理成功后，给经理发消息即可从空目录重新开始，对话和模型上下文会保留。')+'以下文件将永久删除，无法撤销；操作只清理本机记录的文件，不清理虚拟机内的副本。';
+   cleanPaths.replaceChildren(...cleanupPlan.paths.map(p=>H.node('li',p.kind+' · '+p.path+(p.protected?'（共享或根目录，将保留）':p.exists?'':'（已不存在）'))));cleanStatus.textContent='';cleanConfirm.disabled=false;cleanDialog.showModal();cleanCancel.focus();
+  }catch(error){$('storageStatus').textContent=error.message;}
+ }
+ function render(data){
+  if(!dirty&&data.root)$('storageRoot').value=data.root;
+  $('storageSummary').textContent=data.disk_free!==undefined?'所在磁盘可用 '+bytes(data.disk_free)+' / '+bytes(data.disk_total):'';
+  const rows=(data.projects||[]).map(project=>{
+   const row=H.node('article','','storage-project-row');row.dataset.projectId=project.id;row.dataset.removed=String(!!project.removed);
+   const info=H.node('div','','storage-project-info');info.append(H.node('strong',project.name),H.node('span',project.cwd,'storage-project-path'),H.node('small',project.exists?(project.partial?'至少 ':'')+bytes(project.bytes)+' · '+project.files.toLocaleString()+' 个文件':'目录不存在','storage-project-size'));
+   info.append(H.node('span',project.removed?'已从列表移除':'保留在项目列表','storage-project-badge '+(project.removed?'is-removed':'is-retained')));
+   const actions=H.node('div','','storage-project-actions');const open=H.button('打开',async()=>{try{await H.client.postAction('project_open_directory',{project_id:project.id});}catch(error){$('storageStatus').textContent=error.message;}});open.className='secondary-btn btn-sm';open.disabled=!project.exists;actions.append(open);
+   const remove=H.button('清理文件',()=>cleanProject(project));remove.className='settings-text-button danger-text';remove.disabled=!!project.busy;remove.title=project.busy?'项目正在执行，请先暂停或结束并等待 Agent 停止':'清理项目目录、独立工作区、演示与展示附件';actions.append(remove);
+   row.append(info,actions);return row;
+  });
+  const groups=[];
+  for(const [removed,label] of [[false,'保留的项目'],[true,'已移除的项目']]){
+   const items=rows.filter(row=>row.dataset.removed===String(removed));if(!items.length)continue;
+   const section=H.node('section','','storage-project-group');section.dataset.removed=String(removed);section.append(H.node('h4',label+' · '+items.length),...items);groups.push(section);
+  }
+  $('storageProjects').replaceChildren(...(groups.length?groups:[H.node('p','尚无项目','muted')]));
+ }
+ async function refresh(path){if(loading)return;loading=true;$('storageStatus').textContent='正在读取存储信息…';try{H.ready();const data=await H.client.postAction('project_storage',path===undefined?{}:{path});if(path!==undefined)dirty=false;render(data);$('storageStatus').textContent=path===undefined?'':'已保存，之后创建的新项目将使用此位置。';}catch(error){$('storageStatus').textContent=error.message;}finally{loading=false;}}
+ $('storageRefresh').addEventListener('click',()=>refresh());
+ $('storageForm').addEventListener('submit',event=>{event.preventDefault();void refresh($('storageRoot').value.trim());});
+ $('storageBrowse').addEventListener('click',async()=>{try{const result=await H.client.postAction('project_browse_directory',{initial:$('storageRoot').value});if(result.path){$('storageRoot').value=result.path;dirty=true;}}catch(error){$('storageStatus').textContent=error.message;}});
+ $('configModalToggle').addEventListener('change',()=>{if($('configModalToggle').checked)void refresh();});
+})();
+
+// Settings use category navigation; preserve the existing nodes, forms and drafts.
+(() => {
+ const H=window.HubDesktop;if(!H)return;const $=id=>document.getElementById(id),body=$('configModal').querySelector('.config-modal-body');
+ const sections=[...body.children].filter(n=>n.matches('section.config-section-card'));const shell=H.node('div','','settings-two-column'),nav=H.node('nav','','settings-navigation');nav.setAttribute('aria-label','设置分类');const content=H.node('div','','settings-content scroll');let active=0;
+ const buttons=sections.map((section,index)=>{if(!section.id)section.id='settingsSection'+index;const label=section.querySelector('h3')?.textContent.replace(/^\d+\s*·\s*/,'')||'其它';const button=H.button(label,()=>select(index));button.className='settings-nav-button';button.setAttribute('aria-controls',section.id);nav.append(button);content.append(section);return button;});
+ function select(index){active=index;sections.forEach((s,i)=>s.classList.toggle('settings-section-inactive',i!==active));buttons.forEach((b,i)=>{b.hidden=sections[i].hidden;b.classList.toggle('active',i===active);b.setAttribute('aria-current',i===active?'page':'false');});content.scrollTop=0;window.dispatchEvent(new Event('hub-settings-section'));}
+ const visibility=new MutationObserver(()=>{buttons.forEach((b,i)=>b.hidden=sections[i].hidden);if(sections[active]?.hidden)select(Math.max(0,sections.findIndex(s=>!s.hidden)));});sections.forEach(s=>visibility.observe(s,{attributes:true,attributeFilter:['hidden']}));
+ shell.append(nav,content);body.append(shell);select(0);
+})();
+
+// Read-only Git graph: one bounded request at a time, only while the project status page is visible.
+(() => {
+ const H=window.HubDesktop;if(!H)return;const $=id=>document.getElementById(id),drawer=$('projectGitDrawer');let busy=false,lastProject='',lastText='';
+ async function refreshGit(){if(!$('chatTabStatusRadio').checked||!$('viewModeChatRadio').checked||document.hidden||busy)return;const project=H.client.getSelectedProjectId();if(!project){$('projectGitStatus').textContent='请先选择项目';$('projectGitGraph').textContent='';$('projectGitBranches').replaceChildren();return;}
+  busy=true;try{if(project!==lastProject){$('projectGitGraph').textContent='';$('projectGitBranches').replaceChildren();lastText='';lastProject=project;}$('projectGitStatus').textContent='正在刷新…';
+   const data=await H.client.postAction('project_git_tree',{project_id:project});if(project!==H.client.getSelectedProjectId())return;
+   const text=data.graph||data.note||'暂无提交';if(text!==lastText){$('projectGitGraph').textContent=text;lastText=text;}
+   const branches=JSON.stringify(data.workspaces||[]);if($('projectGitBranches').dataset.snapshot!==branches){$('projectGitBranches').dataset.snapshot=branches;$('projectGitBranches').replaceChildren(...(data.workspaces||[]).map(w=>H.node('p',H.agentName(w.agent)+' · '+w.branch,'git-branch-label')));}
+   $('projectGitStatus').textContent='最近 80 条 · 每 5 秒刷新 · '+new Date(data.updated*1000).toLocaleTimeString();
+  }catch(error){$('projectGitStatus').textContent='刷新失败，保留上次记录：'+error.message;}finally{busy=false;}
+ }
+ for(const id of ['chatTabStatusRadio','viewModeChatRadio'])$(id).addEventListener('change',refreshGit);H.store.subscribe(()=>{if(H.client.getSelectedProjectId()!==lastProject)refreshGit();});$('refreshProjectGit').addEventListener('click',refreshGit);setInterval(refreshGit,5000);
+})();

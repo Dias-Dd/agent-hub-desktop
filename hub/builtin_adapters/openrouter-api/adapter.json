@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "id": "openrouter-api",
+  "name": "OpenRouter API",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "default"
+  ],
+  "api": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "key_environment": "OPENROUTER_API_KEY"
+  },
+  "provider": "openrouter-api",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://openrouter.ai/",
+    "login_url": "https://openrouter.ai/settings/keys",
+    "key_env": "OPENROUTER_API_KEY",
+    "note": "在官方平台创建 API 密钥，并配置 OPENROUTER_API_KEY 用户环境变量。"
+  }
+}

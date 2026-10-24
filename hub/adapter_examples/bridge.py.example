@@ -1,0 +1,8 @@
+"""Protocol demonstration only; replace the echo with your real harness invocation."""
+import json,sys
+request=json.loads(sys.stdin.readline())
+# Call your CLI, SDK or HTTP agent here, forwarding model/cwd/prompt/history/system.
+# If session_id is present and native resume succeeds, do not replay history.
+text='[协议示例，并未调用模型] '+request['prompt']
+print(json.dumps({'type':'text','text':text},ensure_ascii=False),flush=True)
+print(json.dumps({'type':'result','status':'completed'},ensure_ascii=False),flush=True)

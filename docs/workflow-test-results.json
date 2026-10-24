@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-18",
+  "tests": 52,
+  "failures": 0,
+  "errors": 0,
+  "seconds": 12.952,
+  "success": true,
+  "note": "HTTP simulation test waits for both asynchronous task and project progress updates."
+}

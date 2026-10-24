@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-18",
+  "proxy": "existing Windows system HTTP proxy on loopback:7890",
+  "scope": "child process only; API key routes removed",
+  "seconds": 12.349,
+  "events": [
+    {
+      "event": "init",
+      "model": "gemini-3.8-flash-medium"
+    },
+    {
+      "event": "result",
+      "result": {
+        "conversation_id": "1dad4456-afdf-4238-945b-2f954227b4c5",
+        "status": "SUCCESS",
+        "response": "HUB_PROXY_OK\n",
+        "duration_seconds": 3.2735938,
+        "num_turns": 1,
+        "usage": {
+          "input_tokens": 11801,
+          "output_tokens": 50,
+          "thinking_tokens": 45,
+          "cache_read_tokens": 0,
+          "total_tokens": 11851
+        }
+      },
+      "exit_code": 0
+    }
+  ]
+}

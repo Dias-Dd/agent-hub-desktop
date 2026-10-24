@@ -1,0 +1,101 @@
+{
+  "installed": true,
+  "version": "1.4.1",
+  "models": [
+    {
+      "model": "gemini-4-argon-medium",
+      "name": "Gemini 4 Argon (Medium)"
+    },
+    {
+      "model": "gemini-4-argon-high",
+      "name": "Gemini 4 Argon (High)"
+    },
+    {
+      "model": "gemini-4-argon-low",
+      "name": "Gemini 4 Argon (Low)"
+    },
+    {
+      "model": "gemini-3.8-flash-high",
+      "name": "Gemini 3.8 Flash (High)"
+    },
+    {
+      "model": "gemini-3.8-flash-medium",
+      "name": "Gemini 3.8 Flash (Medium)"
+    },
+    {
+      "model": "gemini-3.8-flash-low",
+      "name": "Gemini 3.8 Flash (Low)"
+    },
+    {
+      "model": "claude-opus-5-5-low",
+      "name": "Claude Opus 5.5 (Low)"
+    },
+    {
+      "model": "claude-opus-5-5-medium",
+      "name": "Claude Opus 5.5 (Medium)"
+    },
+    {
+      "model": "claude-opus-5-5-high",
+      "name": "Claude Opus 5.5 (High)"
+    },
+    {
+      "model": "claude-sonnet-5-5-low",
+      "name": "Claude Sonnet 5.5 (Low)"
+    },
+    {
+      "model": "claude-sonnet-5-5-medium",
+      "name": "Claude Sonnet 5.5 (Medium)"
+    },
+    {
+      "model": "claude-sonnet-5-5-high",
+      "name": "Claude Sonnet 5.5 (High)"
+    },
+    {
+      "model": "gpt-oss-120b-medium",
+      "name": "GPT-OSS 120B (Medium)"
+    }
+  ],
+  "windows": [
+    {
+      "group": "Gemini Models",
+      "window": "Weekly Limit Remaining",
+      "remaining": 100.0,
+      "resets_at": 1792857909.0
+    },
+    {
+      "group": "Gemini Models",
+      "window": "Five Hour Limit Remaining",
+      "remaining": 100.0,
+      "resets_at": 1792300386.0
+    },
+    {
+      "group": "Claude and GPT models",
+      "window": "Weekly Limit Remaining",
+      "remaining": 48.0,
+      "resets_at": 1792846656.0
+    },
+    {
+      "group": "Claude and GPT models",
+      "window": "Five Hour Limit Remaining",
+      "remaining": 100.0,
+      "resets_at": 1792300537.0
+    },
+    {
+      "group": "Gemini 4 Argon",
+      "window": "Gemini 4 Argon Weekly Limit",
+      "remaining": 95.0,
+      "resets_at": 1792830219.0
+    }
+  ],
+  "observed_at": 1792282538.7715642,
+  "quota_source": "official_cli",
+  "auth_evidence": "cached Google account model quotas",
+  "inference_tested": false,
+  "network": {
+    "proxy_configured": true,
+    "endpoints_without_credentials": {
+      "HTTP_PROXY": "http://127.0.0.1:7890",
+      "HTTPS_PROXY": "http://127.0.0.1:7890"
+    }
+  }
+}

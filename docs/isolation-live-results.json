@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "output": "A-start\r\nA-done\r\n",
+      "exit_code": 7,
+      "elevated": true,
+      "request_id": "abb3c3b3527e44c0bfc34c65fbb26a79",
+      "state": "completed",
+      "finished": 1792755210.45
+    },
+    {
+      "output": "B-independent\r\nC:\\HubWorkspace\\513239a6d2d84e8f913d393064ee9965\\hub-isolation-check-b\r\n",
+      "exit_code": 0,
+      "elevated": true,
+      "request_id": "898740e540314976bccf773b6a8dac18",
+      "state": "completed",
+      "finished": 1792755200.197
+    },
+    {
+      "output": "A-follow-up\r\nC:\\HubWorkspace\\513239a6d2d84e8f913d393064ee9965\\hub-isolation-check-a\r\n",
+      "exit_code": 0,
+      "elevated": true,
+      "request_id": "2d6153bb910a42be89f31bb8f4cb538f",
+      "state": "completed",
+      "finished": 1792755221.44
+    },
+    {
+      "request_id": "668d9dd31ffc4b2ea7d4c738bbab14b0",
+      "error": "Command timed out; isolated process tree stopped. Inspect files before retrying.",
+      "finished": 1792755205.297,
+      "state": "unknown"
+    }
+  ]
+}

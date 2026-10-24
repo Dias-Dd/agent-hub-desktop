@@ -1,0 +1,13 @@
+请为现有 Agent Message Hub 设计并实现一个漂亮、直观的中文前端。先给我页面布局、视觉方向、交互流程、分工和验收计划，等我确认“按计划执行”后再实施。
+
+当前讨论阶段禁止工具；只根据这里的信息拟定计划，不声称已读取本地文件。批准后，首批先安排一名执行者在本项目工作目录准备源码副本并核对接口，再并行开展设计与集成。原源码位于：
+C:\Users\ASUS\Documents\Codex\2026-10-17\referenced-chatgpt-conversation-this-is-an\outputs\agent-message-hub
+复制时排除data、密钥、日志、缓存和已有项目产物。保持正式Hub运行，在副本开发，不在任务执行中停止承载任务的服务。
+
+接口概况：GET /api/state读取快照，GET /health检查服务；写操作统一POST /api/action，JSON为{action,args}，成功返回{result}。受保护请求带用户Bearer凭证；X-Hub-Project使用项目分组ID，不能与workflow_id/session_id/run_id混用。先讨论后执行使用plan_chat和最新revision；消息send、恢复workflow_resume、停止agent_halt。当前经理读workflow.manager，不写死Argon。新前端保留DeepSeek向导、费用授权、额度预警/恢复、双通知与经理交接。DeepSeek助理模式尚未实现，不做假开关。
+
+执行者先按需阅读副本中的docs/FRONTEND_HANDOFF.md和docs/frontend-actions.json，再核对相关源码。接口不明时先核对，不猜接口、不靠假状态掩盖。每人明确文件归属，避免同时修改入口文件；简短汇报结果和证据，异常及时上报。
+
+主界面突出当前项目、当前经理、谁在做什么、等待原因和下一步操作。提供清楚的计划/聊天、任务看板、Agent列表、共享额度、配置和历史入口；完整Prompt与执行日志默认折叠。视觉统一、信息有层次，支持窄屏、键盘操作与长中文。
+
+保留后端认证、权限、预算、调度与计划批准边界；必要的静态托管兼容改动单独说明。使用独立测试数据和端口，模拟提供商响应，不以真实模型或付费API调用做界面验收。交付可运行源码、截图、测试结果和部署说明，最终让我检查实际页面。

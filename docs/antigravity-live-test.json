@@ -1,0 +1,21 @@
+{
+  "status": "failed",
+  "model": "gemini-3.8-flash-medium",
+  "permission": "full",
+  "cwd": "C:\\Users\\ASUS\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\agent-message-hub\\projects\\antigravity-smoke",
+  "thread_id": "1d32d23b-7e38-4993-ba19-777b82e28db3",
+  "result": "FAILED_PRECONDITION (code 400): User location is not supported for the API use.",
+  "usage": "{\"input_tokens\": 0, \"output_tokens\": 0, \"thinking_tokens\": 0, \"cache_read_tokens\": 0, \"total_tokens\": 0}",
+  "started": 1792253083.5234613,
+  "finished": 1792253112.8065534,
+  "events": [
+    {
+      "kind": "antigravity.result",
+      "data": "{\"status\": \"ERROR\", \"exit_code\": 3, \"usage\": {\"input_tokens\": 0, \"output_tokens\": 0, \"thinking_tokens\": 0, \"cache_read_tokens\": 0, \"total_tokens\": 0}}"
+    },
+    {
+      "kind": "antigravity.init",
+      "data": "{\"cwd\": \"C:\\\\Users\\\\ASUS\\\\Documents\\\\Codex\\\\2026-10-17\\\\referenced-chatgpt-conversation-this-is-an\\\\outputs\\\\agent-message-hub\\\\projects\\\\antigravity-smoke\", \"model\": \"gemini-3.8-flash-medium\", \"permission_mode\": \"always-proceed\"}"
+    }
+  ]
+}

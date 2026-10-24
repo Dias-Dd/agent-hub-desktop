@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "id": "my-module",
+  "name": "我的模块",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "models": [
+    {
+      "id": "my-model",
+      "efforts": [
+        "default"
+      ]
+    }
+  ],
+  "capabilities": {
+    "tools": false,
+    "resume": false,
+    "streaming": false
+  },
+  "settings": {},
+  "environment": {}
+}

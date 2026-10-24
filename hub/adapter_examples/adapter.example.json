@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "my-harness",
+  "name": "我的 Harness",
+  "protocol": "hub-jsonl-v1",
+  "command": [
+    "${python}",
+    "${adapter_dir}/bridge.py"
+  ],
+  "models": [
+    {
+      "id": "my-model",
+      "name": "我的模型",
+      "efforts": [
+        "default"
+      ]
+    }
+  ],
+  "capabilities": {
+    "streaming": true,
+    "resume": false,
+    "tools": false
+  },
+  "environment": {}
+}

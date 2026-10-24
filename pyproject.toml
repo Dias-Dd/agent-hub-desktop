@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-message-hub"
+version = "0.1.0"
+description = "Offline-first local agent messaging, MCP and supervisor"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.package-data]
+hub = ["static/*", "adapter_examples/*", "builtin_adapters/*/adapter.json", "builtin_adapters/*/*.py"]
+
+[tool.setuptools.packages.find]
+include = ["hub*"]

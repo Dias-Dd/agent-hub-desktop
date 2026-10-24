@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "id": "ori",
+  "name": "Ori · OpenRouter / OpenCode",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "default"
+  ],
+  "provider": "ori",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://openrouter.ai/blog/announcements/ori-harness/",
+    "login_args": [
+      "login"
+    ],
+    "terminal": true,
+    "note": "使用 Ori 的 OpenRouter 官方 OAuth 登录。"
+  }
+}

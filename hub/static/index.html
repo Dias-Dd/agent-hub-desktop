@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Hub</title>
+  <link rel="icon" type="image/svg+xml" href="/hub-mark.svg">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/i18n.js" defer></script>
+  <script src="/api-client.js" defer></script>
+  <script src="/state-store.js" defer></script>
+  <script src="/windows.js" defer></script>
+  <script src="/titlebar.js" defer></script>
+  <script src="/app.js" defer></script>
+  <script src="/codex.js" defer></script>
+  <script src="/antigravity.js" defer></script>
+  <script src="/workflow.js" defer></script><script src="/project-setup.js" defer></script>
+  <script src="/design.js" defer></script>
+  <script src="/integrations.js" defer></script>
+  <link rel="stylesheet" href="/integrations.css">
+  <link rel="stylesheet" href="/design.css">
+  <script src="/setup.js" defer></script>
+  <link rel="stylesheet" href="/modern.css">
+</head>
+<body>
+  <!-- 顶层通知浮层 -->
+  <div id="notice" role="status" aria-live="polite"></div>
+
+  <nav id="desktopContextMenu" class="desktop-context-menu" role="menu" aria-label="工作台快捷菜单" hidden>
+    <span class="context-menu-title">工作台快捷操作</span>
+    <button type="button" role="menuitem" data-context-command="copy">复制选中文本 <kbd>Ctrl+C</kbd></button>
+    <button type="button" role="menuitem" data-context-command="paste">粘贴至上次输入框 <kbd>Ctrl+V</kbd></button>
+    <button type="button" role="menuitem" data-context-command="cut">剪切输入框选区 <kbd>Ctrl+X</kbd></button>
+    <button type="button" role="menuitem" data-context-command="select">全选</button>
+    <button type="button" role="menuitem" data-context-command="clear">清空上次输入框</button>
+    <hr>
+    <button type="button" role="menuitem" data-context-command="manager">与项目经理沟通</button>
+    <button type="button" role="menuitem" data-context-command="group">Agent 群聊与动态</button>
+    <button type="button" role="menuitem" data-context-command="status">查看 Agent 面板</button>
+    <button type="button" role="menuitem" data-context-command="config">配置中心</button>
+    <button type="button" role="menuitem" data-context-command="refresh">刷新当前状态</button>
+    <button type="button" role="menuitem" data-context-command="quota">刷新官方额度</button>
+    <hr>
+    <span class="context-menu-title">界面缩放 · Ctrl + / − / 0</span>
+    <div class="context-zoom-options">
+      <button type="button" role="menuitem" data-context-command="zoom-90">90%</button>
+      <button type="button" role="menuitem" data-context-command="zoom-100">100%</button>
+      <button type="button" role="menuitem" data-context-command="zoom-110">110%</button>
+      <button type="button" role="menuitem" data-context-command="zoom-125">125%</button>
+      <button type="button" role="menuitem" data-context-command="zoom-150">150%</button>
+    </div>
+  </nav>
+
+  <!-- 纯 CSS 无内联脚本状态切换控制器（支持原生纯 CSS 响应，同时留给 JS 挂载事件） -->
+  <input type="radio" name="mainViewToggle" id="viewModeChatRadio" class="view-toggle-radio" checked autocomplete="off">
+  <input type="radio" name="mainViewToggle" id="viewModeStatusRadio" class="view-toggle-radio" autocomplete="off">
+  <input type="radio" name="chatTabToggle" id="chatTabManagerRadio" class="chat-tab-toggle-radio" checked autocomplete="off">
+  <input type="radio" name="chatTabToggle" id="chatTabGroupRadio" class="chat-tab-toggle-radio" autocomplete="off">
+  <input type="radio" name="chatTabToggle" id="chatTabStatusRadio" class="chat-tab-toggle-radio" autocomplete="off">
+  <input type="checkbox" id="configModalToggle" class="modal-toggle-checkbox" autocomplete="off">
+
+  <!-- 欢迎 / 初始化登录页 (未认证前展示) -->
+  <section id="login" class="login-screen">
+    <div class="login-card">
+      <span class="eyebrow">LOCAL WORKSPACE · DESKTOP WORKBENCH</span>
+      <h2>连接本地 Agent Message Hub 工作台</h2>
+      <p class="login-desc">多个独立 Agent，一处协作记录。真实模型调用严格遵循本地独立授权。</p>
+      <ol class="login-steps">
+        <li>双击项目目录中的 <code>Start-Hub.cmd</code> 启动本地服务。</li>
+        <li>桌面自有实例会自动连接；手动连接时，可粘贴 <code>credentials.json</code> 全部内容或其中的 <code>user</code> 值。</li>
+        <li>在下方粘贴凭证，仅保留在当前页面内存中，严禁分享或回显。</li>
+      </ol>
+      <p id="loginEndpoint" class="login-footer-hint">当前 Hub：正在识别本机地址…</p>
+      <p id="credentialPath" class="login-footer-hint">默认桌面凭证：%LOCALAPPDATA%\AgentMessageHubDesktop\data\credentials.json；其他实例使用其启动时 --data 指定目录下的 credentials.json。</p>
+      <form id="loginForm" class="login-form" autocomplete="off">
+        <label for="token">本地用户凭证 (User Token)</label>
+        <input id="token" type="password" autocomplete="off" placeholder="粘贴 User Token..." required>
+        <button id="btnLoginSubmit" type="submit" class="primary-btn">连接工作台</button>
+        <p id="loginError" class="error-text" role="alert" aria-live="assertive"></p>
+      </form>
+      <p class="login-footer-hint">仅监听 127.0.0.1 · SQLite 本地持久化 · 无外部网络依赖</p>
+    </div>
+  </section>
+
+  <!-- 初始化配置向导 (按需呼出) -->
+  <section id="setupWizard" class="setup-wizard-screen" hidden aria-labelledby="setupTitle">
+    <div class="setup-wizard-card">
+      <span class="eyebrow">MODEL INTEGRATION · 真实模型接入</span>
+      <h2 id="setupTitle">接入真实模型，准备生产工作区</h2>
+      <ol class="steps" id="setupSteps">
+        <li class="current">1 环境检查</li>
+        <li>2 订阅模型</li>
+        <li>3 可选备用</li>
+        <li>4 就绪总览</li>
+      </ol>
+      <div id="setupBody" class="setup-body"></div>
+      <p id="setupError" class="error-text" role="alert"></p>
+      <div class="wizardActions">
+        <button id="setupClose" type="button" class="secondary-btn">稍后接入</button>
+        <button id="setupBack" type="button" class="secondary">上一步</button>
+        <button id="setupNext" type="button" class="primary-btn">下一步</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主工作台：桌面端「左-中-右」三栏工作台 -->
+  <div id="workspace" class="workspace-desktop" hidden>
+
+    <!-- ==================== 左侧栏 ==================== -->
+    <aside id="activityRail" class="activity-rail" aria-label="工作台导航">
+      <span class="rail-mark" title="Agent Hub"><img src="/hub-mark.svg" alt="Agent Hub" width="30" height="30"></span>
+      <label for="viewModeChatRadio" id="btnViewChat" class="rail-icon" role="button" tabindex="0" title="工作台沟通" aria-label="工作台沟通">◷</label>
+      <label for="viewModeStatusRadio" id="btnViewStatus" class="rail-icon" role="button" tabindex="0" title="Agent 面板" aria-label="Agent 面板">▦</label>
+      <button id="toggleQuotaQuick" type="button" class="rail-icon" title="额度与窗口速览" aria-label="额度与窗口速览" aria-expanded="false">◔</button>
+      <label for="configModalToggle" id="btnOpenConfig" class="rail-icon rail-bottom" role="button" tabindex="0" title="配置中心" aria-label="配置中心">⚙</label>
+    </aside>
+    <aside id="sidebarLeft" class="workbench-sidebar-left">
+      <!-- 项目管理与切换区 -->
+      <div class="sidebar-section project-section">
+        <div class="section-title-row">
+          <span class="section-title workspace-brand">Agent Hub<span class="workspace-brand-caption">项目工作区</span></span>
+          <span id="projectCountTag" class="count-pill">活跃</span><button id="hubProjectCreateBtn" type="button" class="project-create-icon" title="新建项目" aria-label="新建项目">＋</button>
+        </div>
+        <div class="project-selector-wrapper" hidden>
+          <label for="hubProjectSelect" class="field-label sr-only">切换当前项目</label>
+          <select id="hubProjectSelect" class="project-dropdown">
+            <option value="">全部项目与旧记录</option>
+          </select>
+        </div>
+        <nav id="projectList" class="project-list" aria-label="项目列表"></nav>
+        <section id="startupProgress" class="startup-progress" hidden aria-label="服务加载进度"><span id="startupLabel" role="status" aria-live="polite">正在加载服务…</span><progress id="startupBar" max="4" value="1"></progress></section>
+
+      </div>
+
+    </aside>
+
+<aside id="quotaQuickPanel" class="quota-quick-popover" hidden aria-label="额度与窗口速览">      <!-- 额度快速概要 -->
+      <div class="sidebar-section quota-quick-section">
+        <div class="section-title-row">
+          <span class="section-title">额度与窗口速览</span>
+        </div>
+        <div id="providerQuotaList" class="quota-quick-list"></div>
+        <button id="refreshProviderQuotas" type="button" class="secondary-btn">刷新可读额度</button>
+        <p class="muted">仅当前接入；无法读取时显示未知，平台授权次数不代表账号额度。</p>
+      </div>
+
+<button id="closeQuotaQuick" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></aside>
+    <!-- ==================== 中间栏 ==================== -->
+    <div class="workbench-content-surface">
+
+    <main id="workbenchCenter" class="workbench-center">
+<section id="emptyWorkspace" class="empty-workspace" hidden><h1>欢迎使用 Agent Hub</h1><p>创建第一个项目，开始与 Agent 协作。</p><button id="createFirstProject" type="button" class="primary-btn">创建第一个项目</button></section>
+
+
+      <!-- 额度预警、等待倒计时与备用经理接管状态横幅 (Material Design 3 Banner) -->
+      <section id="quotaDisasterBanner" class="m3-status-banner" hidden role="region" aria-label="模型额度预警与容灾状态"></section>
+
+      <!-- ---------------- 模式 1：聊天状态模式 ---------------- -->
+      <section id="viewChatMode" class="center-view-panel">
+        <!-- 聊天顶部二级 Tab 切换栏 -->
+        <header class="chat-tab-header">
+          <div class="chat-tabs-nav" role="tablist">
+            <label for="chatTabManagerRadio" id="tabManagerChat" class="chat-tab-btn" tabindex="0" role="tab" aria-selected="true">
+              <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4V5Z M8 9h8 M8 12h5"/></svg></span>
+              <span>与项目经理沟通</span>
+            </label>
+            <label for="chatTabGroupRadio" id="tabGroupChat" class="chat-tab-btn" tabindex="0" role="tab" aria-selected="false">
+              <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M2 21v-2a7 7 0 0 1 14 0v2 M17 5a4 4 0 0 1 0 7 M19 16a6 6 0 0 1 3 5"/></svg></span>
+              <span>Agent 群聊与动态</span>
+            </label>
+            <label for="chatTabStatusRadio" id="tabProjectStatus" class="chat-tab-btn" role="tab" aria-selected="false" tabindex="0"><span class="tab-icon" aria-hidden="true">◷</span><span>项目状态</span></label>
+          </div>
+          <div class="chat-tab-actions">
+            <span id="activeChatModeTag" class="badge badge-neutral">持续会话</span>
+          </div>
+        </header>
+
+        <div class="chat-content-container">
+          <!-- 子面板 A：与项目经理沟通 -->
+          <div id="panelManagerChat" class="chat-subpanel">
+            <!-- 经理状态与工作流控制器条 -->
+            <div class="manager-control-bar">
+              <div class="manager-meta">
+                <span class="manager-name-chip">当前经理：<strong id="currentManagerName">待选择</strong></span>
+                <span id="discussionStatus" class="discussion-status-text">就绪</span>
+              </div>
+              <div class="manager-action-btns">
+                <button id="newDiscussion" type="button" class="secondary-btn btn-sm">新建讨论</button>
+                <button id="switchManagerDeepseekBtn" type="button" class="primary-btn btn-sm" title="选择已接入的 Agent 担任项目经理">切换项目经理</button>
+                <button id="toggleDiscussionView" type="button" class="secondary-btn btn-sm" hidden>查看当前讨论</button>
+                <button id="recoverPlanResult" type="button" class="secondary-btn btn-sm" hidden>读取已完成计划</button>
+                <button id="workflowWakeBtn" type="button" class="secondary-btn btn-sm">唤醒经理核查</button>
+                <button id="workflowResumeBtn" type="button" class="secondary-btn btn-sm">恢复项目</button>
+                <button id="workflowPatrolBtn" type="button" class="secondary-btn btn-sm" title="仅关闭定期巡检，不停止 Agent、不发送消息、不改变项目状态">允许项目静置</button>
+                <button id="workflowStopBtn" type="button" class="danger-btn btn-sm">停止当前项目</button>
+              </div>
+            </div>
+
+            <div id="managerReadingArea" class="manager-reading-area scroll" aria-label="经理原始回复与计划阅读区">
+            <!-- 计划讨论与审批历史流水 -->
+            <div id="discussionHistory" class="chat-history-scroll scroll" role="log" aria-label="项目经理沟通历史"></div>
+
+            <!-- 计划待确认审批卡片 -->
+            <div id="planApprovalCard" class="plan-approval-card" hidden>
+              <div class="plan-card-header">
+                <span class="eyebrow">PLAN APPROVAL · 任务规划审批</span>
+                <span id="planRevisionBadge" class="badge badge-accent">最新修订</span>
+              </div>
+              <div id="planTaskPreview" class="plan-tasks-preview scroll compact"></div>
+              <p id="planApprovalSummary" class="plan-approval-summary"></p>
+              <p class="muted">默认先制作静态产品演示，确认设计后再实现；无须演示的项目可以跳过。</p>
+              <button id="skipDesign" type="button" class="secondary-btn">跳过演示，直接制作</button>
+              <button id="approvePlan" type="button" class="primary-btn" hidden>先制作产品演示</button>
+            </div>
+
+            <div id="sharedArtifacts" class="shared-artifacts" aria-label="Agent 发来的图片与网页"></div>
+            <section id="designStatusCard" class="plan-approval-card" hidden><h3>产品演示</h3><p id="designStatusText"></p><button id="openDesignReview" type="button" class="design-review-launch">审阅产品演示</button></section>
+
+            <!-- 初始需求发送表单 (初始未有计划时) -->
+
+
+            <div id="workflowList" class="workflow-list-container" hidden></div>
+            <section id="managerLiveReply" class="manager-live chat-message" hidden tabindex="0" aria-label="经理正在生成的回复">
+              <section id="managerLiveSummary" class="chat-live-summary" hidden aria-label="公开摘要"><p id="managerLiveSummaryText"></p></section>
+              <p id="managerLivePlaceholder" class="muted">正在生成回复…</p>
+              <div id="managerLiveText" class="chat-message-body"></div>
+              <div id="managerOperations" class="manager-operations" hidden aria-label="当前执行操作" role="status" aria-live="polite"><div id="managerOperationList"></div></div>
+              <section id="managerLiveRaw" hidden><pre id="managerLiveRawText"></pre></section>
+              <footer class="chat-message-meta"><span id="managerLiveSender">经理</span><span id="managerLiveStatus"></span><time id="managerLiveTime" class="chat-timestamp"></time><button id="managerLiveCopy" type="button" class="chat-copy" aria-label="复制回复" title="复制回复">⧉</button><button id="managerLiveRawCopy" type="button" class="chat-copy" aria-label="复制原始回复" title="复制原始回复">{ }</button></footer>
+            </section>
+            </div>
+
+            <form id="workflowForm" class="workflow-init-form" autocomplete="off"><div class="form-row">
+                <label for="workflowRequirement">需求与验收标准</label>
+                <textarea id="workflowRequirement" maxlength="20000" rows="3" placeholder="填写项目目标、核心功能与验收测试标准..." required autocomplete="off"></textarea>
+                <div class="char-counter-bar">
+                  <span id="workflowRequirementCount" class="char-count">0 / 20,000 字符</span>
+                </div>
+              </div>
+              <div class="workflow-consent-box">
+                <label class="setupConsent">
+                  <input id="workflowConfirm" type="checkbox" hidden autocomplete="off">
+                  <span>发送即开始与经理讨论；只有批准计划后才派工。</span>
+                </label>
+              </div>
+              <button id="workflowSubmitBtn" type="submit" class="primary-btn">发送需求给项目经理 · 开始讨论</button>
+            </form>
+
+            <!-- 讨论回复与审批输入框 (工作中沟通与计划批准) -->
+            <form id="discussionReplyForm" class="discussion-reply-form" hidden autocomplete="off">
+              <div class="reply-input-box">
+                <label id="discussionReplyLabel" for="discussionReply" class="field-label">回复经理，或输入“按计划执行”批准启动：</label>
+                <textarea id="discussionReply" maxlength="20000" rows="3" placeholder="输入补充要求、反馈，或输入“按计划执行”..." autocomplete="off"></textarea>
+                <div class="reply-bottom-bar">
+                  <span id="discussionReplyCount" class="char-count">0 / 20,000 字符</span>
+                  <div class="reply-actions">
+                    <button id="newDiscussionInline" type="button" class="secondary-btn btn-sm">新建讨论</button>
+                    <button id="discussionSend" type="submit" class="primary-btn manager-send-icon" aria-label="发送给经理" title="发送给经理" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path id="managerSendIconPath" d="M12 20V4m-7 7 7-7 7 7"></path></svg></button>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+
+          </div>
+
+          <!-- 子面板 B：Agent 群聊与动态 -->
+          <div id="panelGroupChat" class="chat-subpanel">
+            <!-- 群聊筛选与控制栏 -->
+            <div class="group-chat-filter-bar">
+              <div class="filter-group">
+                <label for="conversation" class="field-label-sm">查看会话：</label>
+                <select id="conversation" class="conversation-select">
+                  <option value="*">全部动态与消息流</option>
+                  <option value="user">发给用户的消息</option>
+                </select>
+              </div>
+              <div class="feed-badge-info">
+                <span class="info-tag">排队机制 · 需明确授权真实执行</span>
+              </div>
+            </div>
+
+            <!-- 消息流容器 -->
+            <div id="messages" class="messages-feed-scroll scroll" role="feed" aria-label="Agent 群聊与动态消息流"></div>
+
+            <!-- 底部 20,000 字计数发送栏 -->
+            <div class="group-compose-toolbar"><button id="toggleGroupComposer" type="button" class="group-compose-toggle" aria-label="展开群聊消息输入框" title="发送消息给 Agent" aria-expanded="false" aria-controls="messageForm"><span data-compose-icon="write" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 4 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15Z"/></svg></span><span data-compose-icon="collapse" aria-hidden="true" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button></div>
+            <form id="messageForm" class="group-send-bar" hidden autocomplete="off">
+              <div class="send-meta-row">
+                <div class="send-select-group">
+                  <label for="recipient">发送给：</label>
+                  <select id="recipient">
+                    <option value="*">所有 Agent (*)</option>
+                  </select>
+                </div>
+                <div class="send-select-group">
+                  <label for="mode">投递模式：</label>
+                  <select id="mode">
+                    <option value="queue">排队 · 空闲后处理</option>
+                    <option value="immediate">立即 · 请求中断</option>
+                  </select>
+                </div>
+              </div>
+              <div class="send-text-wrapper">
+                <textarea id="message" maxlength="20000" rows="2" placeholder="输入广播、Agent 间协作信息或向工作台提问 (最多 20,000 字符)..." required autocomplete="off"></textarea>
+              </div>
+              <div class="send-action-row">
+                <span id="messageCount" class="char-count">0 / 20,000 字符</span>
+                <button id="btnSendMessage" type="submit" class="primary-btn">发送消息</button>
+              </div>
+            </form>
+          </div>
+          <section id="panelProjectStatus" class="chat-subpanel project-status-panel" aria-label="项目状态">
+            <div class="status-dashboard">
+              <section class="status-dashboard-card status-overview-card">
+                <header class="status-card-heading"><div><span class="eyebrow">项目概览</span><h2 id="statusProjectName">当前项目</h2></div><span id="statusProjectStage" class="status-stage-chip">等待安排</span></header>
+                <div class="status-overview-progress"><strong id="statusProjectProgress">—</strong><span id="statusProgressUpdated" class="muted">等待经理汇报</span></div>
+        <div class="progress-bar-wrapper">
+          <progress id="projectBar" max="100" value="0"></progress>
+        </div>
+                <div id="projectNote" class="project-note-text">系统就绪，等待安排任务。</div>
+              </section>
+              <section class="status-dashboard-card status-runtime-card"><header class="status-card-heading"><h3>协作状态</h3></header><div class="status-metric"><span>正在执行的 Agent</span><strong id="statusBusyAgents">0</strong></div><div class="status-metric"><span>待领取消息</span><strong id="statusQueuedMessages">0</strong></div><div class="status-metric"><span>参与 Agent</span><strong id="statusAgentCount">0</strong></div></section>
+              <section id="projectGitDrawer" class="status-dashboard-card project-git-card"><header class="status-card-heading"><h3>Git 分支与提交</h3></header><div class="git-view-toolbar"><small id="projectGitStatus">进入页面后自动刷新</small><button id="refreshProjectGit" type="button" class="secondary-btn btn-sm">刷新</button></div><div id="projectGitBranches" class="git-branches"></div><pre id="projectGitGraph" class="project-git-graph" aria-label="项目 Git 提交树"></pre></section>
+              <section id="automationStatusCard" class="status-dashboard-card"><h3>计时器与通知</h3><p id="automationSummary" class="muted">正在读取</p><section id="timersDrawer" class="status-subsection"><h4>计时器 <span id="timerCount"></span></h4><div id="timerList" class="timer-list scroll"></div></section><section id="noticesDrawer" class="status-subsection"><h4>积累的通知 <span id="pendingNoticeCount"></span></h4><div id="pendingNotices" class="pending-notices scroll"></div></section></section>
+              <section id="auditDrawer" class="status-dashboard-card status-audit-card">
+        <header class="status-card-heading"><h3>审计与内部汇报日志</h3></header>
+        <div class="audit-drawer-content">
+          <div class="log-section">
+            <span class="sub-log-title">事件审计流</span>
+            <div id="audit" class="audit-scroll scroll compact"></div>
+          </div>
+          <div class="log-section">
+            <span class="sub-log-title">唤醒记录</span>
+            <div id="wakeLog" class="scroll compact"></div>
+          </div>
+          <div class="log-section">
+            <span class="sub-log-title">结果汇报记录</span>
+            <div id="reportLog" class="scroll compact"></div>
+          </div>
+        </div>
+      </section>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ---------------- 模式 2：当前状态 9 宫格模式 ---------------- -->
+      <section id="viewStatusMode" class="center-view-panel">
+        <header class="status-grid-header">
+          <div class="status-header-title">
+            <button id="openIntegrations" type="button" class="secondary-btn btn-sm">管理 Agent</button><h2>Agent 面板</h2>
+            <p class="status-header-desc">展示 busy/idle/offline 运行态、当前任务短标题、等待原因、单项停止锁及提供商共享额度窗口。</p>
+          </div>
+          <div class="status-header-actions">
+            <button id="refreshQuota" type="button" hidden class="secondary-btn btn-sm">刷新 OpenAI 额度</button>
+            <button id="refreshAntigravity" type="button" hidden class="secondary-btn btn-sm">刷新 Antigravity 额度</button>
+            <button id="verifyIntegrationsHeader" type="button" class="secondary-btn btn-sm">全部测试</button>
+          </div>
+        </header>
+
+        <section class="vm-agent-status" aria-label="虚拟机状态"><span id="vmAgentStatus">虚拟机 · 未连接</span><div><button id="vmPowerOn" type="button" class="secondary-btn btn-xs">开机</button><button id="vmPowerOff" type="button" class="secondary-btn btn-xs">关机</button><button id="vmPowerForce" type="button" class="secondary-btn btn-xs">强制关机</button></div></section>
+        <!-- 3×3 九宫格主容器 (9 个框) -->
+        <div id="agentsGrid" class="agents-9grid-container">
+          <div id="agents" class="agents-9grid">
+          </div>
+        </div>
+
+        <!-- 手动额度录入卡片 -->
+        <details class="status-manual-quota-panel"><summary>手动额度记录</summary>
+          <h3>手动额度录入与核实</h3>
+          <p class="panel-hint-text">外部订阅或未知窗口可手动登记。预计恢复时间到达后仍需再次核实。</p>
+          <form id="quotaForm" class="quota-form-grid" autocomplete="off">
+            <div class="form-col">
+              <label for="quotaAgent">目标 Agent：</label>
+              <select id="quotaAgent"></select>
+            </div>
+            <div class="form-col">
+              <label for="remaining">剩余百分比 (0–100)：</label>
+              <input id="remaining" type="number" min="0" max="100" placeholder="例如：80" autocomplete="off">
+            </div>
+            <div class="form-col">
+              <label for="resets">预计恢复时间：</label>
+              <input id="resets" type="datetime-local" autocomplete="off">
+            </div>
+            <div class="form-col-btn">
+              <button id="btnSaveQuota" type="submit" class="secondary-btn">保存手动记录</button>
+            </div>
+          </form>
+        </details>
+      </section>
+
+    </main>
+
+    <!-- ==================== 右侧栏 ==================== -->
+    <aside id="sidebarRight" class="workbench-sidebar-right">
+      <!-- 当前项目全局状态 -->
+      <section class="right-panel-card project-global-card">
+        <div class="panel-card-header">
+          <span class="eyebrow">PROJECT SUMMARY</span>
+          <span id="managerTag" class="manager-chip">经理：待选择</span>
+        </div>
+        <h2 id="overall" class="progress-title">—</h2>
+        <div class="progress-bar-wrapper"><progress id="overallBar" max="100" value="0" aria-label="项目总体进度"></progress></div>
+
+
+      </section>
+
+      <section class="right-panel-card agent-mini-card" aria-label="Agent 极简状态"><div id="agentMiniStates" class="agent-mini-states"></div></section>
+      <!-- 服务与 Supervisor 连接指示器 -->
+
+
+      
+      
+      <!-- 全局紧急停止面板 -->
+      <section id="emergencyPanel" class="right-panel-card emergency-card">
+        <div class="panel-card-header">
+          <span class="eyebrow danger-eyebrow">SAFETY LOCK</span>
+        </div>
+        <div class="emergency-action-box">
+          <button id="haltAll" type="button" class="danger-halt-btn">⚠ 立即紧急停止全部 Agent</button>
+          <p class="emergency-hint">锁定本地执行与新任务排队，文件不自动回滚。</p>
+        </div>
+        <div id="stopLocks" class="stop-locks-list"></div>
+        <details class="single-agent-stop-drawer">
+          <summary>单独停止指定 Agent</summary>
+          <div id="agentStopButtons" class="agent-stop-buttons-wrap"></div>
+        </details>
+      </section>
+
+      <!-- 任务台账看板 (tasks[]) -->
+
+
+      <!-- 默认折叠的审计/执行日志抽屉 -->
+      
+
+      <!-- 隐藏兼容节点：保持旧脚本 DOM 访问不报错 -->
+      <div id="calls" hidden></div>
+      <form id="budgetForm" hidden autocomplete="off"><input id="budget" type="number" value="0" autocomplete="off"></form>
+      <form id="callForm" hidden autocomplete="off"><textarea id="callPrompt" autocomplete="off"></textarea></form>
+    </aside>
+    </div>
+
+  </div><!-- /#workspace -->
+
+  <!-- ==================== 左下配置弹窗 / 抽屉 ==================== -->
+  <aside id="configModal" class="config-modal-backdrop" aria-labelledby="configModalTitle" role="dialog" aria-modal="true">
+    <div class="config-modal-dialog">
+      <header class="config-modal-header">
+        <h2 id="configModalTitle" class="settings-accessible-title">工作台设置</h2>
+        <label for="configModalToggle" id="btnCloseConfig" class="close-modal-btn" aria-label="关闭配置弹窗">×</label>
+      </header>
+
+      <div class="config-modal-body scroll">
+        <section class="config-section-card"><h3>外观</h3>
+        <label for="interfaceLanguage">语言</label><select id="interfaceLanguage"><option value="zh-CN">简体中文</option><option value="en">English</option></select>
+        <div class="m3-theme-switcher" role="group" aria-label="主题模式">
+          <button id="themeModeAuto" type="button" class="theme-chip active" data-theme-mode="auto" title="跟随系统">🌓 跟随系统</button>
+          <button id="themeModeLight" type="button" class="theme-chip" data-theme-mode="light" title="浅色模式">☀️ 浅色</button>
+          <button id="themeModeDark" type="button" class="theme-chip" data-theme-mode="dark" title="深色模式">🌙 深色</button>
+        </div>
+        </section>
+        <section class="config-section-card" id="colorSettings"><h3>界面配色</h3><p class="settings-help">即时预览，自动保存在本机。可分别调整不同区域的颜色。</p><p id="colorModeLabel" class="settings-help"></p><div id="interfaceColors" class="interface-color-grid"></div><button id="resetInterfaceColors" type="button" class="secondary-btn">恢复默认配色</button></section>
+        <section class="config-section-card"><h3>经理巡检</h3><form id="managerPatrolForm" autocomplete="off"><label class="settings-toggle-row"><input id="managerPatrolEnabled" type="checkbox" checked><span>启用定期巡检</span></label><label for="managerPatrolMinutes">间隔（分钟）</label><input id="managerPatrolMinutes" type="number" min="1" max="1440" value="10"><button type="submit" class="secondary-btn">保存巡检设置</button><p class="settings-help">仅影响定期巡检，消息和已设定的计时器照常投递。</p></form></section>
+        <section class="config-section-card storage-settings" id="storageSettings">
+          <header class="settings-section-heading"><div><h3>项目存储</h3><p class="config-desc">选择新项目的默认位置，查看已有项目的文件。</p></div><button id="storageRefresh" type="button" class="secondary-btn btn-sm">刷新用量</button></header>
+          <form id="storageForm" autocomplete="off"><label for="storageRoot">新项目默认位置</label><div class="settings-path-row"><input id="storageRoot" type="text" autocomplete="off" placeholder="加载后显示默认位置"><button id="storageBrowse" type="button" class="secondary-btn">浏览</button><button id="storageSave" type="submit" class="primary-btn">保存</button></div></form>
+          <p class="settings-help">仅用于未指定工作目录的新项目；已有项目保持原位置。</p>
+          <p id="storageSummary" class="storage-summary"></p><p id="storageStatus" class="config-status-text" role="status"></p>
+          <section class="storage-directory-details"><h4>项目目录与占用</h4><div id="storageProjects" class="storage-project-list" aria-label="项目存储列表"></div><p class="settings-help">执行中的项目不可清理。清理关联文件后，未移除的项目仍保留，可以给经理发消息从头开始。</p></section>
+        </section>
+        <section class="config-section-card vm-settings" id="vmSettings">
+          <header class="settings-section-heading"><div><h3>虚拟机</h3><p class="config-desc">Hyper-V · 独立的执行与测试环境</p></div><span id="vmSettingsBadge" class="vm-connection-badge">未连接</span></header>
+          <div class="vm-machine-overview"><div class="vm-preview"><canvas id="vmThumbnail" width="320" height="180" aria-label="Hyper-V 虚拟机屏幕缩略图" hidden></canvas><div id="vmThumbnailEmpty" class="vm-preview-placeholder"><span aria-hidden="true">▣</span><span>选择虚拟机后显示预览</span></div></div><div class="vm-machine-info"><strong id="vmPreviewName">Hyper-V</strong><p id="vmThumbnailStatus" class="settings-help" role="status">官方控制台缩略图</p><button id="vmOpenManager" type="button" class="secondary-btn btn-sm">打开 Hyper-V 管理器 ↗</button><button id="vmThumbnailRefresh" type="button" class="settings-text-button">刷新预览</button></div></div>
+          <p id="vmConnectionStatus" class="vm-status-surface" role="status" aria-live="polite">尚未连接</p>
+          <form id="vmConnectForm" class="vm-connection-form" autocomplete="off">
+            <label for="vmSelect">选择虚拟机</label><div class="settings-path-row"><select id="vmSelect" required><option value="">选择本机 Hyper-V 虚拟机</option></select><button id="vmRefresh" type="button" class="secondary-btn" title="刷新本机 Hyper-V 列表">刷新列表</button></div>
+            <div class="vm-quick-actions"><button id="vmReconnectSaved" type="button" class="primary-btn">使用已保存的连接</button><button id="vmDisconnect" type="button" class="secondary-btn">断开</button></div>
+            <section class="vm-credentials-details"><h4>账号与连接设置</h4>
+              <div class="vm-account-grid"><div><label for="vmUsername">Windows 用户名</label><input id="vmUsername" type="text" autocomplete="off" placeholder="Hub 或 计算机名\Hub" required></div><div><label for="vmPassword">密码 <span class="muted">（不是 PIN）</span></label><input id="vmPassword" type="password" autocomplete="new-password" placeholder="已保存时无需重填"></div></div>
+              <label class="settings-toggle-row"><input id="vmRemember" type="checkbox" checked><span><strong>保存连接</strong><small>使用 Windows 加密保存，下次自动连接。</small></span></label>
+              <label class="settings-toggle-row"><input id="vmUnattended" type="checkbox" checked><span><strong>无人值守运行</strong><small>自动登录，关闭客机自动锁屏与睡眠。</small></span></label>
+              <p class="settings-help">自动登录在客机下次启动生效；取消勾选并重新连接可关闭。密码由 Windows 加密保存，不发送给模型。</p>
+              <div class="vm-save-actions"><button id="vmConnect" type="submit" class="primary-btn">保存并连接</button><button id="vmForget" type="button" class="settings-text-button">忘记已保存的凭据</button></div>
+            </section>
+          </form>
+          <p class="settings-help">首次连接可能出现管理员授权。命令与桌面通道分别检查，模型账号仍保留在本机。</p>
+        </section>
+        <!-- 模块 1：用户本地凭证内存输入 -->
+        <section class="config-section-card">
+          <h3 class="config-section-title">1 · 本地用户凭证 (Token)</h3>
+          <p class="config-desc">内存凭证仅在当前浏览器页面有效，关闭后销毁，不存储到 Cookie 或 LocalStorage。</p>
+          <form id="modalLoginForm" class="config-input-group" autocomplete="off">
+            <label for="modalToken">更新用户凭证：</label>
+            <input id="modalToken" type="password" autocomplete="off" placeholder="重新输入 User Token..." required>
+            <button type="submit" class="secondary-btn">更新凭证并连接</button>
+          </form>
+        </section>
+
+        <!-- 模块 2：Codex (ChatGPT) 真实执行授权 -->
+        <section id="codexPanel" class="config-section-card">
+          <h3 class="config-section-title">2 · Codex 真实任务执行 (ChatGPT 登录)</h3>
+          <p id="codexStatus" class="config-status-text">未配置</p>
+          <form id="codexConfigForm" class="config-form" autocomplete="off">
+            <div class="form-row">
+              <label for="codexCwd">工作目录 (已存在的绝对路径)</label>
+              <input id="codexCwd" type="text" placeholder="例如：C:\projects\repo" required autocomplete="off">
+            </div>
+            <div class="form-grid-3">
+              <label for="codexPermission">访问权限
+                <select id="codexPermission">
+                  <option value="full">完全访问 · 不逐条审批命令</option>
+                  <option value="workspace">仅工作区写入 · 允许网络</option>
+                </select>
+              </label>
+              <label for="codexMaxRuns">最多任务回合数
+                <input id="codexMaxRuns" type="number" min="0" max="10000" value="3" required autocomplete="off">
+              </label>
+              <label for="codexSeconds">每项任务时限 (秒)
+                <input id="codexSeconds" type="number" min="30" max="86400" value="600" required autocomplete="off">
+              </label>
+            </div>
+            <div class="consent-block">
+              <label class="setupConsent">
+                <input id="codexEnabled" type="checkbox" autocomplete="off">
+                <span>启用 deepseek-6、deepseek-7、deepseek-8 真实执行 (停止模拟回复)</span>
+              </label>
+              <label class="setupConsent">
+                <input id="codexConfigConfirm" type="checkbox" required autocomplete="off">
+                <span>我授权以上目录、权限和任务次数预算 (严禁默认勾选)</span>
+              </label>
+            </div>
+            <button id="btnSaveCodexConfig" type="submit" class="secondary-btn">保存 Codex 配置</button>
+          </form>
+
+          <!-- 兼容提交单项真实任务隐藏表单 -->
+          <form id="codexTaskForm" hidden autocomplete="off">
+            <select id="codexAgent"><option value="deepseek-6">deepseek-6</option></select>
+            <textarea id="codexInstruction" autocomplete="off"></textarea>
+            <input id="codexTaskConfirm" type="checkbox" autocomplete="off">
+            <button id="codexSubmit" type="submit">提交</button>
+            <button id="codexClear" type="button">清除</button>
+          </form>
+          <div id="codexRuns" hidden></div>
+          <div id="codexEvents" hidden></div>
+        </section>
+
+        <!-- 模块 3：Antigravity (Google / Claude) 真实执行授权 -->
+        <section id="antigravityPanel" class="config-section-card">
+          <h3 class="config-section-title">3 · Antigravity 真实执行 (Google 订阅)</h3>
+          <p id="antigravityStatus" class="config-status-text">未配置</p>
+          <div class="inline-action-row">
+            <button id="refreshAntigravityConfig" type="button" class="secondary-btn btn-sm">读取订阅模型与额度</button>
+          </div>
+          <div id="antigravityQuota" class="antigravity-quota-box"></div>
+          <p id="antigravityValidation" class="validation-result-text" role="status"></p>
+          <form id="antigravityConfigForm" class="config-form" autocomplete="off">
+            <div class="form-row">
+              <label for="antigravityCwd">工作目录 (已存在的绝对路径)</label>
+              <input id="antigravityCwd" type="text" placeholder="例如：C:\projects\repo" required autocomplete="off">
+            </div>
+            <div class="form-grid-3">
+              <label for="antigravityPermission">访问权限
+                <select id="antigravityPermission">
+                  <option value="full">完全访问 · 不逐条审批命令</option>
+                </select>
+              </label>
+              <label for="antigravityMaxRuns">最多任务回合数
+                <input id="antigravityMaxRuns" type="number" min="0" max="10000" value="3" required autocomplete="off">
+              </label>
+              <label for="antigravitySeconds">每项任务时限 (秒)
+                <input id="antigravitySeconds" type="number" min="30" max="86400" value="600" required autocomplete="off">
+              </label>
+            </div>
+            <div class="consent-block">
+              <label class="setupConsent">
+                <input id="antigravityEnabled" type="checkbox" autocomplete="off">
+                <span>启用 deepseek-1/2/3、deepseek-4、deepseek-5 真实执行</span>
+              </label>
+              <label class="setupConsent">
+                <input id="antigravityConfigConfirm" type="checkbox" required autocomplete="off">
+                <span>我授权以上目录、权限和任务次数预算 (严禁默认勾选)</span>
+              </label>
+            </div>
+            <button id="btnSaveAntigravityConfig" type="submit" class="secondary-btn">保存 Antigravity 配置</button>
+          </form>
+
+          <!-- 兼容提交单项任务表单 -->
+          <form id="antigravityTaskForm" hidden autocomplete="off">
+            <select id="antigravityAgent"><option value="deepseek-1">deepseek-1</option></select>
+            <textarea id="antigravityInstruction" autocomplete="off"></textarea>
+            <input id="antigravityTaskConfirm" type="checkbox" autocomplete="off">
+            <button id="antigravitySubmit" type="submit">提交</button>
+            <button id="antigravityClear" type="button">清除</button>
+          </form>
+          <div id="antigravityRuns" hidden></div>
+          <div id="antigravityEvents" hidden></div>
+        </section>
+
+
+      </div>
+    </div>
+  </aside>
+
+  <!-- 隐藏通用兼容面板：保持旧版动态插入 DOM 正常挂载 -->
+  <div id="legacyHiddenMount" hidden><button id="reopenSetup" type="button"></button>
+    <span id="runtimeMode"></span><span id="health"></span><span id="connection"></span>
+    <section id="providerIntegrationBar" hidden><span id="providerIntegrationStatus"></span>
+      <button id="openProviderGuide" type="button"></button><button id="openCodexIntegration" type="button"></button><button id="openAntigravityIntegration" type="button"></button><button id="openDeepSeekIntegration" type="button"></button>
+    </section>
+    <form id="taskForm" autocomplete="off"><select id="assignee"></select><input id="taskTitle" autocomplete="off"><button id="btnAssignTask" type="submit"></button></form><div id="tasks"></div>
+
+    <div id="discussionPanel"></div>
+    <div id="workflowPanel"></div>
+    <div id="projectPicker"></div>
+    <div id="codexSettings"></div>
+    <div id="antigravitySettings"></div>
+    <span id="workflowBudgetInfo"></span>
+    <button id="workflowCodexBudget" type="button"></button>
+    <button id="workflowGoogleBudget" type="button"></button>
+    <details id="messageExecution" hidden>
+      <form id="messageExecutionForm" autocomplete="off">
+        <p id="messageExecutionAgent"></p>
+        <pre id="messageExecutionBody"></pre>
+        <input id="messageExecutionConfirm" type="checkbox" autocomplete="off">
+        <button type="submit">授权</button>
+      </form>
+    </details>
+  </div>
+
+
+
+<dialog id="newProjectDialog" class="new-project-dialog" aria-labelledby="newProjectTitle"><header class="project-dialog-header"><div><h2 id="newProjectTitle">新建项目</h2></div><button id="closeNewProject" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header><form id="hubProjectCreate" autocomplete="off"><label for="hubProjectName">项目名称</label><input id="hubProjectName" type="text" maxlength="100" required placeholder="为项目起一个名字" autocomplete="off"><label for="workflowCwd">工作目录</label><div class="project-directory-row"><input id="workflowCwd" type="text" placeholder="留空则自动创建项目目录" autocomplete="off"><button id="browseProjectDirectory" type="button" class="secondary-btn">浏览</button></div><p class="muted">选择现有文件夹；留空时使用 Hub 的独立项目目录。</p><label for="workflowPreviewMode">制作流程</label><select id="workflowPreviewMode"><option value="demo">先展示产品演示，确认后正式制作</option><option value="skip">跳过演示，批准计划后直接制作</option></select>
+              <fieldset class="workflow-fieldset">
+                <legend>允许安排的参与 Agent</legend>
+                <div id="workflowAgents" class="workflow-agents-grid"></div>
+              </fieldset>
+              <div class="form-grid-3">
+                <label>回合上限 <input id="workflowMax" type="number" min="3" max="10000" value="2000" required autocomplete="off"></label>
+                <label>授权天数 <input id="workflowExpires" type="number" min="0.1" max="30" step="0.1" value="7" required autocomplete="off"></label>
+                <label>最大并发 <input id="workflowParallel" type="number" min="1" max="128" value="128" required autocomplete="off"></label>
+              </div>
+              <details class="advanced-workflow-options">
+                <summary>高级参数</summary>
+                <div class="form-grid-2">
+                  <label>单项任务最长分钟 <input id="workflowTaskMinutes" type="number" min="1" max="1440" value="120" required autocomplete="off"></label>
+                  <label>建议复核者（经理决定）
+                    <select id="workflowReviewer">
+</select>
+                  </label>
+                  <label>消息最多唤醒层数 <input id="workflowHops" type="number" min="1" max="32" value="8" required autocomplete="off"></label>
+                  <label>消息唤醒上限 <input id="workflowMessages" type="number" min="1" max="10000" value="1000" required autocomplete="off"></label>
+                </div>
+                <div class="checkbox-row">
+                  <label class="setupConsent"><input id="workflowDelegateStop" type="checkbox" autocomplete="off">委托经理止损单个参与者</label>
+                </div>
+              </details>
+<p id="newProjectError" class="error-text" role="alert"></p><div class="project-dialog-actions"><button id="createProjectConfirm" type="submit" class="primary-btn">创建并进入聊天</button></div></form></dialog>
+<div id="designReviewDialog" class="design-dialog" role="dialog" aria-modal="true" aria-labelledby="designDialogTitle" hidden>
+ <header class="design-header"><div><h2 id="designDialogTitle">产品演示与设计确认</h2><p id="designVersionText"></p></div><button id="closeDesignReview" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header>
+ <div class="design-body">
+  <nav id="designPageList" class="design-page-list scroll" aria-label="完整页面与产品层级"></nav>
+  <main class="design-main"><div class="design-tools"><button id="designSelectRegion" type="button" class="secondary-btn" aria-pressed="false">框选需要修改的区域</button><button id="designClearRegion" type="button" class="secondary-btn" title="清除当前框选（Delete），保留修改意见" disabled>清除框选</button><span id="designPageTitle"></span><div class="design-zoom-tools" role="group" aria-label="演示缩放"><button id="designZoomOut" type="button" class="secondary-btn" title="缩小演示" aria-label="缩小演示">−</button><select id="designZoomLevel" aria-label="演示缩放比例"><option value="fit">适应窗口</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option><option value="125">125%</option><option value="150">150%</option><option value="200">200%</option></select><button id="designZoomIn" type="button" class="secondary-btn" title="放大演示" aria-label="放大演示">＋</button><button id="designZoomFit" type="button" class="secondary-btn" title="让整页演示适应窗口">适应</button><button id="designZoomActual" type="button" class="secondary-btn" title="按原始尺寸查看演示">1:1</button></div></div><div id="designStage" class="design-stage scroll" tabindex="0" aria-label="演示画面：滚轮缩放，左键拖动；开启框选后左键选择，Delete 清除框选"><div id="designCanvas" class="design-canvas"><iframe id="designFrame" title="静态产品演示，不执行产品逻辑" sandbox="allow-same-origin" scrolling="no" referrerpolicy="no-referrer"></iframe><svg id="designOverlay" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-label="框选批注层"><rect id="designSelection" x="0" y="0" width="0" height="0"></rect><path id="designSelectionArrow" d="M 0 0"></path></svg></div></div></main>
+  <aside class="design-feedback scroll"><h3>页面说明与注解</h3><p id="designPageNote"></p><p id="designRegionText">尚未框选，可直接描述设计或逻辑意见。</p><label for="designFeedbackScope">修改范围</label><select id="designFeedbackScope"><option value="region">局部 UI 或逻辑说明</option><option value="page">重新设计当前整页</option></select><label for="designFeedbackText">当前页修改意见（切页自动保留）</label><textarea id="designFeedbackText" rows="7" maxlength="20000" placeholder="说明哪里不满意、期望如何修改；演示按钮不执行真实逻辑。" autocomplete="off"></textarea><label for="designOverallFeedback">整体修改意见</label><textarea id="designOverallFeedback" rows="4" maxlength="20000" placeholder="适用于整个产品的设计、布局或逻辑意见；可单独提交。" autocomplete="off"></textarea><p id="designFeedbackCount"></p><button id="submitDesignFeedback" type="button" class="primary-btn">一次提交全部修改意见</button><div id="designFeedbackHistory"></div></aside>
+ </div>
+ <footer class="design-footer"><p>请逐页检查完整性与外观。确认后以此版本为制作基线，经理将安排逐页核对。</p><button id="acceptDesign" type="button" class="primary-btn">确认最终设计并开始正式制作</button></footer>
+</div>
+
+<section id="integrationsDialog" class="integrations-dialog" role="dialog" aria-modal="true" aria-labelledby="integrationsTitle" hidden>
+ <header class="integrations-header"><div><h2 id="integrationsTitle">管理 Agent</h2><p id="integrationAgentCount"></p></div><button id="closeIntegrations" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header>
+ <div class="agent-manager-content">
+  <section id="agentManagerListStep"><div class="agent-manager-select"><label for="projectManagerSelect">项目经理</label><select id="projectManagerSelect"></select><button id="applyProjectManager" type="button" class="secondary-btn">设为经理</button></div><div class="agent-manager-toolbar"><p>删除后从面板移除，历史记录保留。</p><button id="newIntegrationAgent" type="button" class="primary-btn">＋ 添加 Agent</button></div><div id="integrationAgentList"></div></section>
+  <section id="agentWizardProviderStep" class="agent-wizard-step" hidden><p class="wizard-kicker">1 / 2 · 选择接入</p><h3>这个 Agent 用哪个工具？</h3><label for="agentConnection">接入选项</label><select id="agentConnection"></select><p id="wizardConnectionHint"></p><p id="wizardProviderError" role="status"></p><div class="adapter-folder-actions"><button id="openHarnessAdapters" type="button" class="secondary-btn btn-sm">打开自定义接入目录</button><button id="refreshHarnessAdapters" type="button" class="secondary-btn btn-sm">刷新自定义接入</button></div><div class="agent-wizard-actions"><button id="wizardCancel" type="button" class="secondary-btn">返回列表</button><button id="wizardNext" type="button" class="primary-btn">下一步</button></div></section>
+  <section id="agentWizardModelStep" class="agent-wizard-step" hidden><p class="wizard-kicker">2 / 2 · 选择模型</p><h3>选择模型并命名</h3><label for="agentModel">模型</label><select id="agentModel"></select><button id="refreshModelCatalog" type="button" class="secondary-btn btn-sm">刷新模型</button><label id="candidateModelsRow" class="integration-check" hidden><input id="showCandidateModels" type="checkbox">显示安装包候选模型（未验证）</label><label for="agentName">Agent 名称</label><input id="agentName" maxlength="120" autocomplete="off" placeholder="默认使用模型名加序号"><p>添加后，在卡片上调整档位；同一模型可以添加多个 Agent。</p><label id="wizardEnableRow" class="integration-check"><input id="wizardEnableConnection" type="checkbox" autocomplete="off"><span id="wizardEnableText">允许此接入在已批准项目中执行，使用现有登录、配置权限与账号额度。</span></label><p id="wizardModelHint"></p><div class="agent-wizard-actions"><button id="wizardBack" type="button" class="secondary-btn">上一步</button><button id="saveIntegrationAgent" type="button" class="primary-btn">添加 Agent</button></div></section>
+ </div>
+</section>
+<dialog id="agentDetailsDialog" class="agent-details-dialog" aria-labelledby="agentDetailsTitle"><header class="integrations-header"><h2 id="agentDetailsTitle">Agent 详情</h2><button id="closeAgentDetails" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header><div id="agentDetailsContent" class="agent-details-scroll"></div></dialog>
+<dialog id="artifactViewer" class="artifact-viewer" aria-labelledby="artifactViewerTitle"><header class="integrations-header"><h2 id="artifactViewerTitle">Agent 成果</h2><button id="closeArtifactViewer" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header><div id="artifactViewerContent" class="artifact-viewer-content"></div></dialog>
+<script src="/automation.js" defer></script>
+<script src="/live-ui.js" defer></script><script src="/vm-ui.js" defer></script><script src="/startup.js" defer></script>
+<script src="/colors.js" defer></script>
+</body>
+</html>

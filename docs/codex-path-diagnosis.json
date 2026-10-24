@@ -1,0 +1,10 @@
+{
+  "official_executable": "C:\\Users\\ASUS\\AppData\\Local\\OpenAI\\Codex\\bin\\896a0166b774037a\\codex.exe",
+  "path_fallback_verified": true,
+  "account_type": "chatgpt",
+  "available_requested_models": [
+    "gpt-6.1-sol",
+    "gpt-6-astra"
+  ],
+  "inference_calls": 0
+}

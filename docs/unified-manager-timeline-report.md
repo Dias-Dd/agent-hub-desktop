@@ -1,0 +1,9 @@
+# Unified manager conversation timeline
+
+Messages, shared artifacts and design approval card previously rendered in separate fixed sections, so the design card stayed below newer material. The new workflow timeline merges these entries and sorts by actual message/artifact timestamps and design approved/version timestamps. Stable list nodes preserve scroll/reading state; old design entries naturally move into older history rather than remaining pinned. Existing review controller stays in a hidden host, and chronological design entries invoke its same open handler.
+
+Direct user communication is fetched separately from the last 300 group messages, so agent traffic does not evict it from the shared query. The frontend includes current and historical project managers and deduplicates message IDs. Current production independent communication query returned 270 records.
+
+Ordinary webpage artifacts and browser screenshot evidence both render as compact links, opening the existing viewer on demand. Production had 269 image-kind browser screenshots and zero webpage-kind artifacts, explaining why changing only webpage iframes did not remove the large previews. Ordinary non-screenshot images retain previews. Demo pages still use the dedicated design review flow rather than per-page message cards.
+
+Validation: mixed timeline browser regression verifies direct manager message absent from the group-message array still appears, design precedes newer webpage and message, no automatic webpage/screenshot media, link opens viewer, and unchanged nodes survive refresh. Demo filtering, scroll-follow/preserved reading, 3-size manager layout, reading persistence, agent panel and 18 message dispatch tests pass. New backend activated after confirming no queued/running model work; new frontend verified against running service and reload requested. Source, three executable copies and archive updated.

@@ -1,0 +1,12 @@
+{
+  "session": "ac9e146cedd44d959eb9d5a611442224",
+  "revision": 2,
+  "state": "awaiting_approval",
+  "task_lengths": [
+    1337,
+    1025,
+    947
+  ],
+  "new_inference_calls": 0,
+  "execution_started": false
+}

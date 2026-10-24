@@ -1,0 +1,12 @@
+{
+  "operation": "official built-in /usage (no inference)",
+  "mode": "plan",
+  "sandbox_flag_accepted": true,
+  "exit_code": 0,
+  "whitelisted_events": [
+    {
+      "event": "result",
+      "status": "SUCCESS"
+    }
+  ]
+}

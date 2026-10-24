@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "id": "deepseek-api",
+  "name": "DeepSeek API",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "default"
+  ],
+  "api": {
+    "base_url": "https://api.deepseek.com",
+    "key_environment": "DEEPSEEK_API_KEY"
+  },
+  "provider": "deepseek-api",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://platform.deepseek.com/",
+    "login_url": "https://platform.deepseek.com/api_keys",
+    "key_env": "DEEPSEEK_API_KEY",
+    "note": "在官方平台创建 API 密钥，并配置 DEEPSEEK_API_KEY 用户环境变量。"
+  }
+}

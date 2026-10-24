@@ -1,0 +1,19 @@
+{
+  "inference_calls": 0,
+  "empty_thread_note": "Empty thread/start is not durable until a first turn; probe resumes an existing completed Hub conversation.",
+  "same_thread": true,
+  "mcp_connected": true,
+  "tools": [
+    "send",
+    "project_status",
+    "report_result"
+  ],
+  "response_metadata": {
+    "model": "gpt-6.1-sol",
+    "modelProvider": "openai",
+    "approvalPolicy": "never",
+    "sandbox": {
+      "type": "dangerFullAccess"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# Window close and durable recovery
+
+Root cause: native WM_CLOSE destroyed the window, returned from the UI loop, then launch_desktop finally closed OwnedHub and its runtimes. This treated an accidental window close as application shutdown. Queued tasks depending on non-successful tasks were excluded from dispatch indefinitely and could be hidden by status history truncation.
+
+New native behavior: window close hides to notification area; background HTTP service, scheduling, sessions and workers remain alive. Double-click notification icon or reopen executable restores the existing window. Notification area menu and window system menu expose explicit Quit with a confirmation. If notification icon creation fails, close minimizes to the taskbar, preserving a recovery path. Smoke/recovery tests keep normal teardown. Explicit shutdown and process crashes still require recovery; running work is not blindly replayed.
+
+Dependency handling: when a queued/unstarted task depends on a terminal non-successful task, enqueue one durable deduplicated manager event with task ID, dependency and status. Preserve work history, pause/stop policy and manager authority; do not auto-mark complete or repeat file changes. Existing all-blocker status diagnostics are included.
+
+Validation: actual source and frozen executable lifecycle tests both passed: create real native window/service, post WM_CLOSE, verify invisible window plus same live authenticated HTTP service, restore existing window, verify visible. Six manager/dependency tests and three completion blocker tests passed. Tests use isolated databases and no model inference. Source, packaged executable copies and archive updated. Current running desktop process has not been restarted; new lifecycle behavior applies after application restart.

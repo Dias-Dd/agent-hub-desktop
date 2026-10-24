@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "id": "codex",
+  "name": "Codex",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "minimal",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max"
+  ],
+  "provider": "codex",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://developers.openai.com/codex/cli/",
+    "login_args": [
+      "login"
+    ],
+    "terminal": true,
+    "note": "使用官方 Codex CLI 的 ChatGPT 订阅或 API 登录。"
+  }
+}

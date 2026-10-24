@@ -1,0 +1,19 @@
+{
+  "official_resume_flag": true,
+  "read_only_command": "/usage",
+  "inference_calls": 0,
+  "exit_code": 0,
+  "events": [
+    {
+      "event": "command_result",
+      "conversation_matches": false,
+      "result_status": null
+    },
+    {
+      "event": "result",
+      "conversation_matches": false,
+      "result_status": "SUCCESS"
+    }
+  ],
+  "mcp_registered": true
+}

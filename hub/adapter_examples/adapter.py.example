@@ -1,0 +1,10 @@
+"""Copy as adapter.py alongside your adapter.json."""
+def execute(context, run):
+    context.guard(run)
+    request = context.request(run)
+    # Use context.environment for declared environment-variable references.
+    # Send request['system'], request['history'] and request['prompt'] to the
+    # provider; honor request['permission'] and check context.guard(run).
+    # For tool calls: context.tool(run, name, args, allowed_tool_names).
+    # Return {'status':'completed','text':reply,'session_id':native_session_id}.
+    raise NotImplementedError('请实现目标平台调用；普通兼容 API 可直接复制内置 API 模块并修改 JSON')

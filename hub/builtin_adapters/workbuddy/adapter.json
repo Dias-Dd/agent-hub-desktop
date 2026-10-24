@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "id": "workbuddy",
+  "name": "CodeBuddy CLI",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "default"
+  ],
+  "provider": "workbuddy",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://www.codebuddy.ai/docs/cli",
+    "login_args": [],
+    "terminal": true,
+    "note": "在 CodeBuddy CLI 中输入 /login，完成官方登录后返回。"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "opencode",
+  "name": "OpenCode",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "efforts": [
+    "default"
+  ],
+  "provider": "opencode",
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "setup": {
+    "website": "https://opencode.ai/",
+    "login_args": [
+      "auth",
+      "login"
+    ],
+    "terminal": true,
+    "note": "在 OpenCode 中连接任意支持的订阅或 API。模型和凭据由 OpenCode 管理。"
+  }
+}

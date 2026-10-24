@@ -1,0 +1,2054 @@
+{
+  "version": "hub-v0.1-source-signatures",
+  "note": "参数和默认值来自源码；类型、范围、角色与前置条件仍以方法验证为准。这不是完整OpenAPI，也不是所有参数都应暴露给用户。",
+  "transport": {
+    "origin": "http://127.0.0.1:8765",
+    "read": "GET /api/state",
+    "health": "GET /health",
+    "write": "POST /api/action",
+    "write_body": {
+      "action": "ACTION_NAME",
+      "args": {}
+    },
+    "success": {
+      "result": "ACTION_RESULT"
+    },
+    "error": {
+      "error": "MESSAGE"
+    },
+    "authentication": "Authorization: Bearer <local user token>",
+    "project_header": "X-Hub-Project: <hub_projects.id>"
+  },
+  "actions": {
+    "vm_control": {
+      "source": "hub/vm_bridge.py",
+      "method": "VmBridge.control",
+      "line": 93,
+      "parameters": [
+        {
+          "name": "action",
+          "required": false,
+          "default": "status"
+        },
+        {
+          "name": "request_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "vm_name",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "username",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "password",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "remember",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "unattended",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "artifact_open_folder": {
+      "source": "hub/automation.py",
+      "method": "Automation.open_folder",
+      "line": 305,
+      "parameters": [
+        {
+          "name": "artifact_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_vm": {
+      "source": "hub/automation.py",
+      "method": "Automation.project_vm",
+      "line": 255,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "schedule_wake": {
+      "source": "hub/automation.py",
+      "method": "Automation.schedule_wake",
+      "line": 41,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "delay_seconds",
+          "required": false,
+          "default": 60
+        },
+        {
+          "name": "recipient",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "note",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "request_key",
+          "required": false,
+          "default": "reminder"
+        },
+        {
+          "name": "interval_seconds",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "condition",
+          "required": false,
+          "default": "time"
+        },
+        {
+          "name": "wait_for_agent",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "timer_list": {
+      "source": "hub/automation.py",
+      "method": "Automation.timer_list",
+      "line": 72,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "timer_cancel": {
+      "source": "hub/automation.py",
+      "method": "Automation.timer_cancel",
+      "line": 76,
+      "parameters": [
+        {
+          "name": "timer_id",
+          "required": true
+        },
+        {
+          "name": "run_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "browser_render": {
+      "source": "hub/automation.py",
+      "method": "Automation.browser_render",
+      "line": 275,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "path",
+          "required": true
+        },
+        {
+          "name": "width",
+          "required": false,
+          "default": 1280
+        },
+        {
+          "name": "height",
+          "required": false,
+          "default": 800
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "publish_artifact": {
+      "source": "hub/automation.py",
+      "method": "Automation.publish_artifact",
+      "line": 315,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "path",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "required": false,
+          "default": "image"
+        },
+        {
+          "name": "caption",
+          "required": false,
+          "default": ""
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "integration_connection_save": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.save_connection",
+      "line": 321,
+      "parameters": [
+        {
+          "name": "connection",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_agent_save": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.save_agent",
+      "line": 353,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_agent_archive": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.archive_agent",
+      "line": 403,
+      "parameters": [
+        {
+          "name": "agent_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_probe": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.probe",
+      "line": 414,
+      "parameters": [
+        {
+          "name": "connection_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_client_model": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.add_client_model",
+      "line": 485,
+      "parameters": [
+        {
+          "name": "connection_id",
+          "required": true
+        },
+        {
+          "name": "model",
+          "required": true
+        },
+        {
+          "name": "name",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_test_all": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.test_all",
+      "line": 566,
+      "parameters": [
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "agent_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_model_options": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.probe_model",
+      "line": 539,
+      "parameters": [
+        {
+          "name": "connection_id",
+          "required": true
+        },
+        {
+          "name": "model",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_wizard_add": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.wizard_add",
+      "line": 500,
+      "parameters": [
+        {
+          "name": "connection_id",
+          "required": true
+        },
+        {
+          "name": "model",
+          "required": true
+        },
+        {
+          "name": "name",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "candidate_confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_set_manager": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.set_manager",
+      "line": 575,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        },
+        {
+          "name": "target_manager",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_quota": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.quota",
+      "line": 406,
+      "parameters": [
+        {
+          "name": "connection_id",
+          "required": true
+        },
+        {
+          "name": "remaining",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "resets_at",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_quota_refresh": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.refresh_quota",
+      "line": 298,
+      "parameters": [
+        {
+          "name": "connection_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "agent_set_effort": {
+      "source": "hub/integrations.py",
+      "method": "Integrations.set_effort",
+      "line": 628,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "effort",
+          "required": true
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_create": {
+      "source": "hub/projects.py",
+      "method": "Projects.create",
+      "line": 23,
+      "parameters": [
+        {
+          "name": "name",
+          "required": true
+        },
+        {
+          "name": "cwd",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "options",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_select": {
+      "source": "hub/projects.py",
+      "method": "Projects.select",
+      "line": 164,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_browse_directory": {
+      "source": "hub/projects.py",
+      "method": "Projects.browse_directory",
+      "line": 94,
+      "parameters": [
+        {
+          "name": "initial",
+          "required": false,
+          "default": ""
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_update": {
+      "source": "hub/projects.py",
+      "method": "Projects.update",
+      "line": 114,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        },
+        {
+          "name": "options",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_delete": {
+      "source": "hub/projects.py",
+      "method": "Projects.delete",
+      "line": 143,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_rename": {
+      "source": "hub/projects.py",
+      "method": "Projects.rename",
+      "line": 100,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        },
+        {
+          "name": "name",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_open_directory": {
+      "source": "hub/projects.py",
+      "method": "Projects.open_directory",
+      "line": 107,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_storage": {
+      "source": "hub/projects.py",
+      "method": "Projects.storage",
+      "line": 45,
+      "parameters": [
+        {
+          "name": "path",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_cleanup": {
+      "source": "hub/projects.py",
+      "method": "Projects.cleanup",
+      "line": 86,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "inventory_key",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_git_tree": {
+      "source": "hub/projects.py",
+      "method": "Projects.git_tree",
+      "line": 90,
+      "parameters": [
+        {
+          "name": "project_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "snapshot": {
+      "source": "hub/core.py",
+      "method": "Hub.snapshot",
+      "line": 99,
+      "parameters": [],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "heartbeat": {
+      "source": "hub/core.py",
+      "method": "Hub.heartbeat",
+      "line": 141,
+      "parameters": [
+        {
+          "name": "status",
+          "required": true
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "poll": {
+      "source": "hub/core.py",
+      "method": "Hub.poll",
+      "line": 152,
+      "parameters": [],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "ack": {
+      "source": "hub/core.py",
+      "method": "Hub.ack",
+      "line": 169,
+      "parameters": [
+        {
+          "name": "message_id",
+          "required": true
+        },
+        {
+          "name": "complete",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "result",
+          "required": false,
+          "default": ""
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "assign": {
+      "source": "hub/core.py",
+      "method": "Hub.assign",
+      "line": 185,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "title",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "progress": {
+      "source": "hub/core.py",
+      "method": "Hub.progress",
+      "line": 196,
+      "parameters": [
+        {
+          "name": "task_id",
+          "required": true
+        },
+        {
+          "name": "progress",
+          "required": true
+        },
+        {
+          "name": "note",
+          "required": true
+        },
+        {
+          "name": "status",
+          "required": false,
+          "default": "working"
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project": {
+      "source": "hub/core.py",
+      "method": "Hub.project",
+      "line": 207,
+      "parameters": [
+        {
+          "name": "progress",
+          "required": true
+        },
+        {
+          "name": "note",
+          "required": true
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "quota": {
+      "source": "hub/core.py",
+      "method": "Hub.quota",
+      "line": 214,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "remaining",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "resets_at",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "enable": {
+      "source": "hub/core.py",
+      "method": "Hub.enable",
+      "line": 223,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "send": {
+      "source": "hub/coordination.py",
+      "method": "Coordination.send",
+      "line": 111,
+      "parameters": [
+        {
+          "name": "recipient",
+          "required": true
+        },
+        {
+          "name": "body",
+          "required": true
+        },
+        {
+          "name": "mode",
+          "required": false,
+          "default": "queue"
+        },
+        {
+          "name": "request_key",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "agent_halt": {
+      "source": "hub/coordination.py",
+      "method": "Coordination.halt",
+      "line": 29,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": false,
+          "default": "*"
+        },
+        {
+          "name": "reason",
+          "required": false,
+          "default": "用户紧急停止"
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "agent_resume": {
+      "source": "hub/coordination.py",
+      "method": "Coordination.resume",
+      "line": 80,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": false,
+          "default": "*"
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "manager_message": {
+      "source": "hub/manager_inbox.py",
+      "method": "ManagerInbox.send",
+      "line": 20,
+      "parameters": [
+        {
+          "name": "session_id",
+          "required": true
+        },
+        {
+          "name": "body",
+          "required": true
+        },
+        {
+          "name": "revision",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "request_key",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "manager_interrupt": {
+      "source": "hub/manager_inbox.py",
+      "method": "ManagerInbox.interrupt",
+      "line": 38,
+      "parameters": [
+        {
+          "name": "session_id",
+          "required": true
+        },
+        {
+          "name": "message_ids",
+          "required": true
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "design_start": {
+      "source": "hub/designs.py",
+      "method": "Designs.start",
+      "line": 90,
+      "parameters": [
+        {
+          "name": "session_id",
+          "required": true
+        },
+        {
+          "name": "revision",
+          "required": true
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "design_skip": {
+      "source": "hub/designs.py",
+      "method": "Designs.skip",
+      "line": 81,
+      "parameters": [
+        {
+          "name": "session_id",
+          "required": true
+        },
+        {
+          "name": "revision",
+          "required": true
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "design_content": {
+      "source": "hub/designs.py",
+      "method": "Designs.content",
+      "line": 174,
+      "parameters": [
+        {
+          "name": "design_id",
+          "required": true
+        },
+        {
+          "name": "version",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "design_feedback": {
+      "source": "hub/designs.py",
+      "method": "Designs.feedback",
+      "line": 179,
+      "parameters": [
+        {
+          "name": "design_id",
+          "required": true
+        },
+        {
+          "name": "version",
+          "required": true
+        },
+        {
+          "name": "body",
+          "required": false,
+          "default": ""
+        },
+        {
+          "name": "page_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "region",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "scope",
+          "required": false,
+          "default": "region"
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "entries",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "overall",
+          "required": false,
+          "default": ""
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "design_accept": {
+      "source": "hub/designs.py",
+      "method": "Designs.accept",
+      "line": 205,
+      "parameters": [
+        {
+          "name": "design_id",
+          "required": true
+        },
+        {
+          "name": "version",
+          "required": true
+        },
+        {
+          "name": "digest",
+          "required": true
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "project_git": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_git",
+      "line": 526,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "action",
+          "required": false,
+          "default": "status"
+        },
+        {
+          "name": "agent",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "message",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_status": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_status",
+      "line": 538,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "view",
+          "required": false,
+          "default": "status"
+        },
+        {
+          "name": "offset",
+          "required": false,
+          "default": 0
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "default": 2000
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_assign": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_assign",
+      "line": 503,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "instruction",
+          "required": true
+        },
+        {
+          "name": "request_key",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "required": false,
+          "default": "work"
+        },
+        {
+          "name": "write_paths",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "read_paths",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_complete": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_complete",
+      "line": 740,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "summary",
+          "required": true
+        },
+        {
+          "name": "evidence",
+          "required": true
+        },
+        {
+          "name": "confirmation",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_mailbox": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_mailbox",
+      "line": 572,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "before",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "default": 30
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_set_role": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_set_role",
+      "line": 596,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "role",
+          "required": true
+        },
+        {
+          "name": "reviewer",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_cancel_task": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_cancel_task",
+      "line": 606,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "task_id",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "required": true
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_stop_task": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_stop_task",
+      "line": 638,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "task_id",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "required": true
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_queue": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_queue",
+      "line": 512,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "operation",
+          "required": false,
+          "default": "list"
+        },
+        {
+          "name": "item_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "instruction",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "item_ids",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "request_key",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "reason",
+          "required": false,
+          "default": "经理调整待执行队列"
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "project_return_manager": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.project_return_manager",
+      "line": 584,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "summary",
+          "required": true
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "report_result": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.report_result",
+      "line": 529,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        },
+        {
+          "name": "summary",
+          "required": true
+        },
+        {
+          "name": "risk",
+          "required": false,
+          "default": "unknown"
+        },
+        {
+          "name": "evidence",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "agent_runtime_only",
+      "requires_source_validation": true
+    },
+    "workflow_start": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.start",
+      "line": 164,
+      "parameters": [
+        {
+          "name": "requirement",
+          "required": true
+        },
+        {
+          "name": "agents",
+          "required": true
+        },
+        {
+          "name": "max_calls",
+          "required": false,
+          "default": 6
+        },
+        {
+          "name": "expires_minutes",
+          "required": false,
+          "default": 60
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "auto_wake",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "reviewer",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "delegate_stop",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "max_hops",
+          "required": false,
+          "default": 4
+        },
+        {
+          "name": "max_messages",
+          "required": false,
+          "default": 12
+        },
+        {
+          "name": "max_parallel",
+          "required": false,
+          "default": 1
+        },
+        {
+          "name": "approved_proposal",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "approval_key",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "manager_instruction",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "manager",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "workflow_stop": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.stop",
+      "line": 327,
+      "parameters": [
+        {
+          "name": "workflow_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "workflow_wake": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.wake",
+      "line": 829,
+      "parameters": [
+        {
+          "name": "workflow_id",
+          "required": true
+        },
+        {
+          "name": "note",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "workflow_resume": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.resume",
+      "line": 804,
+      "parameters": [
+        {
+          "name": "workflow_id",
+          "required": true
+        },
+        {
+          "name": "message_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "workflow_set_patrol": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.set_patrol",
+      "line": 795,
+      "parameters": [
+        {
+          "name": "workflow_id",
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "manager_patrol_config": {
+      "source": "hub/workflows.py",
+      "method": "Workflows.patrol_config",
+      "line": 137,
+      "parameters": [
+        {
+          "name": "enabled",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "interval_minutes",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "plan_chat": {
+      "source": "hub/planning.py",
+      "method": "Planning.message",
+      "line": 49,
+      "parameters": [
+        {
+          "name": "body",
+          "required": true
+        },
+        {
+          "name": "options",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "session_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "revision",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "plan_recover": {
+      "source": "hub/planning.py",
+      "method": "Planning.recover_result",
+      "line": 169,
+      "parameters": [
+        {
+          "name": "session_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "setup_status": {
+      "source": "hub/setup.py",
+      "method": "Setup.status",
+      "line": 14,
+      "parameters": [],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "setup_save": {
+      "source": "hub/setup.py",
+      "method": "Setup.save",
+      "line": 24,
+      "parameters": [
+        {
+          "name": "project_name",
+          "required": true
+        },
+        {
+          "name": "route",
+          "required": true
+        },
+        {
+          "name": "budget_cents",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "codex_configure": {
+      "source": "hub/codex_runtime.py",
+      "method": "CodexRuntime.configure",
+      "line": 146,
+      "parameters": [
+        {
+          "name": "cwd",
+          "required": true
+        },
+        {
+          "name": "permission",
+          "required": true
+        },
+        {
+          "name": "max_runs",
+          "required": true
+        },
+        {
+          "name": "max_seconds",
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "codex_submit": {
+      "source": "hub/codex_runtime.py",
+      "method": "CodexRuntime.submit",
+      "line": 162,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "instruction",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "task_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "source_message_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "purpose",
+          "required": false,
+          "default": "task"
+        },
+        {
+          "name": "session_scope",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "codex_stop": {
+      "source": "hub/codex_runtime.py",
+      "method": "CodexRuntime.stop",
+      "line": 211,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "antigravity_submit": {
+      "source": "hub/codex_runtime.py",
+      "method": "CodexRuntime.submit",
+      "line": 162,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "instruction",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "task_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "source_message_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "purpose",
+          "required": false,
+          "default": "task"
+        },
+        {
+          "name": "session_scope",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "antigravity_stop": {
+      "source": "hub/codex_runtime.py",
+      "method": "CodexRuntime.stop",
+      "line": 211,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "antigravity_configure": {
+      "source": "hub/antigravity.py",
+      "method": "AntigravityRuntime.configure",
+      "line": 150,
+      "parameters": [
+        {
+          "name": "cwd",
+          "required": true
+        },
+        {
+          "name": "permission",
+          "required": true
+        },
+        {
+          "name": "max_runs",
+          "required": true
+        },
+        {
+          "name": "max_seconds",
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "refresh_antigravity": {
+      "source": "hub/antigravity.py",
+      "method": "AntigravityRuntime.refresh",
+      "line": 154,
+      "parameters": [],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "deepseek_status": {
+      "source": "hub/deepseek_runtime.py",
+      "method": "DeepSeekRuntime.status",
+      "line": 120,
+      "parameters": [],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "deepseek_save_key": {
+      "source": "hub/deepseek_runtime.py",
+      "method": "DeepSeekRuntime.save_key",
+      "line": 135,
+      "parameters": [
+        {
+          "name": "api_key",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "deepseek_validate": {
+      "source": "hub/deepseek_runtime.py",
+      "method": "DeepSeekRuntime.validate",
+      "line": 148,
+      "parameters": [],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "deepseek_configure_api": {
+      "source": "hub/deepseek_runtime.py",
+      "method": "DeepSeekRuntime.configure_api",
+      "line": 155,
+      "parameters": [
+        {
+          "name": "cwd",
+          "required": true
+        },
+        {
+          "name": "permission",
+          "required": true
+        },
+        {
+          "name": "max_runs",
+          "required": true
+        },
+        {
+          "name": "max_seconds",
+          "required": true
+        },
+        {
+          "name": "budget_cents",
+          "required": true
+        },
+        {
+          "name": "input_rate",
+          "required": true
+        },
+        {
+          "name": "output_rate",
+          "required": true
+        },
+        {
+          "name": "max_requests",
+          "required": false,
+          "default": 8
+        },
+        {
+          "name": "max_output",
+          "required": false,
+          "default": 2048
+        },
+        {
+          "name": "enabled",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "takeover",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "backup_authorize": {
+      "source": "hub/quota_monitor.py",
+      "method": "QuotaMonitor.authorize",
+      "line": 78,
+      "parameters": [
+        {
+          "name": "workflow_id",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "budget": {
+      "source": "hub/connectors.py",
+      "method": "Calls.budget",
+      "line": 48,
+      "parameters": [
+        {
+          "name": "cents",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "prepare": {
+      "source": "hub/connectors.py",
+      "method": "Calls.prepare",
+      "line": 59,
+      "parameters": [
+        {
+          "name": "prompt",
+          "required": true
+        },
+        {
+          "name": "project_id",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "approve": {
+      "source": "hub/connectors.py",
+      "method": "Calls.approve",
+      "line": 76,
+      "parameters": [
+        {
+          "name": "call_id",
+          "required": true
+        },
+        {
+          "name": "reserve_cents",
+          "required": true
+        },
+        {
+          "name": "input_cents_per_million",
+          "required": true
+        },
+        {
+          "name": "output_cents_per_million",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "execute": {
+      "source": "hub/connectors.py",
+      "method": "Calls.execute",
+      "line": 96,
+      "parameters": [
+        {
+          "name": "call_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "cancel": {
+      "source": "hub/connectors.py",
+      "method": "Calls.cancel",
+      "line": 133,
+      "parameters": [
+        {
+          "name": "call_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "deepseek_stop": {
+      "source": "hub/codex_runtime.py",
+      "method": "DeepSeekRuntime.stop (inherited)",
+      "line": 211,
+      "parameters": [
+        {
+          "name": "run_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_submit": {
+      "source": "hub/server.py",
+      "method": "Workflows.runtime(agent).submit",
+      "line": 162,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "instruction",
+          "required": true
+        },
+        {
+          "name": "confirmed",
+          "required": false,
+          "default": false
+        },
+        {
+          "name": "task_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "source_message_id",
+          "required": false,
+          "default": null
+        },
+        {
+          "name": "purpose",
+          "required": false,
+          "default": "task"
+        },
+        {
+          "name": "session_scope",
+          "required": false,
+          "default": null
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "integration_stop": {
+      "source": "hub/server.py",
+      "method": "Workflows.runtime(agent).stop",
+      "line": 211,
+      "parameters": [
+        {
+          "name": "agent",
+          "required": true
+        },
+        {
+          "name": "run_id",
+          "required": true
+        }
+      ],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    },
+    "refresh_openai": {
+      "source": "hub/server.py",
+      "method": "Handler.do_POST / refresh_openai",
+      "parameters": [],
+      "audience": "user_dashboard",
+      "requires_source_validation": true
+    }
+  }
+}

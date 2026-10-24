@@ -1,0 +1,11 @@
+# Client-confirmed WorkBuddy models
+
+The official CLI primary-agent ACP menu and installed model catalog omit Step-5 Preview even though the human user confirms using it in the WorkBuddy desktop client. Hub now supports a separate persistent client_models supplement for this case, without falsely claiming the complete cloud/client catalog has been discovered.
+
+User-only action integration_client_model takes connection_id, model, optional name and confirmed=true. It only applies to an existing WorkBuddy connection; it does not introduce providers, enable the connection, create agents, change grants, or run inference. The model source is user_confirmed_client_model, with client-reported availability, unknown pricing and inference_verified=false. Refreshing the normal catalog and editing connection settings preserve the supplement. If a future official catalog returns the model, the official catalog entry takes precedence. Model-selection UI explains the distinction.
+
+The requested ID step-5-preview was checked against official public ACP session/set_config_option; the returned model currentValue matched. This acknowledges selection only and is not proof of inference success, account eligibility or free pricing. No session/prompt was requested. A production catalog entry is added only under the human user's explicit request to show this model.
+
+Validation: 23 registry/client-model tests pass, including user-only confirmation, durable refresh and connection editing. Three-size manager layout, reading state and agent panel tests pass. WorkBuddy CLI selection probe report: data/workbuddy-step5-selection.json. Source, package and executable copies updated; activation and live refresh verification recorded separately below.
+
+Production activation: confirmed no active/queued executions, backed up DB (work/before-step5-client-model-activation.sqlite3), gracefully restarted idle Hub, added step-5-preview through authenticated user-only action, refreshed official directory and verified entry retained with source=user_confirmed_client_model. WorkBuddy connection remained disabled. Actual model wizard browser regression passed: Step-5 option visible with client-source explanation and permission checkbox still unchecked.
