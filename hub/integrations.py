@@ -266,7 +266,7 @@ class Integrations:
   labels={'codex':('openai','OpenAI / Codex'),'antigravity':('antigravity','Antigravity 订阅'),'deepseek-harness':('deepseek','DeepSeek'),'deepseek-api':('deepseek','DeepSeek'),'ori':('openrouter','OpenRouter'),'openrouter-api':('openrouter','OpenRouter'),'gemini-api':('google','Google Gemini'),'workbuddy':('codebuddy','CodeBuddy'),'opencode':('opencode','OpenCode')}
   for c in self.rows('integration_connections'):
    if c['id'] not in used:continue
-   key,label=labels[c['kind']];group=groups.setdefault(key,{'id':key,'name':label,'connections':[],'connection_ids':[],'windows':[],'balances':[],'unreadable':[]})
+   key,label=labels.get(c['kind'],('connection:'+c['id'],c['name']));group=groups.setdefault(key,{'id':key,'name':label,'connections':[],'connection_ids':[],'windows':[],'balances':[],'unreadable':[]})
    group['connections'].append(c['name']);group['connection_ids'].append(c['id'])
    windows=c.get('official_windows') or []
    for w in windows:

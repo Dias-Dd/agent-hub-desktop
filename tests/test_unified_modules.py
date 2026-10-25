@@ -30,6 +30,22 @@ class UnifiedModules(unittest.TestCase):
   agent,rt=self.connect('python-demo');self.assertTrue(marker.exists()) # explicit probe may import the module
   first=self.turn(rt,agent);self.assertEqual(first['status'],'completed',first['result']);self.assertEqual(first['result'],'0')
   second=self.turn(rt,agent);self.assertEqual(second['result'],'2');self.assertEqual(rt.sessions.get(second)['session_id'],'python-session')
+ def test_custom_quota_groups_preserve_each_connection(self):
+  for name,remaining in [('quota-one',0),('quota-two',75)]:
+   self.module(name,"def execute(ctx,run): return 'ok'")
+   agent,rt=self.connect(name)
+   connection=self.registry.get('integration_connections',agent['connection_id'])
+   connection['official_windows']=[{'name':'daily','remaining':remaining}]
+   self.registry.put('integration_connections',connection)
+  groups={g['id']:g for g in self.registry.quota_overview()}
+  for name,remaining in [('quota-one',0),('quota-two',75)]:
+   group=groups['connection:custom-'+name]
+   self.assertEqual(group['connection_ids'],['custom-'+name])
+   self.assertEqual(group['windows'][0]['remaining'],remaining)
+  connection=self.registry.get('integration_connections','custom-quota-two')
+  connection['official_windows']=[];self.registry.put('integration_connections',connection)
+  group=next(g for g in self.registry.quota_overview() if g['id']=='connection:custom-quota-two')
+  self.assertEqual(group['windows'],[]);self.assertEqual(group['unreadable'],[connection['name']])
  def test_none_without_terminal_result_is_failed(self):
   self.module('empty','def execute(ctx,run): pass');a,rt=self.connect('empty');row=self.turn(rt,a);self.assertEqual(row['status'],'failed');self.assertIn('未确认结果',row['result'])
  def test_relative_import_and_reload_do_not_use_stale_bytecode(self):
