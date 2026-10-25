@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import queue
 import shutil
+from hub.cli_paths import which
 import sys
 import subprocess
 import threading
@@ -24,8 +25,13 @@ class QuotaWait(HubError):
 MODELS={'deepseek-6':'gpt-6.1-sol','deepseek-7':'gpt-6.1-sol','deepseek-8':'gpt-6-astra'}
 
 def codex_executable():
-    found=shutil.which('codex')
+    found=which('codex')
     if found:return found
+    if sys.platform=='darwin':
+        for base in (Path('/Applications'),Path.home()/'Applications'):
+            for app in ('Codex.app','ChatGPT.app'):
+                candidate=base/app/'Contents/Resources/codex-cli/bin/codex'
+                if candidate.is_file():return str(candidate)
     local=os.environ.get('LOCALAPPDATA')
     root=Path(local)/'OpenAI/Codex/bin' if local else None
     candidates=list(root.glob('*/codex.exe')) if root and root.is_dir() else []
@@ -37,11 +43,13 @@ class AppServer:
         exe=executable_path or codex_executable()
         if not exe:raise HubError('未安装官方 Codex CLI')
         env={k:v for k,v in os.environ.items() if k not in ('OPENAI_API_KEY','DEEPSEEK_API_KEY','HUB_TOKEN')}
+        from hub.cli_paths import child_environment
+        env=child_environment(env)
         env.update(run_env or {})
         args=[exe,'app-server','--stdio']
         if mcp:
             for key,value in {**mcp,'default_tools_approval_mode':'approve'}.items():args+=['-c','mcp_servers.agent_hub.'+key+'='+json.dumps(value)]
-        self.proc=subprocess.Popen(args,cwd=cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,encoding='utf-8',bufsize=1,creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
+        self.proc=subprocess.Popen(args,cwd=cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,encoding='utf-8',bufsize=1,start_new_session=os.name!='nt',creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
         try:self.job=ProcessJob(self.proc)
         except Exception:
             self.proc.terminate();self.proc.wait(timeout=5)

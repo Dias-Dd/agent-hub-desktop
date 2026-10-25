@@ -2,6 +2,7 @@
 import hashlib,json,os,re,shutil,sys,time,subprocess,queue,threading
 from pathlib import Path
 from .core import HubError
+from .cli_paths import which,child_environment
 from .process_job import ProcessJob
 
 
@@ -37,9 +38,9 @@ def discover(directory):
     exe=str((path.parent/entry).resolve());argv=[]
    else:
     if not isinstance(argv,list) or not argv or not all(isinstance(x,str) and x and len(x)<4096 for x in argv):raise ValueError('command 必须是参数数组')
-    if any('${python}' in x for x in argv) and getattr(sys,'frozen',False) and not shutil.which('python'):raise ValueError('此适配器需要安装 Python 或改用自带 EXE')
-    argv=[x.replace('${adapter_dir}',str(path.parent.resolve())).replace('${python}',shutil.which('python') or sys.executable) for x in argv]
-    exe=shutil.which(argv[0]) or str((path.parent/argv[0]).resolve())
+    if any('${python}' in x for x in argv) and getattr(sys,'frozen',False) and not (which('python3') or which('python')):raise ValueError('此适配器需要安装 Python 或改用自带 EXE')
+    argv=[x.replace('${adapter_dir}',str(path.parent.resolve())).replace('${python}',(which('python3') or which('python')) or sys.executable) for x in argv]
+    exe=which(argv[0]) or str((path.parent/argv[0]).resolve())
     if not Path(exe).is_file():raise ValueError('找不到启动程序：'+argv[0])
     argv[0]=exe
    models=data.get('models',[]);caps=data.get('capabilities',{})
@@ -84,14 +85,14 @@ def execute(runtime,run):
   allowed={x['function']['name'] for x in definitions}
   envelope={'type':'run','protocol':'hub-jsonl-v1','run_id':run['id'],'timeout_seconds':run['max_seconds'],'agent':run['agent'],'model':run['model'],'effort':runtime.efforts()[run['agent']],'cwd':run['cwd'],'permission':'read-only' if run['_read_only'] else 'full','prompt':run['prompt'],'system':runtime.execution_instructions(run)+runtime.report_instructions(run),'history':history,'session_id':old['session_id'] if old else None,'session_cwd':old.get('cwd',run['cwd']) if old else run['cwd'],'tools':definitions}
   if len(json.dumps(envelope,ensure_ascii=False).encode('utf-8'))>4000000:raise HubError('自定义适配器上下文超过 4 MB；上下文保留，不自动截断')
-  env=dict(os.environ)
+  env=child_environment(os.environ)
   for name,source in config.get('environment',{}).items():
    if source not in os.environ:raise HubError('缺少适配器所需环境变量：'+source)
    env[name]=os.environ[source]
    if env[name] and any(word in (name+' '+source).upper() for word in ('KEY','TOKEN','SECRET','PASSWORD')):secrets.append(env[name])
   env.update(PYTHONIOENCODING='utf-8',PYTHONUTF8='1')
   from .integrations import command
-  proc=subprocess.Popen(command(config['command']),cwd=run['cwd'],env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+  proc=subprocess.Popen(command(config['command']),cwd=run['cwd'],env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',start_new_session=os.name!='nt',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
   job=ProcessJob(proc);events=queue.Queue(maxsize=128);outgoing=queue.Queue(maxsize=16)
   def emit(value):
    while not reader_stop.is_set():

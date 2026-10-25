@@ -71,7 +71,7 @@ def tool(self,run,name,args,allowed):
             try:
                 with self.hub.lock:
                     self.guard(run)
-                    proc=subprocess.Popen(argv,cwd=run['cwd'],env=env,stdout=out,stderr=out,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
+                    proc=subprocess.Popen(argv,cwd=run['cwd'],env=env,stdout=out,stderr=out,start_new_session=os.name!='nt',creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
                     job=ProcessJob(proc);self.track_client(run,type('Command',(),{'proc':proc,'job':job})())
                 deadline=time.time()+min(60,max(1,run['started']+run['max_seconds']-time.time()))
                 while proc.poll() is None:

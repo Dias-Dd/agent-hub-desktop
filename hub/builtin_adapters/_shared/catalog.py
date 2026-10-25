@@ -31,7 +31,7 @@ def probe(self,connection):
  elif kind=='deepseek-harness':
   if not exe:raise HubError('未安装 DeepSeek Harness')
   from hub.deepseek_harness import probe_catalog
-  models=probe_catalog(self.server.deepseek);detail='已读取本机 Harness 官方模型与档位目录，未发送推理请求。'
+  models=probe_catalog(self.server.deepseek,config=c);detail='已读取本机 Harness 官方模型与档位目录，未发送推理请求。'
  else:
   if not exe:raise HubError('未找到 '+KINDS[kind][0]+'；请先安装并登录')
   args=[exe,'models'] if kind=='opencode' else [exe,'--help']

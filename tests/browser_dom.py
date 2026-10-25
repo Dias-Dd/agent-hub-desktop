@@ -19,7 +19,10 @@ def run(argv,**kwargs):
    browser=WebSocket('ws://127.0.0.1:'+port+lines[1])
    targets=json.load(opener.open('http://127.0.0.1:'+port+'/json/list'))
    ws=WebSocket(next(t['webSocketDebuggerUrl'] for t in targets if t.get('type')=='page'))
+   ws.call('Page.enable')
+   ws.call('Runtime.enable')
    ws.call('Emulation.setDeviceMetricsOverride',{'width':width,'height':height,'deviceScaleFactor':1,'mobile':False})
+   ws.call('Page.addScriptToEvaluateOnNewDocument',{'source':"window.__hubTestErrors=[];addEventListener('error',e=>window.__hubTestErrors.push(e.message||e.target?.src||'resource error'),true);addEventListener('unhandledrejection',e=>window.__hubTestErrors.push(String(e.reason)));"})
    ws.call('Page.navigate',{'url':url})
    deadline=time.monotonic()+kwargs.get('timeout',30)
    while time.monotonic()<deadline:
@@ -27,6 +30,8 @@ def run(argv,**kwargs):
     if value.startswith(('PASS','FAIL')):break
     time.sleep(.05)
    if kwargs.get('after_checks'):kwargs['after_checks'](ws)
+   if value.startswith('FAIL'):
+    ws.call('Runtime.evaluate',{'expression':"document.getElementById('result').textContent+='; errors='+JSON.stringify(window.__hubTestErrors)"})
    if kwargs.get('screenshot'):Path(kwargs['screenshot']).write_bytes(base64.b64decode(ws.call('Page.captureScreenshot',{'format':'png'})['data']))
    dom=ws.call('Runtime.evaluate',{'expression':'document.documentElement.outerHTML','returnByValue':True})['result']['value']
    if kwargs.get('screenshot'):
@@ -39,3 +44,4 @@ def run(argv,**kwargs):
     browser.close()
    if ws:ws.close()
    if proc.poll() is None:proc.kill()
+   proc.wait(timeout=5)

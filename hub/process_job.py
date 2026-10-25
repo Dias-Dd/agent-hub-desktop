@@ -1,11 +1,25 @@
-"""Windows job closes the owned CLI process tree if the Hub process exits."""
+"""Owned CLI lifetime: Windows Job Object or an isolated POSIX process group.
+
+POSIX groups cover cooperative cancellation/normal host shutdown, not SIGKILL
+of the host. Callers must spawn with start_new_session=True on POSIX.
+"""
 import os
+import signal
 import threading
 
 class ProcessJob:
     def __init__(self,proc):
         self.handle=None;self.close_lock=threading.Lock()
-        if os.name!='nt':return
+        self.proc=proc
+        self.pgid=None
+        if os.name!='nt':
+            try:
+                if os.getpgid(proc.pid)!=proc.pid:
+                    raise RuntimeError('CLI must be started in its own POSIX session')
+                self.pgid=proc.pid
+            except ProcessLookupError:
+                pass  # Already exited; never signal the Hub's process group.
+            return
         import ctypes
         from ctypes import wintypes as w
         class Basic(ctypes.Structure):
@@ -34,4 +48,12 @@ class ProcessJob:
 
     def close(self):
         with self.close_lock:
+            if self.pgid:
+                # Reap a finished group leader first: Darwin returns EPERM for
+                # a group containing only its unreaped zombie. Descendants still
+                # receive SIGKILL after the leader has been reaped.
+                self.proc.poll()
+                try:os.killpg(self.pgid,signal.SIGKILL)
+                except ProcessLookupError:pass
+                self.pgid=None
             if self.handle:self.kernel.CloseHandle(self.handle);self.handle=None

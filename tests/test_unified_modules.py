@@ -76,7 +76,7 @@ class UnifiedModules(unittest.TestCase):
     two=self.turn(rt,a,'second request');self.assertEqual(two['status'],'completed',two['result'])
     self.assertTrue(any(m.get('content')=='LOCAL MODULE OK' for m in calls[-1]['messages']))
     self.assertEqual(calls[-1]['messages'][-1]['content'],'second request')
-   self.assertTrue(load(folder)[0].__file__.startswith(str(folder)))
+    self.assertTrue(Path(load(folder)[0].__file__).resolve().is_relative_to(folder.resolve()))
   finally:server.shutdown();server.server_close();thread.join()
  def test_old_application_files_have_no_provider_implementation(self):
   root=Path(__file__).parents[1]

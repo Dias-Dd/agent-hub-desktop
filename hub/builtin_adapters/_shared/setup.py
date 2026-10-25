@@ -1,5 +1,6 @@
 """Optional non-inference account probes owned by Harness modules."""
-import os,re,subprocess
+import os,re,subprocess,sys,shlex,uuid
+from hub.cli_paths import search_path
 from hub.integrations import locate,command
 
 def status(registry,connection,kind,spec):
@@ -40,6 +41,24 @@ def login(registry,connection,kind,spec):
     if connection.get('adapter') and Path(supplied).suffix=='.py':supplied=''
     exe=locate(kind,supplied)
     if not exe:raise HubError('请先安装 Harness，再重新检测')
+    if sys.platform=='darwin' and kind=='deepseek-harness':
+        from hub.deepseek_harness import installation
+        app=installation({'harness_install':exe})[0].parents[2]
+        subprocess.run(['/usr/bin/open','-a',str(app)],check=True,timeout=15)
+        return
     args=spec.get('login_args',[])
     if not isinstance(args,list) or not all(isinstance(x,str) for x in args):raise HubError('登录参数格式错误')
+    if sys.platform=='darwin' and spec.get('terminal'):
+        # A user-triggered login opens an inspectable script in Terminal; no
+        # AppleScript, shell profile execution, or interpolated shell arguments.
+        folder=registry.hub.directory/'login';folder.mkdir(parents=True,exist_ok=True)
+        script=folder/('login-'+uuid.uuid4().hex+'.command')
+        lines=['#!/bin/sh','export PATH='+shlex.quote(search_path()),
+               'cd '+shlex.quote(connection['cwd'])+' || exit 1',
+               shlex.join(command([exe,*args])), 'result=$?',
+               'printf "\\nLogin process exited: %s\\n" "$result"',
+               'rm -- '+shlex.quote(str(script.resolve())), 'exit "$result"']
+        script.write_text('\n'.join(lines)+'\n',encoding='utf-8');script.chmod(0o700)
+        subprocess.run(['/usr/bin/open','-a','Terminal',str(script.resolve())],check=True,timeout=15)
+        return
     subprocess.Popen(command([exe,*args]),cwd=connection['cwd'],creationflags=getattr(subprocess,'CREATE_NEW_CONSOLE',0) if spec.get('terminal') else 0)

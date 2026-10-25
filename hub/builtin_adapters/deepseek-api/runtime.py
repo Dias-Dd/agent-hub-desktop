@@ -6,6 +6,7 @@ import json
 import math
 import itertools
 import os
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
@@ -111,6 +112,10 @@ class DeepSeekRuntime(CodexRuntime):
                 self.hub.db.execute("UPDATE messages SET status='completed',result='经理本轮已收到档位变化' WHERE id=?",(notice['message_id'],))
 
     def key(self):
+        if sys.platform=='darwin':
+            from hub.macos_keychain import Keychain
+            value=Keychain(self.hub.directory).get()
+            if value:return value
         path=self.hub.directory/'deepseek-key.dpapi'
         if path.exists():return protect(base64.b64decode(path.read_bytes()),True).decode()
         value=os.environ.get('DEEPSEEK_API_KEY')
@@ -120,7 +125,7 @@ class DeepSeekRuntime(CodexRuntime):
     def status(self,actor):
         self.hub.require(actor,{'user'});cfg=self.config()
         with self.hub.lock:spent=self.hub.db.execute('SELECT COALESCE(SUM(reserved_cents),0) FROM deepseek_spend WHERE grant_id=?',(cfg['grant_id'],)).fetchone()[0]
-        return {'config':cfg,'key_present':bool((self.hub.directory/'deepseek-key.dpapi').exists() or os.environ.get('DEEPSEEK_API_KEY')),'reserved_cents':spent,'remaining_cents':None,'unlimited':True,'validation':self.saved_validation(),'efforts':self.efforts(),'effort_options':['off','low','high','max']}
+        return {'config':cfg,'key_present':bool((self.hub.directory/('deepseek-key.keychain' if sys.platform=='darwin' else 'deepseek-key.dpapi')).exists() or os.environ.get('DEEPSEEK_API_KEY')),'reserved_cents':spent,'remaining_cents':None,'unlimited':True,'validation':self.saved_validation(),'efforts':self.efforts(),'effort_options':['off','low','high','max']}
 
     def snapshot(self,actor):
         res=super().snapshot(actor)
@@ -138,12 +143,16 @@ class DeepSeekRuntime(CodexRuntime):
             if self.hub.db.execute("SELECT 1 FROM executions WHERE provider='deepseek' AND status IN ('queued','running','interrupting','waiting_quota')").fetchone():raise HubError('DeepSeek 有在途任务，请先等待或停止再更换密钥')
         if not isinstance(api_key,str) or not 10<=len(api_key.strip())<=500:raise HubError('API 密钥格式无效')
         if any(c.isspace() for c in api_key.strip()):raise HubError('密钥不能含空白字符')
-        path=self.hub.directory/'deepseek-key.dpapi';temp=path.with_suffix('.tmp')
-        temp.write_bytes(base64.b64encode(protect(api_key.strip().encode())));temp.replace(path)
+        if sys.platform=='darwin':
+            from hub.macos_keychain import save
+            save(self.hub.directory,api_key.strip())
+        else:
+            path=self.hub.directory/'deepseek-key.dpapi';temp=path.with_suffix('.tmp')
+            temp.write_bytes(base64.b64encode(protect(api_key.strip().encode())));temp.replace(path)
         with self.hub.tx():
             self.hub.db.execute("DELETE FROM settings WHERE key='deepseek_validation'")
-            self.hub.audit(actor,'deepseek.key_saved',{'storage':'Windows DPAPI','key': '[redacted]'})
-        return {'saved':True,'storage':'Windows 当前用户加密；不回显密钥'}
+            self.hub.audit(actor,'deepseek.key_saved',{'storage':'macOS Keychain' if sys.platform=='darwin' else 'Windows DPAPI','key': '[redacted]'})
+        return {'saved':True,'storage':('macOS Keychain' if sys.platform=='darwin' else 'Windows 当前用户加密')+'；不回显密钥'}
 
     def validate(self,actor):
         self.hub.require(actor,{'user'})

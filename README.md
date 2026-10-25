@@ -31,6 +31,15 @@
 
 ## 快速上手
 
+### macOS 本地开发版
+
+`macos-port` 分支新增 Cocoa / WKWebView 原生窗口及可选 Tart 后端，目前仅在
+Apple Silicon、macOS 27.2 上验证。源码宿主需要 macOS 14+、Python 3.11+ 与
+`desktop/requirements-macos.txt`；提供本地 arm64 `.app` 和 DMG 开发安装包。
+首次打开自动显示配置指引，可在正常数据目录创建 Tart VM 并自动连接；关闭窗口后通过菜单栏恢复。
+普通项目无需虚拟机。运行方法、实际验证范围及尚未支持的功能见
+[macOS 移植记录](docs/MACOS_PORT.md)。这不是已签名公证的正式 Mac Release。
+
 ### 从源码运行
 
 需要 **Windows 10 2004（build 19041）及以上 / Windows 11**、**Python 3.11+（含 Tkinter）** 和 **Microsoft WebView2 Runtime**。调用模型还需要安装、登录对应 Harness，或配置自己的 API 凭据。

@@ -7,7 +7,8 @@
   const status=message=>{$('vmConnectionStatus').textContent=message;};
   const call=args=>{H.ready();return H.client.postAction('vm_control',args);};
   async function wait(request) {
-    const deadline=Date.now()+360000;
+    if(request.state==='completed')return request;
+    const deadline=Date.now()+3600000;
     while(Date.now()<deadline) {
       const result=await call({action:'result',request_id:request.request_id});
       if(result.state==='completed')return result;
@@ -18,30 +19,31 @@
   }
   async function operate(fn) {
     if(busy)return;busy=true;
-    const buttons=[...$('vmConnectForm').querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
+    const buttons=[...$('vmSettings').querySelectorAll('button')],disabled=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
     try{H.ready();await fn();}catch(error){status(error.message);$('vmAgentStatus').textContent=error.message;}
-    finally{busy=false;buttons.forEach(b=>b.disabled=false);}
+    finally{busy=false;buttons.forEach((b,i)=>b.disabled=disabled[i]);}
   }
   $('vmRefresh').addEventListener('click',()=>operate(async()=>{
-    status('正在读取，如 Windows 请求管理员授权，请确认…');
+    status(lastState.backend==='tart'?'正在读取 Tart 虚拟机…':'正在读取，如 Windows 请求管理员授权，请确认…');
     const result=await wait(await call({action:'list'}));const selected=$('vmSelect').value;
     $('vmSelect').replaceChildren();
     for(const vm of result.vms||[]) {
       const option=document.createElement('option');option.value=vm.name;
-      option.textContent=vm.name+' · '+vm.state+' · 第 '+vm.generation+' 代';$('vmSelect').append(option);
+      option.textContent=vm.name+' · '+vm.state+(result.backend==='tart'?' · Tart':' · 第 '+vm.generation+' 代');$('vmSelect').append(option);
     }
     if([...$('vmSelect').options].some(o=>o.value===selected))$('vmSelect').value=selected;
-    status(result.vms?.length?'请选择虚拟机，填写该系统的账号密码后连接。':'没有发现 Hyper-V 虚拟机。');
+    status(result.vms?.length?(result.backend==='tart'?'请选择虚拟机，使用 Tart Guest Agent 连接，无需账号密码。':'请选择虚拟机，填写该系统的账号密码后连接。'):(result.backend==='tart'?'此数据目录内尚无 Tart 虚拟机。':'没有发现 Hyper-V 虚拟机。'));
   }));
   $('vmConnectForm').addEventListener('submit',event=>{
     event.preventDefault();void operate(async()=>{
       status('正在连接并验证命令执行、双向文件传输…');
       const args={action:'connect',vm_name:$('vmSelect').value,username:$('vmUsername').value,password:$('vmPassword').value,remember:$('vmRemember').checked,unattended:$('vmUnattended').checked};
+      if(lastState.backend==='tart')args.auto_connect=$('tartAutoConnect').checked;
       let pending;
       try{pending=call(args);}finally{$('vmPassword').value='';}
       let request;try{request=await pending;}finally{args.password='';}
       const result=await wait(request);
-      status('已连接 '+result.vm+' · '+result.account+' · 文件传输测试通过'+(result.credential_saved?' · 凭据已加密保存':'')+(result.unattended_warning?' · '+result.unattended_warning:result.unattended_configured?' · 无人值守'+(result.unattended_enabled?'已配置':'已关闭'):'')+(result.desktop_warning?' · 桌面：'+result.desktop_warning:''));
+      status('已连接 '+result.vm+' · '+result.account+(result.transfer_verified===false?' · 命令验证通过；文件传输未验证':' · 文件传输测试通过')+(result.credential_saved?' · 凭据已加密保存':'')+(result.unattended_warning?' · '+result.unattended_warning:result.unattended_configured?' · 无人值守'+(result.unattended_enabled?'已配置':'已关闭'):'')+(result.desktop_warning?' · 桌面：'+result.desktop_warning:''));
     });
   });
   $('vmReconnectSaved').addEventListener('click',()=>operate(async()=>{
@@ -73,10 +75,36 @@
   forceDialog.append(forceHeader,H.node('p','会中断虚拟机内的程序，未保存的内容可能丢失。'),forceCancel,forceConfirm);document.body.append(forceDialog);
   $('vmPowerForce').addEventListener('click',()=>forceDialog.showModal());
   function displayPower(value){
-    lastState=value;if(!preferenceEdited){const saved=value.saved_connections?.find(s=>s.vm===($('vmSelect').value||value.vm));if(saved)$('vmUnattended').checked=saved.unattended!==false;}const labels={Running:'运行中',Off:'已关机',Starting:'正在开机',Stopping:'正在关机',Saved:'已保存',Paused:'已暂停',Unknown:'状态未知'};
+    lastState=value;
+    if(value.backend==='tart'){
+      $('tartSetupOptions').hidden=false;
+      $('tartEnvironment').textContent=!value.supported?'当前设备不满足 Tart 的 Apple Silicon / macOS 要求。':value.installed?'已检测到 Tart。':'尚未安装 Tart。'+(value.homebrew_installed?'可点击安装。':'请先安装 Homebrew，再返回重试。');
+      $('tartHome').value=value.tart_home||'';
+      $('tartInstall').hidden=!!value.installed;$('tartInstall').disabled=!value.supported||!value.homebrew_installed;
+      $('tartHomebrewGuide').hidden=!!value.homebrew_installed;
+      $('tartCreate').disabled=!value.installed||!value.supported;
+      if(document.activeElement!==$('tartAutoConnect'))$('tartAutoConnect').checked=value.auto_connect!==false;
+      for(const id of ['vmUsername','vmPassword','vmUnattended']){$(id).disabled=true;}
+      $('vmUsername').closest('.vm-account-grid').hidden=true;
+      $('vmUnattended').closest('label').hidden=true;
+      $('vmSettings').querySelector('.config-desc').textContent='Tart · 可选的独立执行环境';
+      $('vmSettings').querySelector('.vm-credentials-details h4').textContent='Tart Guest Agent';
+      $('vmRemember').closest('label').querySelector('small').textContent='仅保存虚拟机名称，不保存账号密码。';
+      $('vmSettings').querySelector('.vm-credentials-details > .settings-help').textContent='访客需要 Tart Guest Agent；文件传输还需要 Python 3。连接时逐项验证。';
+      $('vmSettings').querySelector(':scope > .settings-help').textContent='可跳过虚拟机。点击安装指南查看安装方法；命令和文件传输按实际验证结果显示。';
+      $('vmOpenManager').textContent='Tart 安装指南 ↗';
+      $('vmOpenManager').title=value.install_command||'';
+      $('vmForget').textContent='忘记已保存的连接';
+      $('vmRefresh').title='刷新本机 Tart 列表';
+      if(!$('vmSelect').value&&$('vmSelect').options.length===1)$('vmSelect').options[0].textContent='选择此数据目录内的 Tart 虚拟机';
+      $('vmThumbnailRefresh').disabled=true;$('vmThumbnailStatus').textContent='Tart 屏幕预览尚未实现';
+      $('vmThumbnailEmpty').lastElementChild.textContent='Tart 屏幕预览尚未实现';
+      if(!value.vm)$('vmPreviewName').textContent='Tart';
+    }
+    if(!preferenceEdited){const saved=value.saved_connections?.find(s=>s.vm===($('vmSelect').value||value.vm));if(saved)$('vmUnattended').checked=saved.unattended!==false;}const labels={Running:'运行中',Off:'已关机',Starting:'正在开机',Stopping:'正在关机',Saved:'已保存',Paused:'已暂停',Unknown:'状态未知'};
     const state=value.helper_alive?value.power_state:'Unknown';
     const phases={reconnecting:'正在自动重连',waiting_windows:'等待 Windows 启动',credentials_required:'需要更新凭据',helper_offline:'连接服务未运行',helper_busy:'连接服务正在更新状态',booting:'连接服务启动中',deploying:'正在部署桌面通道'};
-    const connectionLabel=value.connected?(value.desktop?.ready===false?'命令已连接 · 等待桌面就绪':'已连接'):(phases[value.connection_phase]||'未连接');
+    const connectionLabel=value.connected?(value.backend==='tart'?'命令已连接':value.desktop?.ready===false?'命令已连接 · 等待桌面就绪':'已连接'):(phases[value.connection_phase]||'未连接');
     $('vmSettingsBadge').textContent=connectionLabel;$('vmSettingsBadge').classList.toggle('is-connected',!!value.connected);
     $('vmAgentStatus').textContent=(value.vm||value.saved_connections?.[0]?.vm||'虚拟机')+' · '+(labels[state]||'状态未知')+' · '+connectionLabel;
     $('vmPowerOn').disabled=state==='Running'||state==='Starting';
@@ -84,6 +112,35 @@
     window.dispatchEvent(new CustomEvent('hub-vm-status',{detail:value}));
   }
   async function refreshPower(){const value=await call({action:'status'});displayPower(value);return value;}
+  let automatic=null;
+  H.connectSavedVm=async()=>{
+    if(automatic)return automatic;
+    automatic=(async()=>{
+      try{
+        const value=await refreshPower();
+        if(value.backend!=='tart'||value.auto_connect===false||!value.saved_connections?.length||value.connected)return;
+        status('正在自动开机并验证 Tart 连接…');
+        await wait(await call({action:'auto_connect'}));await refreshPower();
+      }catch(error){status(error.message);}finally{automatic=null;}
+    })();return automatic;
+  };
+  $('tartAutoConnect').addEventListener('change',()=>operate(async()=>{
+    await call({action:'save_preferences',auto_connect:$('tartAutoConnect').checked});
+    status($('tartAutoConnect').checked?'已开启自动连接。':'已关闭自动连接，虚拟机电源状态保持不变。');
+  }));
+  $('tartInstall').addEventListener('click',()=>operate(async()=>{
+    status('正在安装 Tart，可能需要数分钟；不会自动执行 sudo。');
+    await wait(await call({action:'install',confirmed:true}));await refreshPower();status('Tart 安装检测通过。');
+  }));
+  $('tartHomebrewGuide').addEventListener('click',()=>operate(()=>call({action:'open_homebrew'})));
+  $('tartCreate').addEventListener('click',()=>operate(async()=>{
+    status('正在下载镜像并创建虚拟机，可能需要较长时间；请保持应用运行。');
+    const name=$('tartVmName').value.trim();await wait(await call({action:'create',vm_name:name,image:$('tartImage').value,confirmed:true}));
+    const result=await wait(await call({action:'list'}));$('vmSelect').replaceChildren();
+    for(const vm of result.vms||[]){const option=document.createElement('option');option.value=vm.name;option.textContent=vm.name+' · '+vm.state+' · Tart';$('vmSelect').append(option);}
+    $('vmSelect').value=name;status('虚拟机已创建，请保存并连接；将实际验证 Guest Agent。');
+  }));
+  $('btnViewStatus')?.addEventListener('click',()=>void H.connectSavedVm());
   async function refreshStatus() {
     if(busy||polling||!H.client.hasToken()||document.hidden)return;
     polling=true;
@@ -96,6 +153,7 @@
   let thumbBusy=false,thumbName='',thumbCaptured=false,thumbAttempt=0;
   const previewVisible=()=>$('configModalToggle').checked&&!$('vmSettings').classList.contains('settings-section-inactive')&&!document.hidden;
   async function thumbnail(prefetch=false){
+    if(lastState.backend==='tart')return;
     if(thumbBusy||(!previewVisible()&&prefetch!==true)||!H.client.hasToken())return;
     if(prefetch===true&&Date.now()-thumbAttempt<15000)return;
     const name=$('vmSelect').value||lastState.vm;if(!name)return;
@@ -117,7 +175,7 @@
   $('vmThumbnailRefresh').addEventListener('click',thumbnail);$('vmSelect').addEventListener('change',thumbnail);
   window.addEventListener('hub-settings-section',()=>void thumbnail());setInterval(thumbnail,15000);
   $('configModalToggle').addEventListener('change',()=>{
-    if(!$('configModalToggle').checked)$('vmPassword').value='';else {void refreshStatus().then(thumbnail);}
+    if(!$('configModalToggle').checked)$('vmPassword').value='';else {void H.connectSavedVm();void refreshStatus().then(thumbnail);}
   });
   window.addEventListener('pagehide',()=>{$('vmPassword').value='';});
   setInterval(refreshStatus,5000);

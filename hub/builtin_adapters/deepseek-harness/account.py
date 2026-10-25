@@ -26,7 +26,7 @@ def account_rows(path):
 
 def inspect(runtime,balance=False,config=None):
     from .runtime import installation,patch_text,ACP
-    from hub.proxy_env import inherit_system_proxy
+    from hub.cli_paths import cli_environment as inherit_system_proxy
     cfg=config or runtime.config();store=credential_store(cfg)
     if not store.is_file():return {'status':'signed-out'}
     exe,cli=installation(cfg)

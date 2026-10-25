@@ -8,7 +8,7 @@
  const checked=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'checked');
  const originalClose=HTMLDialogElement.prototype.close;
  const specs={
-  setupWizard:{title:'模型接入配置',width:780,height:820,close:'setupClose'},
+  setupWizard:{title:window.__HUB_NATIVE_MACOS__?'首次配置':'模型接入配置',width:780,height:820},
   configModal:{title:'配置中心',width:1080,height:820,close:'btnCloseConfig'},
   designReviewDialog:{title:'产品演示与设计确认',width:1560,height:980,close:'closeDesignReview'},
   integrationsDialog:{title:'管理 Agent',width:720,height:780,close:'closeIntegrations'},

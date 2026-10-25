@@ -8,7 +8,7 @@
 - Windows 最新发布：`v0.2.1`，源码提交 `333843055f0cefc9b6ca438aeca23800dbb9b77b`。
 - 本次交接使用 `macos-port` 分支；创建时与上述提交相同。
 - [Windows 0.2.1 Release](https://github.com/Dias-Dd/agent-hub-desktop/releases/tag/v0.2.1) 已发布安装包和 SHA-256 校验文件。
-- **macOS 移植尚未开始**。此文件描述已有代码与下一步工作，不代表应用能在 Mac 上运行。
+- **交接时 macOS 移植尚未开始**。本文件保留交接基线；后续本地实现、验证与剩余限制见 [MACOS_PORT.md](MACOS_PORT.md)，不代表新版本已发布。
 - 用户已授权将交接文档提交并推送到远程 `macos-port` 分支。Mac 应检出这个分支；单独检出 `main` 不会得到这两份交接文件。此次授权仅用于交接分支，不延续到后续开发提交或发布。
 
 本文件不包含聊天全文、账号凭据、应用运行数据或用户长期记忆。Agent Hub 的长期记忆属于产品本身，不是 Codex 开发聊天的同步机制。

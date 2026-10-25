@@ -41,6 +41,28 @@ def explorer_dialog(initial=''):
         ole.CoUninitialize()
 
 def pick_directory(initial=''):
+    if sys.platform=='darwin':
+        import threading
+        from PyObjCTools import AppHelper
+        import AppKit as A
+        import Foundation as F
+        ready=threading.Event();result={}
+        def show():
+            try:
+                panel=A.NSOpenPanel.openPanel()
+                panel.setCanChooseDirectories_(True);panel.setCanChooseFiles_(False)
+                panel.setAllowsMultipleSelection_(False)
+                if initial and Path(initial).is_dir():panel.setDirectoryURL_(F.NSURL.fileURLWithPath_(str(Path(initial).resolve())))
+                if panel.runModal()==A.NSModalResponseOK:result['path']=str(panel.URL().path())
+            except Exception as error:result['error']=str(error)
+            finally:ready.set()
+        if threading.current_thread() is threading.main_thread():show()
+        else:
+            if A.NSApp() is None:raise OSError('macOS folder picker requires the running Cocoa host')
+            AppHelper.callAfter(show)
+            ready.wait()
+        if result.get('error'):raise OSError(result['error'])
+        return result.get('path')
     with explorer_dialog(initial) as (dialog,ole):
         user=C.WinDLL('user32');user.GetForegroundWindow.restype=C.c_void_p
         hr=call(dialog,3,(C.c_void_p,),user.GetForegroundWindow())

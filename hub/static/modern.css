@@ -60,6 +60,17 @@ body .provider-quota-window>small {font-size:10px;}
 #nativeTitlebar .titlebar-button:hover{background:var(--bg-card-hover);color:var(--text-main);}
 #nativeTitlebar .titlebar-button:disabled{opacity:.3;cursor:default;background:transparent;}
 #nativeTitlebar .titlebar-brand {font-size:12px;color:var(--text-dim);flex:none;}
+/* Reserve the Cocoa traffic lights while sharing one material with the sidebar. */
+.native-macos #nativeTitlebar{padding-left:82px;}
+.native-macos #nativeTitlebar .titlebar-system{display:none;}
+.setup-body code{display:block;overflow-wrap:anywhere;white-space:pre-wrap;}
+.setup-wizard-card .wizardActions{position:sticky;bottom:0;background:var(--bg-panel);padding:12px 0;display:flex;flex-wrap:wrap;gap:10px;}
+/* The Mac guide is a full native panel. Its skip action is not a close icon. */
+.native-macos .hub-window-body #setupClose{display:inline-flex!important;}
+.native-macos body.hub-window-body>#setupWizard{padding:0;}
+.native-macos .hub-window-body .setup-wizard-card{margin:0;height:100%;max-height:none;border-radius:0;box-shadow:none;display:flex;flex-direction:column;overflow:hidden;background:var(--bg-app);padding:24px;}
+.native-macos .hub-window-body .setup-body{flex:1;min-height:0;overflow:auto;}
+.native-macos .hub-window-body .wizardActions{position:static;flex:none;margin-top:12px;}
 #nativeProjectTitle {flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:12px;pointer-events:none;}
 #nativeTitlebar .titlebar-actions {margin-right:10px;}
 #nativeTitlebar .titlebar-system {gap:0;align-self:stretch;}
