@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-**面向 Windows 的 AI Agent 协作工作台。** 将不同 Harness、CLI 和 API 接入同一个项目，由经理 Agent 组织讨论、安排任务、跟进进度并交付成果。
+**AI Agent 协作工作台。** 将不同 Harness、CLI 和 API 接入同一个项目，由经理 Agent 组织讨论、安排任务、跟进进度并交付成果。
 
 保留你已有的模型账号和执行工具，在一个桌面界面中管理协作。Agent Hub 不是模型服务，也不附带模型订阅或 API 额度。
 
