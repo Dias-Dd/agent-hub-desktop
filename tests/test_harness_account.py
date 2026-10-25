@@ -5,12 +5,12 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import unittest
 from module_fixture import implementation
-from test_nine_deepseek import NineDeepSeek
+import test_nine_deepseek as base
 
 
 class Account(unittest.TestCase):
     def setUp(self):
-        self.fixture = NineDeepSeek(); self.fixture.setUp()
+        self.fixture = base.NineDeepSeek(); self.fixture.setUp()
         self.runtime = implementation(self.fixture.h, 'deepseek-harness')
         self.account = importlib.import_module(self.runtime.__package__ + '.account')
 
@@ -42,3 +42,32 @@ class Account(unittest.TestCase):
         with patch.object(self.account,'inspect',return_value={'status':'credential-stored','balance':{'status':'failed'}}):
             with self.assertRaises(HubError): self.account.quota(registry,connection)
         self.assertEqual(connection['official_balance'],[{'amount':'old'}])
+
+    def test_native_api_credential_uses_official_route_without_exporting_key(self):
+        runtime=SimpleNamespace(config=lambda:{},key=lambda:self.fail('Native key must stay inside Harness'))
+        with patch.object(self.account,'inspect',return_value={'status':'signed-out','api_key_configured':True}):
+            provider,store,env=self.account.auth(runtime)
+        self.assertEqual(provider,'deepseek-official');self.assertEqual(env,{})
+        rows=[__import__('json').loads(x[2:]) for x in self.runtime.patch_text('test','manager',provider=provider,credentials_path=store).splitlines()]
+        self.assertIn({'id':'credentials','config':{'path':str(store)}},rows)
+
+    def test_api_status_is_ready_without_account_login(self):
+        adapter=importlib.import_module(self.runtime.__package__+'.adapter')
+        registry=SimpleNamespace(server=SimpleNamespace(deepseek=object()))
+        with patch.object(self.account,'inspect',return_value={'status':'signed-out','api_key_configured':True}):
+            self.assertEqual(adapter.setup_status(registry,{})['state'],'ready')
+
+    def test_native_api_balance_is_distinct_from_account_balance(self):
+        registry=SimpleNamespace(server=SimpleNamespace(deepseek=object()))
+        with patch.object(self.account,'inspect',return_value={'status':'signed-out','api_key_configured':True,'api_balance':[{'amount':'12.5','currency':'CNY'}]}):
+            value=self.account.quota(registry,{})
+        self.assertEqual(value['balance_source'],'deepseek-api')
+        self.assertEqual(value['official_balance'][0]['amount'],'12.5')
+
+    def test_existing_account_route_is_preserved_when_api_key_also_exists(self):
+        runtime=SimpleNamespace(config=lambda:{},key=lambda:self.fail('Must reuse account'))
+        with patch.object(self.account,'inspect',return_value={'status':'credential-stored','api_key_configured':True}):
+            provider,store,env=self.account.auth(runtime)
+        self.assertEqual(provider,'deepseek-account');self.assertEqual(env,{})
+        rows=[__import__('json').loads(x[2:]) for x in self.runtime.patch_text('test','manager',provider='deepseek-official',credentials_path=store).splitlines()]
+        self.assertIn({'id':'llm-deepseek-account','disabled':False},rows)

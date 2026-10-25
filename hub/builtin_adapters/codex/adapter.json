@@ -25,5 +25,6 @@
     ],
     "terminal": true,
     "note": "使用官方 Codex CLI 的 ChatGPT 订阅或 API 登录。"
-  }
+  },
+  "quota_supported": true
 }

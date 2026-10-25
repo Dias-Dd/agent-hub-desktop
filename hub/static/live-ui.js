@@ -56,7 +56,7 @@
     const ns='http://www.w3.org/2000/svg',ring=document.createElementNS(ns,'svg');ring.setAttribute('viewBox','0 0 24 24');ring.setAttribute('aria-hidden','true');ring.classList.add('quota-ring');
     for(const foreground of [false,true]){const circle=document.createElementNS(ns,'circle');for(const [key,val]of Object.entries({cx:12,cy:12,r:9,fill:'none','stroke-width':2.5}))circle.setAttribute(key,String(val));circle.setAttribute('class',foreground?'quota-ring-fill':'quota-ring-track');if(foreground){circle.setAttribute('stroke-dasharray',String((pct||0)*.56549)+' 56.549');if(pct!==null&&pct<=10)circle.classList.add('quota-ring-low');}ring.append(circle);}value.append(ring);row.append(label,value);item.append(row);} 
    for(const balance of g.balances||[]){const row=H.node('div','','provider-quota-window');row.append(H.node('span',balance.name),H.node('b',balance.amount+' '+balance.currency));if(balance.observed_at)row.append(H.node('small','读取于 '+new Date(balance.observed_at*1000).toLocaleString()));item.append(row);}
-   if(g.unreadable.length)item.append(H.node('p',g.unreadable.join('、')+'：当前接口无法读取额度','muted'));return item;}):[H.node('p','暂无已接入的提供商','muted')]);
+   if(g.unreadable.length)item.append(H.node('p',g.unreadable.join('、')+(g.refreshable?.length?'：尚未取得额度读数，可刷新；失败时请检查登录或网络。':'：此模块未声明额度读取能力。'),'muted'));return item;}):[H.node('p','暂无已接入的提供商','muted')]);
   updateQuotaResets();
   H.$('refreshProviderQuotas').disabled=!groups.some(g=>g.refreshable?.length);
  }

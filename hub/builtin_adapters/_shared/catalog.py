@@ -35,7 +35,7 @@ def probe(self,connection):
  else:
   if not exe:raise HubError('未找到 '+KINDS[kind][0]+'；请先安装并登录')
   args=[exe,'models'] if kind=='opencode' else [exe,'--help']
-  result=subprocess.run(command(args),capture_output=True,encoding='utf-8',errors='replace',timeout=30,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+  result=subprocess.run(command(args),stdin=subprocess.DEVNULL,capture_output=True,encoding='utf-8',errors='replace',timeout=30,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
   if result.returncode:raise HubError('官方命令探测未成功；未启动模型')
   if kind=='opencode':models=[{'id':x.strip(),'efforts':KINDS[kind][1]} for x in result.stdout.splitlines() if re.fullmatch(r'[^\s]+/[^\s]+',x.strip())]
   if kind=='workbuddy':

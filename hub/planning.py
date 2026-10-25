@@ -135,13 +135,35 @@ class Planning:
                 self.hub.audit(actor,'plan.manager_switched',{'session':s['id'],'from':old_manager,'to':target_manager,'inherited_context':bool(inherit_context)})
             return {'switched':True,'session_id':s['id'],'manager':target_manager,'previous_manager':old_manager,'inherited_context':s.get('inherited_context')}
 
+    def request_format_repair(self,s,r,error):
+        previous=s.get('format_repair') or {}
+        if previous.get('revision')==s['revision']:return False
+        if time.time()>s['expires']:return False
+        manager=project_manager(self.hub,record=s)
+        runtime=self.workflows.runtime(manager)
+        cfg=runtime.config()
+        if not cfg.get('enabled') or cfg.get('grant_id')!=r['grant_id']:return False
+        prompt=('平台校验反馈：你刚才的计划未通过结构化校验。错误：'+str(error)[:500]+
+                '。请只修正上一份计划的 JSON 格式，完整保留用户要求、排除的成员、任务内容与页面清单，不重新设计、不执行、不派工、不调用工具。'
+                '仅返回一个合法 JSON 对象，包含 done:false、report（字符串）、tasks（agent/instruction 对象数组）和原有 preview。'
+                '这是本轮唯一一次自动格式纠错，仍须用户审阅批准才可执行。')
+        job=runtime.submit('user',manager,prompt,True,purpose='discussion',session_scope=r['session_scope'])
+        with self.hub.tx():
+            prior=self.hub.db.execute('SELECT body FROM discussion_prompt_context WHERE run_id=?',(r['id'],)).fetchone()
+            if prior:self.hub.db.execute('INSERT INTO discussion_prompt_context VALUES(?,?)',(job['id'],prior[0]))
+            self.hub.audit('平台','plan.format_repair_requested',{'session':s['id'],'source_run':r['id'],'run_id':job['id'],'execution_authorized':False})
+        s['format_repair']={'revision':s['revision'],'source_run':r['id'],'run_id':job['id']}
+        s.update(state='thinking',pending=job['id'],notice='计划格式校验失败，已把错误反馈给经理修正（本轮最多一次）；尚未批准执行。')
+        s.pop('error',None)
+        return True
+
     def patrol(self):
         with self.lock:
             for s in self.snapshot('user'):
                 if not s.get('pending'):continue
                 with self.hub.lock:r=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(s['pending'],)).fetchone()
                 if not r or r['status'] in ('queued','running','interrupting','waiting_quota'):continue
-                s['last_run']=r['id'];s['pending']=None;s.pop('error',None)
+                s['last_run']=r['id'];s['pending']=None;s.pop('error',None);s.pop('notice',None)
                 mgr=project_manager(self.hub,record=s)
                 try:
                     with self.hub.lock:
@@ -153,23 +175,33 @@ class Planning:
                     if raw.startswith('```'):raw=raw.split('\n',1)[1].rsplit('```',1)[0].strip()
                     try:
                         data=proposal(raw,allow_idle=True)
+                        from .plan_response import decode
+                        decoded,repairs=decode(raw)
                         try:
-                            outline=json.loads(raw).get('preview',{}).get('pages',[])
+                            outline=decoded.get('preview',{}).get('pages',[])
                             s['design_outline']=outline if isinstance(outline,list) else []
                         except (ValueError,AttributeError):s['design_outline']=[]
                         if data['done'] is not False:raise HubError('讨论不能直接声称已验收完成')
-                    except (HubError,ValueError,TypeError):
+                    except (HubError,ValueError,TypeError) as error:
                         # Preserve a readable answer; no structured plan means no execution.
                         if not raw:raise HubError('经理没有返回可显示内容')
                         s['plan']=None;s['state']='draft'
                         s['history'].append({'role':mgr,'text':raw,'revision':s['revision'],'run_id':r['id'],'created':r['finished'] or r['created']})
                         s['notice']='已保留经理答复；尚无可审批的结构化计划，可继续讨论。'
+                        if raw.startswith('{') and '"tasks"' in raw:
+                            s['state']='error';s['error']='计划格式无法读取：'+str(error)+'。原始回复已保留，尚未批准执行。'
+                            s['notice']=s['error']
+                            try:self.request_format_repair(s,r,error)
+                            except HubError as blocked:s['notice']+=' 纠错未启动：'+str(blocked)
                         self.save(s);continue
-                    if not any(m.get('run_id')==r['id'] for m in s['history']):
+                    previous=next((m for m in s['history'] if m.get('run_id')==r['id']),None)
+                    if previous is not None:previous['text']=data['report']
+                    else:
                         s['history'].append({'role':mgr,'text':data['report'],'revision':s['revision'],'run_id':r['id'],'created':r['finished'] or r['created']})
                     if data['tasks']:
                         if any(t['agent'] not in [mgr]+s['options']['agents'] for t in data['tasks']):raise HubError('计划包含未选择的 Agent')
                         s['plan']=data;s['digest']=hashlib.sha256(json.dumps(data,sort_keys=True,ensure_ascii=False).encode()).hexdigest();s['state']='awaiting_approval'
+                        if repairs:s['notice']='已恢复计划中的空字段格式错误，原始回复保留；请审阅后再批准执行。'
                     else:s['state']='draft'
                 except Exception as e:s['state']='error';s['error']=str(e)[:2000]
                 self.save(s)
@@ -178,7 +210,7 @@ class Planning:
         self.hub.require(actor,{'user'})
         with self.lock:
             s=self.get(session_id)
-            if s['state']!='error' or s.get('pending') or not s.get('last_run'):raise HubError('仅可重读已结束但解析失败的讨论结果')
+            if s['state'] not in ('error','draft') or s.get('plan') or s.get('pending') or not s.get('last_run'):raise HubError('仅可重读已结束且没有有效计划的讨论结果')
             with self.hub.lock:r=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(s['last_run'],)).fetchone()
             if not r or r['status']!='completed' or r['agent']!=project_manager(self.hub,record=s) or r['purpose']!='discussion' or r['session_scope'] not in ('discussion:'+s['id'],'hub-project:'+(s.get('project_id') or 'default')):raise HubError('没有属于本讨论的已完成结果；不会启动模型重试')
             s.update(pending=r['id'],state='thinking');s.pop('error',None);self.save(s)

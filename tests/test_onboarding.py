@@ -36,9 +36,11 @@ def probe(registry,connection): return {'models':[{'id':'test-model','efforts':[
         self.assertFalse(self.service.hub.db.execute("SELECT 1 FROM sqlite_master WHERE name='executions'").fetchone())
         self.assertEqual(self.service.registry.instances,{})
 
-    def test_login_required_opens_real_module_login_and_does_not_probe(self):
+    def test_check_does_not_open_login_but_explicit_login_does(self):
         ident=self.custom();result=self.service.probe(ident)
         self.assertTrue(result['login_required'])
+        self.assertFalse((Path(self.temp.name)/'login-opened').exists())
+        self.service.open_login(ident)
         self.assertTrue((Path(self.temp.name)/'login-opened').exists())
         self.assertNotIn(ident,self.service.verified)
 
@@ -70,9 +72,9 @@ def probe(registry,connection): return {'models':[{'id':'test-model','efforts':[
             self.assertEqual(result['state'],'missing');spawn.assert_not_called()
 
     def test_public_model_list_cannot_replace_authentication(self):
-        with patch('desktop.onboarding_service.locate',return_value='opencode.exe'),patch('subprocess.run',return_value=subprocess.CompletedProcess([],0,'0 credentials','')),patch.object(self.service,'open_login') as login:
+        with patch('desktop.onboarding_service.locate',return_value='opencode.exe'),patch('hub.builtin_adapters._shared.setup.locate',return_value='opencode.exe'),patch('subprocess.run',return_value=subprocess.CompletedProcess([],0,'0 credentials','')),patch.object(self.service,'open_login') as login:
             result=self.service.probe('opencode-local')
-            self.assertTrue(result['login_required']);login.assert_called_once_with('opencode-local')
+            self.assertTrue(result['login_required']);login.assert_not_called()
 
     def test_existing_runs_tests_and_agents_are_not_recovered_or_reset(self):
         h=self.service.hub

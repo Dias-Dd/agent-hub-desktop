@@ -74,6 +74,9 @@ def patch_text(agent,role,dialogue=False,policy="",workspace_root=None,sandbox_m
     if provider=='deepseek-account':
         from .account import account_rows
         rows+=account_rows(credentials_path)
+    elif credentials_path:
+        from .account import account_rows
+        rows+=account_rows(credentials_path) # Resuming an account session needs its provider before switching models.
     # JSON flow values are valid YAML. No credentials are written into this patch.
     return '\n'.join('- '+json.dumps(row,ensure_ascii=False) for row in rows)+'\n'
 
@@ -322,12 +325,16 @@ def catalog_entries(view,route="deepseek-official"):
 
 def probe_catalog(runtime,config=None):
     """Read official ACP choices without sending session/prompt or inference."""
-    exe,cli=installation(config or runtime.config())
-    from .account import auth
-    provider,credential_path,authentication=auth(runtime,config or runtime.config())
+    cfg=config or runtime.config()
+    exe,cli=installation(cfg)
+    from .account import auth,account_rows,credential_store
+    provider,credential_path,authentication=auth(runtime,cfg)
     with tempfile.TemporaryDirectory(prefix='hub-harness-catalog-') as tmp:
         home=Path(tmp);patch=home/'catalog.patch.yml'
-        patch.write_text(patch_text('catalog','读取模型目录',True,provider=provider,credentials_path=credential_path),encoding='utf-8')
+        plugin=home/'catalog.cjs'; output=home/'catalog.json'
+        plugin.write_text("""const fs=require('node:fs');exports.name='hub-model-catalog';exports.inject=['llm','deepseekAccount','credentials'];exports.apply=async(ctx,c)=>{try{const models=await ctx.llm.listModels(c.provider);fs.writeFileSync(c.output,JSON.stringify({models:models.map(m=>({id:m.id,name:m.name||m.id}))}));}catch(e){fs.writeFileSync(c.output,JSON.stringify({error:'Official model catalog unavailable'}));}};""",encoding='utf-8')
+        rows={'insert':[{'id':'hub-model-catalog','name':str(plugin),'config':{'provider':provider,'output':str(output)}}]}
+        patch.write_text(patch_text('catalog','读取模型目录',True,provider=provider,credentials_path=credential_path)+''.join('- '+json.dumps(row)+'\n' for row in account_rows(credential_path or credential_store(cfg)))+'- '+json.dumps(rows)+'\n',encoding='utf-8')
         env=inherit_system_proxy(dict(os.environ));env.update(ELECTRON_RUN_AS_NODE='1',DSH_HOME=tmp);env.pop('DEEPSEEK_API_KEY',None);env.update(authentication)
         client=ACP([str(exe),'--expose-internals',str(cli),'--profile','acp','--patch',str(patch)],tmp,env)
         session=None
@@ -335,7 +342,12 @@ def probe_catalog(runtime,config=None):
             init=client.request('initialize',{'protocolVersion':1,'clientCapabilities':{},'clientInfo':{'name':'agent-message-hub','version':'0.1'}},timeout=30)
             if init.get('agentInfo',{}).get('name')!='deepseek-harness-acp':raise HubError('Harness ACP 身份核验失败')
             view=client.request('session/new',{'cwd':tmp,'mcpServers':[]},timeout=30);session=view.get('sessionId')
-            models=catalog_entries(view,provider)
+            deadline=time.monotonic()+35
+            while not output.exists() and time.monotonic()<deadline:time.sleep(.05)
+            if not output.exists():raise HubError('Harness 官方模型目录读取超时')
+            catalog=json.loads(output.read_text(encoding='utf-8'))
+            models=[{'id':m['id'],'name':m.get('name') or m['id'],'source':'official_llm','efforts':[]} for m in catalog.get('models',[]) if isinstance(m.get('id'),str) and m['id']]
+            if catalog.get('error'):raise HubError(catalog['error'])
             if not models:raise HubError('Harness 未返回官方模型目录，不使用固定列表冒充读取结果')
             for model in models:
                 value=json.dumps([provider,model['id']],separators=(',',':'))

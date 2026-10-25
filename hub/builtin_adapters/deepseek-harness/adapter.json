@@ -19,6 +19,7 @@
   "setup": {
     "website": "https://www.deepseek.com/en/harness/",
     "login_args": [],
-    "note": "复用 DeepSeek Harness 中已登录的账号，无需另外填写 API Key。"
-  }
+    "note": "复用 DeepSeek Harness 中的账号登录或 API 凭据；检查只读取状态和实际模型目录。"
+  },
+  "quota_supported": true
 }

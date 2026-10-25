@@ -175,6 +175,8 @@
     const timeline=[...(!fresh ? stream.history : []), ...stream.userDirectMessages].map(m=>({id:m.id,time:m.timestamp||0,render:()=>{const row=H.chatMessage(m.senderName,m.text,m.status||m.role,m.timestamp,m.result);row.dataset.messageId=m.id;return row;}}));
     for(const item of H.artifactItems?.(v.rawSnapshot||{})||[])timeline.push({id:'artifact:'+item.id,time:item.created||0,render:()=>H.artifactMessage(item)});
     const discussion=(v.rawSnapshot?.planning||[]).find(x=>x.id===p?.sessionId);
+    if(discussion?.error)timeline.push({id:'plan-error:'+discussion.id+':'+discussion.revision+':'+discussion.error,time:discussion.history?.at(-1)?.created||discussion.created||0,render:()=>{const node=H.chatMessage('平台','计划处理失败：'+discussion.error+'。请检查接入状态后重新发送消息；尚未开始执行。','需要处理',null);node.setAttribute('role','alert');return node;}});
+    if(discussion?.notice)timeline.push({id:'plan-notice:'+discussion.id+':'+discussion.revision+':'+discussion.notice,time:discussion.history?.at(-1)?.created||discussion.created||0,render:()=>H.chatMessage('平台',discussion.notice,'计划状态',null)});
     const design=(v.rawSnapshot?.designs||[]).find(x=>x.id===discussion?.design_id)||(v.rawSnapshot?.designs||[])[0];
     if(design)timeline.push({id:'design:'+design.id,time:design.approved_at||design.versions?.at(-1)?.created||design.created||0,render:()=>{
       const caption=design.publish_error?'设计 v'+design.version+' 发布未完成：'+design.publish_error:design.state==='building'?'设计 v'+design.version+' 制作中，仅制作演示，尚未开始真实产品。':design.state==='review'?'设计 v'+design.version+' 已就绪，请逐页审阅、框选修改或确认后正式制作。':'设计 v'+design.version+' 已确认，正式制作须遵循此基线。';
@@ -182,7 +184,7 @@
       const open=H.button('审阅产品演示',()=>H.$('openDesignReview').click());open.className='design-review-launch';open.setAttribute('aria-label','打开产品演示，逐页审阅与批注');open.disabled=!design.versions?.length;row.querySelector('.chat-message-body').append(open);return row;
     }});
     list('discussionHistory',timeline.sort((a,b)=>a.time-b.time||String(a.id).localeCompare(String(b.id))).map(item=>item.render()));
-    $('recoverPlanResult').hidden = p?.state !== 'error';
+    $('recoverPlanResult').hidden = !(p?.state==='error'||(p?.state==='draft'&&discussion?.last_run&&discussion?.notice&&!discussion.pending&&!discussion.plan));
     $('workflowResumeBtn').hidden = !['paused','stopped'].includes(w?.status);
     $('workflowWakeBtn').hidden = !w || !['active','needs_attention','blocked'].includes(w.status);
     $('workflowPatrolBtn').hidden=!w;

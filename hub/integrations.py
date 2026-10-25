@@ -287,7 +287,7 @@ class Integrations:
    unique={}
    for window in group['windows']:unique[(window['connection_id'],window['name'],window['source'])]=window
    group['windows']=list(unique.values())
-   group['refreshable']=[c['id'] for c in self.rows('integration_connections') if c['id'] in used and (c['kind'] in ('codex','antigravity','deepseek-api','openrouter-api') or c.get('legacy') and (os.environ.get('DEEPSEEK_API_KEY') or (self.hub.directory/'deepseek-key.dpapi').exists())) and c['id'] in group['connection_ids']]
+   group['refreshable']=[c['id'] for c in self.rows('integration_connections') if c['id'] in used and ((_BUILTINS.get(c['kind'],{}).get('quota_supported') or c.get('adapter',{}).get('manifest_data',{}).get('quota_supported')) or c.get('legacy') and (os.environ.get('DEEPSEEK_API_KEY') or (self.hub.directory/'deepseek-key.dpapi').exists())) and c['id'] in group['connection_ids']]
   return list(groups.values())
  def discussion_team(self,manager,agents,project_id=None):
   wanted=list(dict.fromkeys([manager]+[a for a in agents if a!=manager]));profiles={a['id']:a for a in self.rows('agent_profiles') if a['enabled']};connections={c['id']:c for c in self.rows('integration_connections')};roles={}

@@ -17,11 +17,22 @@ def status(registry,connection,kind,spec):
             account = client.rpc('account/read', {'refreshToken':False}).get('account')
             return {'state':'ready' if account else 'login','message':'账号已登录。' if account else '请在 Codex 官方界面完成登录。'}
         finally: client.close()
+    if kind == 'antigravity':
+        from hub.antigravity import AntigravityProbe
+        try:
+            result=AntigravityProbe(locate(kind,c.get('executable',''))).run()
+            return {'state':'ready' if result.get('windows') else 'unknown','message':'已读取官方账号额度与模型目录。' if result.get('windows') else '模型目录可读，但未取得独立登录证据。可在官方界面确认登录后勾选确认。'}
+        except Exception:
+            return {'state':'unknown','message':'官方只读检查暂未成功。请检查网络；如已在官方界面登录，可勾选确认后读取模型。'}
+    if kind == 'workbuddy':
+        return {'state':'unknown','message':'CodeBuddy 没有已验证的独立账号检查接口。请确认已在官方 CLI 登录，勾选确认后读取模型目录；检查不会打开 CLI。'}
     if kind == 'opencode':
-        result = subprocess.run(command([locate('opencode', c.get('executable','')), 'auth', 'list']), capture_output=True, timeout=30, encoding='utf-8', errors='replace', creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        result = subprocess.run(command([locate('opencode', c.get('executable','')), 'auth', 'list']), stdin=subprocess.DEVNULL, capture_output=True, timeout=30, encoding='utf-8', errors='replace', creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         import re
         output=re.sub(r'\x1b\[[0-9;]*m','',result.stdout+result.stderr)
         counts=re.findall(r'(\d+)\s+credentials?',output,re.I)
+        # Public CLI versions show both stored credentials and environment keys.
+        counts+=re.findall(r'(\d+)\s+environment\s+variables?',output,re.I)
         ready=result.returncode==0 and any(int(x)>0 for x in counts)
         return {'state':'ready' if ready else 'login','message':'发现已连接的提供商。' if ready else '请在 OpenCode 中连接订阅或 API 提供商。'}
     return {'state':'unknown','message':'此 Harness 没有独立登录检测接口。请在官方界面确认登录，再继续读取模型目录。'}

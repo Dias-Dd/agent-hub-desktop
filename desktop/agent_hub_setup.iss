@@ -7,7 +7,7 @@
 [Setup]
 AppId={{A577AF90-CDF9-492B-9B44-43C842058693}
 AppName=Agent Hub
-AppVersion=0.2.1
+AppVersion=0.2.2
 AppPublisher=Agent Hub
 DefaultDirName={localappdata}\Programs\Agent Hub
 DefaultGroupName=Agent Hub
@@ -20,7 +20,7 @@ WizardStyle=modern
 SetupIconFile=app.ico
 UninstallDisplayIcon={app}\AgentHubSetup.exe
 OutputDir={#ReleaseOutput}
-OutputBaseFilename=AgentHub-Setup-0.2.1
+OutputBaseFilename=AgentHub-Setup-0.2.2
 Compression=lzma2
 SolidCompression=yes
 CloseApplications=yes
@@ -57,6 +57,8 @@ chinesesimp.DiagnosticsName=Agent Hub 导出诊断包
 english.DiagnosticsName=Agent Hub Export Diagnostics
 
 [Files]
+Source: "maintenance.ps1"; Flags: dontcopy
+Source: "maintenance.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Payload}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "installer-tools\MicrosoftEdgeWebview2Setup.exe"; Flags: dontcopy
 
@@ -84,10 +86,39 @@ begin
     (RegQueryStringValue(HKLM64, 'Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) and (Version <> '') and (Version <> '0.0.0.0'));
 end;
 
+function CloseInstalledApplications: Boolean;
+var ExitCode: Integer; ScriptPath: String;
+begin
+  if IsUninstaller then ScriptPath := ExpandConstant('{app}\maintenance.ps1')
+  else begin
+    ExtractTemporaryFile('maintenance.ps1');
+    ScriptPath := ExpandConstant('{tmp}\maintenance.ps1');
+  end;
+  Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    '-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + ScriptPath + '" -InstallDirectory "' + ExpandConstant('{app}') + '"', '', SW_HIDE, ewWaitUntilTerminated, ExitCode);
+  Result := Result and (ExitCode = 0);
+end;
+
+function InitializeUninstall: Boolean;
+begin
+  Result := CloseInstalledApplications;
+  if not Result then begin
+    if ActiveLanguage = 'english' then
+      MsgBox('Agent Hub is still running. Close the workspace and setup windows, then retry uninstalling. No files have been removed.', mbError, MB_OK)
+    else
+      MsgBox('Agent Hub 尚未退出。请关闭工作台和配置窗口后重新卸载，当前尚未删除文件。', mbError, MB_OK);
+  end;
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var ExitCode: Integer;
 begin
   Result := '';
+  if not CloseInstalledApplications then begin
+    if ActiveLanguage = 'english' then Result := 'Agent Hub is still running. Close the workspace and setup windows, then retry.'
+    else Result := 'Agent Hub 尚未退出，请关闭工作台和配置窗口后重试安装。';
+    Exit;
+  end;
   if not HasWebView2 then begin
     if ActiveLanguage = 'english' then WizardForm.StatusLabel.Caption := 'Installing Microsoft WebView2 Runtime (internet required)...'
     else WizardForm.StatusLabel.Caption := '正在安装 Microsoft WebView2 Runtime（需要联网）…';

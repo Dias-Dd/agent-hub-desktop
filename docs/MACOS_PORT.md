@@ -217,3 +217,11 @@ Cocoa 关闭按钮返回原 DOM 和保留草稿的路径。本地 ad-hoc 包通�
 新增 `test_design_webkit.py` 使用真实 WKWebView 和本地模拟演示，截图测量 iframe 内红色矩形：原始 200×100 在 50% / 100% / 200% 分别实测为 100×50 / 200×100 / 400×200，未用 DOM 存在性替代渲染验证。`test_design_browser.py` 三尺寸审阅、框选、反馈提交及重载恢复通过；修正旧测试固定 120ms 等待预览的竞态，并排除只读字段的自动填充误报。AGENTS.md 的三项强制布局/阅读测试通过。Windows 原生运行时未在本机验证。
 
 修复版为 `desktop/macos-installer-dist/AgentHub-macOS-arm64-demo-zoom-fix.dmg`，构建标识 `macos-demo-surface-zoom-4`。本地 ad-hoc 签名，无公证；未调用模型、提交或发布。
+
+## 合并 Windows main 修复（2026-10-25）
+
+合入 `origin/main` 的 `050a81ba957712e6c9c107af2ae350211333d98b`：经理计划空字段恢复、原始回复/解析错误展示、Harness 账号与 API 凭据状态、实际模型目录、额度刷新、检查不隐式打开登录及 Windows 安装维护逻辑。唯一文本冲突位于 DeepSeek `probe_catalog`，采用 main 的配置与官方目录读取逻辑，同时保留 Mac 应用路径、CLI 环境和 frozen MCP 适配。修正引导单测只模拟宿主 locate、遗漏模块 locate 的环境依赖，未放宽真实登录检查。
+
+合并后通过：计划响应 6、经理拥有计划 5、Harness 账号 7、接入注册 25、Mac Harness 5、长期记忆 9、统一模块 12、Mac 引导服务 3 项；可运行的旧引导服务测试 9 项通过、1 项平台跳过。AGENTS.md 三项浏览器测试、Mac 引导浏览器、Mac 标题栏浏览器、演示三尺寸/恢复测试、WKWebView 50%/100%/200% 像素测试通过。
+
+未验证的旧 Tk 引导：本机缺少 `_tkinter`，两项 Tk 布局及一项 VM 向导测试无法运行，不计为通过。另将原始 main 提取到隔离目录对照：`test_planning.py` 两边均 18 项/17 错误，`test_workflows.py` 两边均 10 项/9 错误，均为旧 `sol-2` 身份夹具；`test_manager_owned_plan.py` 两边均 5 项通过。没有改写这些旧夹具，也没有声称全套测试通过。无真实付费推理；本次为源码合并，之前发布的安装包仍对应此前构建。
