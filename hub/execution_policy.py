@@ -21,6 +21,8 @@ def compact_manager_input(self,run):
     if not notice.startswith('成员忙闲：') and notice!=w.get('initial_manager_instruction'):
         notice=self.hub.workflows.manager_prompt(w,self.hub.workflows.steps(w['id']),periodic=notice.startswith('成员忙闲：'),manager_task=run['task_id'])
     policy=POLICY if self.sessions.policy_needed(run,POLICY) else ''
+    from .long_term_memory import context
+    policy+=context(self.hub,run)
     value=content(policy,notice)
     run['_manager_policy']=True
     run['_manager_content']=value
@@ -28,10 +30,15 @@ def compact_manager_input(self,run):
 
 
 def execution_instructions(self,run):
+    from .long_term_memory import context
+    return context(self.hub,run)+_execution_instructions(self,run)
+
+
+def _execution_instructions(self,run):
     if (run.get('session_scope') or '').startswith('connection-test:'):return '这是独立接入测试。只回复连接成功；禁止使用工具、文件、命令、派工或外部通信。'
     if run.get('purpose')=='discussion':
         from hub.prompt_identity import discussion_system
-        return '你是项目经理 '+run['agent']+'，实际模型 '+run['model']+'。本轮只讨论和拟定计划，不调用工具、不实施、不派工，等待用户批准。'+discussion_system(self.hub,run)
+        return '你是项目经理 '+run['agent']+'，实际模型 '+run['model']+'。本轮只讨论和拟定计划，仅可使用 memory 保存长期记忆，不实施、不派工，等待用户批准。'+discussion_system(self.hub,run)
     from hub.user_followup import direct,POLICY
     if direct(self.hub,run):
         from hub.prompt_identity import VM_POLICY
@@ -91,9 +98,14 @@ def report_instructions(self,run):
 
 
 def tool_agent_instructions(runtime,run,project,read_only,dialogue):
+    from .long_term_memory import context
+    return context(runtime.hub,run)+_tool_agent_instructions(runtime,run,project,read_only,dialogue)
+
+
+def _tool_agent_instructions(runtime,run,project,read_only,dialogue):
     if run.get('purpose')=='discussion':
         from hub.prompt_identity import discussion_system
-        policy='本轮只讨论计划，不调用工具、不实施、不派工。按本轮要求输出 JSON，等待用户审批。'+discussion_system(runtime.hub,run)
+        policy='本轮只讨论计划，仅可使用 memory 保存长期记忆，不实施、不派工。按本轮要求输出 JSON，等待用户审批。'+discussion_system(runtime.hub,run)
     elif direct_followup(runtime.hub,run):
         from hub.user_followup import POLICY
         policy=POLICY

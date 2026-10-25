@@ -1,6 +1,6 @@
 # 安装与首次配置
 
-运行 `AgentHub-Setup-0.1.0.exe`。默认安装到当前用户的应用目录，不要求管理员权限。安装结束可打开独立的 **Agent Hub 配置引导**。
+运行 `AgentHub-Setup-0.2.1.exe`。默认安装到当前用户的应用目录，不要求管理员权限。安装结束可打开独立的 **Agent Hub 配置引导**。
 
 主程序仍使用 WebView2。安装器检测 Microsoft WebView2 Runtime；缺失时运行随包附带的微软 Evergreen 引导安装器（此步骤需要联网），失败会提示并停止安装。配置引导本身使用原生 Tk 窗口，不依赖 WebView2。安装器不会替用户启用 Hyper-V，也不会强制重启。
 

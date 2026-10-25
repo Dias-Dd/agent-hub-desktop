@@ -13,7 +13,7 @@ def execute(self,run):
   if not exe:raise HubError('找不到已配置的官方 CLI')
   readonly=self.read_only(run);run['_read_only']=readonly
   if not readonly and run['permission']!='full':raise HubError('OpenCode/Ori 不提供与 Hub 等价的工作区沙箱；请显式授权完全访问，或改用支持工作区隔离的连接')
-  allowed=[t['function']['name'] for t in self.definitions(run) if t['function']['name'] not in ('read_file','write_file','run_command')] if run.get('purpose') not in ('discussion','question') else []
+  allowed=[t['function']['name'] for t in self.definitions(run) if t['function']['name'] not in ('read_file','write_file','run_command')]
   mcp=bridge(self,run,allowed)
   model=run['model'];effort=self.efforts()[run['agent']]
   argv=[exe,'acp'] if c['kind']=='opencode' else [exe,'opencode','--model',model]+(['--reasoning-effort',effort] if effort!='default' else [])+['--','acp']

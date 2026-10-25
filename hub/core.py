@@ -50,6 +50,8 @@ class Hub:
         CREATE TABLE IF NOT EXISTS quotas(agent TEXT PRIMARY KEY,remaining REAL,resets_at REAL,source TEXT,updated REAL);
         CREATE TABLE IF NOT EXISTS audit(seq INTEGER PRIMARY KEY AUTOINCREMENT,ts REAL,actor TEXT,event TEXT,detail TEXT);
         CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT);
+        CREATE TABLE IF NOT EXISTS long_term_memory_versions(revision INTEGER PRIMARY KEY AUTOINCREMENT,user TEXT NOT NULL,memory TEXT NOT NULL,locked INTEGER NOT NULL,actor TEXT NOT NULL,reason TEXT NOT NULL,project_id TEXT,created REAL NOT NULL);
+        INSERT OR IGNORE INTO long_term_memory_versions(revision,user,memory,locked,actor,reason,created) VALUES(0,'','',0,'user','initial',CAST(strftime('%s','now') AS REAL));
         CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY,agent TEXT,prompt TEXT,digest TEXT,status TEXT,reserve_cents INTEGER,created REAL,expires REAL,result TEXT);
         CREATE INDEX IF NOT EXISTS calls_recent ON calls(created DESC);
         ''')

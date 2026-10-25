@@ -9,6 +9,7 @@ Keep your existing model accounts and execution tools while managing collaborati
 ## Features
 
 - **Project collaboration:** manager conversations, group chat, task queues, progress and original output.
+- **Cross-project memory:** managers can save preferences and reusable lessons. Settings provide editing, history previews, rollback and a user-controlled write lock. See the [memory guide](docs/LONG_TERM_MEMORY.md) (Chinese).
 - **Discuss before executing:** review a plan before approving work. Optionally build a demo, approve its design and then proceed to implementation, or skip the demo.
 - **One agent or a team:** one agent can manage and do the work; multiple agents can divide tasks, report results and integrate changes.
 - **Modular integrations:** built-in and custom Python adapters share an interface. JSON Lines subprocess bridges are also supported.
@@ -65,7 +66,7 @@ See the **[Manual Harness Integration Guide](docs/HARNESS_INTEGRATION.en.md)** f
 
 ## Installer and first-run setup
 
-The repository contains source and build scripts; cloning it does not provide a compiled Agent Hub installer. If you already have `AgentHub-Setup-0.1.0.exe`:
+Download and run `AgentHub-Setup-0.2.1.exe` from [GitHub Releases](https://github.com/Dias-Dd/agent-hub-desktop/releases/latest). Source and build scripts are also included in this repository.
 
 1. Run the installer and select Simplified Chinese or English.
 2. Add agents and select a manager in the separate setup program, or skip and configure them later in the workspace.
@@ -84,7 +85,7 @@ python -m venv .venv
 .\desktop\build_installer.ps1 -Python .\.venv\Scripts\python.exe -Compiler "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-Output: `desktop/installer-dist/AgentHub-Setup-0.1.0.exe`, including the main app, separate configuration program, MCP tool transport and diagnostic exporter. The script verifies the signatures of the Inno Setup compiler and Microsoft WebView2 bootstrapper.
+Output: `desktop/installer-dist/AgentHub-Setup-0.2.1.exe`, including the main app, separate configuration program, MCP tool transport and diagnostic exporter. The script verifies the signatures of the Inno Setup compiler and Microsoft WebView2 bootstrapper.
 
 ## Data, permissions and diagnostics
 

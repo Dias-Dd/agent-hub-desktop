@@ -183,7 +183,7 @@ def execute(runtime,run):
         # ACP mounts a fresh, run-bound MCP bridge on both new and resumed sessions.
         bridge={'name':'agent-message-hub','command':sys.executable,'args':[str(host_resource('mcp.py').resolve())],'env':[]}
         run['_read_only']=read_only
-        allowed=[x['function']['name'] for x in runtime.definitions(run) if x['function']['name'] not in ('read_file','write_file','run_command')] if not dialogue else []
+        allowed=[x['function']['name'] for x in runtime.definitions(run) if x['function']['name'] not in ('read_file','write_file','run_command')]
         if allowed and getattr(sys,'frozen',False):
             companion=Path(sys.executable).with_name(Path(sys.executable).name.replace('AgentMessageHubDesktop','AgentHubMcp'))
             if not companion.is_file():raise HubError('安装包缺少 AgentHubMcp.exe，请重新安装完整应用')

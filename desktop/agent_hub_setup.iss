@@ -7,7 +7,7 @@
 [Setup]
 AppId={{A577AF90-CDF9-492B-9B44-43C842058693}
 AppName=Agent Hub
-AppVersion=0.1.0
+AppVersion=0.2.1
 AppPublisher=Agent Hub
 DefaultDirName={localappdata}\Programs\Agent Hub
 DefaultGroupName=Agent Hub
@@ -20,7 +20,7 @@ WizardStyle=modern
 SetupIconFile=app.ico
 UninstallDisplayIcon={app}\AgentHubSetup.exe
 OutputDir={#ReleaseOutput}
-OutputBaseFilename=AgentHub-Setup-0.1.0
+OutputBaseFilename=AgentHub-Setup-0.2.1
 Compression=lzma2
 SolidCompression=yes
 CloseApplications=yes

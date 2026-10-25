@@ -461,6 +461,19 @@
         </div>
         </section>
         <section class="config-section-card" id="colorSettings"><h3>界面配色</h3><p class="settings-help">即时预览，自动保存在本机。可分别调整不同区域的颜色。</p><p id="colorModeLabel" class="settings-help"></p><div id="interfaceColors" class="interface-color-grid"></div><button id="resetInterfaceColors" type="button" class="secondary-btn">恢复默认配色</button></section>
+        <section class="config-section-card memory-settings" id="memorySettings">
+          <h3>长期记忆</h3>
+          <p class="settings-help">经理可主动保存用户偏好和经验，新项目会自动读取。锁定后经理只能读取，你仍可编辑。不要保存密码或 API 密钥。</p>
+          <div class="memory-toolbar"><span id="memoryStatus" role="status">尚未加载</span><button type="button" id="memoryLoad" class="secondary-btn">加载记忆</button><button type="button" id="memoryLock" class="secondary-btn" disabled>锁定记忆</button></div>
+          <form id="memoryForm" autocomplete="off">
+            <label for="memoryUser">用户偏好</label><textarea id="memoryUser" maxlength="3000" rows="5" disabled></textarea><small id="memoryUserCount">0 / 3000</small>
+            <label for="memoryNotes">经验笔记</label><textarea id="memoryNotes" maxlength="6000" rows="7" disabled></textarea><small id="memoryNotesCount">0 / 6000</small>
+            <button type="submit" id="memorySave" class="primary-btn" disabled>保存记忆</button>
+          </form>
+          <h4>版本历史</h4><p class="settings-help">保存、锁定和回滚都会留下版本。回滚会新建版本，保留原历史和当前锁定状态。</p>
+          <div class="memory-history-controls"><select id="memoryVersions" aria-label="记忆版本" disabled><option value="">选择版本预览</option></select><button id="memoryNewer" type="button" class="secondary-btn" disabled>较新版本</button><button id="memoryOlder" type="button" class="secondary-btn" disabled>较早版本</button></div>
+          <div id="memoryPreview" hidden><p id="memoryVersionInfo"></p><label for="memoryPreviewUser">用户偏好</label><textarea id="memoryPreviewUser" rows="4" readonly></textarea><label for="memoryPreviewNotes">经验笔记</label><textarea id="memoryPreviewNotes" rows="6" readonly></textarea><button id="memoryRollback" type="button" class="secondary-btn">回滚为此版本</button></div>
+        </section>
         <section class="config-section-card"><h3>经理巡检</h3><form id="managerPatrolForm" autocomplete="off"><label class="settings-toggle-row"><input id="managerPatrolEnabled" type="checkbox" checked><span>启用定期巡检</span></label><label for="managerPatrolMinutes">间隔（分钟）</label><input id="managerPatrolMinutes" type="number" min="1" max="1440" value="10"><button type="submit" class="secondary-btn">保存巡检设置</button><p class="settings-help">仅影响定期巡检，消息和已设定的计时器照常投递。</p></form></section>
         <section class="config-section-card storage-settings" id="storageSettings">
           <header class="settings-section-heading"><div><h3>项目存储</h3><p class="config-desc">选择新项目的默认位置，查看已有项目的文件。</p></div><button id="storageRefresh" type="button" class="secondary-btn btn-sm">刷新用量</button></header>
@@ -678,6 +691,6 @@
 <dialog id="artifactViewer" class="artifact-viewer" aria-labelledby="artifactViewerTitle"><header class="integrations-header"><h2 id="artifactViewerTitle">Agent 成果</h2><button id="closeArtifactViewer" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header><div id="artifactViewerContent" class="artifact-viewer-content"></div></dialog>
 <script src="/automation.js" defer></script>
 <script src="/live-ui.js" defer></script><script src="/vm-ui.js" defer></script><script src="/startup.js" defer></script>
-<script src="/colors.js" defer></script>
+<script src="/colors.js" defer></script><script src="/memory.js" defer></script>
 </body>
 </html>

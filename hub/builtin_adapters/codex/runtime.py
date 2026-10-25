@@ -458,9 +458,9 @@ class CodexRuntime:
                 pass
             py_exe = shutil.which('python')
             if py_exe and bridge.is_file():
-                return {'command':py_exe,'args':[str(bridge.resolve())],'env_vars':['HUB_TOKEN','HUB_URL','HUB_RUN_ID','HUB_AGENT','HUB_IS_MANAGER'],'required':True}
-            return {'command':sys.executable,'args':['--mcp-server'],'env_vars':['HUB_TOKEN','HUB_URL','HUB_RUN_ID','HUB_AGENT','HUB_IS_MANAGER'],'required':True}
-        return {'command':sys.executable,'args':[str(host_resource('mcp.py').resolve())],'env_vars':['HUB_TOKEN','HUB_URL','HUB_RUN_ID','HUB_AGENT','HUB_IS_MANAGER'],'required':True}
+                return {'command':py_exe,'args':[str(bridge.resolve())],'env_vars':['HUB_TOKEN','HUB_URL','HUB_RUN_ID','HUB_AGENT','HUB_IS_MANAGER','HUB_TOOL_ALLOWLIST'],'required':True}
+            return {'command':sys.executable,'args':['--mcp-server'],'env_vars':['HUB_TOKEN','HUB_URL','HUB_RUN_ID','HUB_AGENT','HUB_IS_MANAGER','HUB_TOOL_ALLOWLIST'],'required':True}
+        return {'command':sys.executable,'args':[str(host_resource('mcp.py').resolve())],'env_vars':['HUB_TOKEN','HUB_URL','HUB_RUN_ID','HUB_AGENT','HUB_IS_MANAGER','HUB_TOOL_ALLOWLIST'],'required':True}
 
     def run_environment(self,run):
         # Passed through environment, never CLI arguments or persisted provider config.
@@ -470,7 +470,12 @@ class CodexRuntime:
         if not manager:
             from hub.user_followup import manager as followup_manager
             manager=followup_manager(self.hub,run)
-        return {'HUB_IS_MANAGER':'1' if manager else '0','HUB_TOKEN':self.hub.tokens[run['agent']],'HUB_URL':getattr(self.hub,'url','http://127.0.0.1:8765'),'HUB_RUN_ID':run['id'],'HUB_AGENT':run['agent']}
+        from hub.long_term_memory import is_manager
+        manager=manager or is_manager(self.hub,run)
+        tools={}
+        if run.get('purpose') in ('discussion','question'):
+            tools['HUB_TOOL_ALLOWLIST']=json.dumps(['memory'] if is_manager(self.hub,run) else [])
+        return {**tools,'HUB_IS_MANAGER':'1' if manager else '0','HUB_TOKEN':self.hub.tokens[run['agent']],'HUB_URL':getattr(self.hub,'url','http://127.0.0.1:8765'),'HUB_RUN_ID':run['id'],'HUB_AGENT':run['agent']}
 
     def compact_manager_input(self,run):
         from hub.execution_policy import compact_manager_input

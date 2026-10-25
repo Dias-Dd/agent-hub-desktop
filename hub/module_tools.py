@@ -21,7 +21,9 @@ def guard(self,run):
 
 def definitions(self,run):
     with self.hub.lock:step=self.hub.db.execute('SELECT 1 FROM workflow_steps WHERE task=?',(run['task_id'],)).fetchone()
-    if not step and run.get('purpose') in ('question','discussion'):return []
+    if not step and run.get('purpose') in ('question','discussion'):
+        from .long_term_memory import is_manager
+        return [{'type':'function','function':{'name':n,'description':d,'parameters':s}} for n,d,s in TOOLS if n=='memory' and is_manager(self.hub,run)]
     w,context=self.hub.workflows.run_context(run['agent'],run['id']) if step else ({},{'step_kind':'work'})
     manager=project_manager(self.hub,record=w)==run['agent'] and context['step_kind'] in ('plan','review') and run.get('purpose')=='task' and not run.get('_read_only')
     allowed={'project_vm','project_git','send','report_result','project_status','project_mailbox','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact'}
@@ -31,6 +33,8 @@ def definitions(self,run):
         allowed={'project_vm','publish_artifact'}
         if followup_manager(self.hub,run):allowed|={'project_assign','project_status','project_complete','project','project_stop_task','project_queue'}
     if manager:allowed|={'project','project_assign','project_complete','project_set_role','project_cancel_task','project_stop_task','project_queue','project_schedule_wake'}
+    from .long_term_memory import is_manager
+    if is_manager(self.hub,run):allowed.add('memory')
     result=[{'type':'function','function':{'name':n,'description':d,'parameters':s}} for n,d,s in TOOLS if n in allowed]
     for name,description,props,required in [('read_file','读取项目内UTF-8文件',{'path':{'type':'string'}},['path']),('write_file','写入项目内文件（仅实施任务）',{'path':{'type':'string'},'content':{'type':'string'}},['path','content']),('run_command','按已确认完全访问权限运行本机命令；不是沙箱',{'command':{'type':'string'}},['command'])]:
         if (name=='write_file' and run.get('purpose')=='question') or (name=='run_command' and (run.get('purpose')=='question' or run.get('_read_only'))):continue
@@ -45,6 +49,9 @@ def tool(self,run,name,args,allowed):
     readonly=self.read_only(run) if hasattr(self,'read_only') else run.get('purpose') in ('discussion','question')
     if readonly and name in ('write_file','run_command'):raise HubError('本轮只读，不能执行写入或命令工具')
     if name not in allowed:raise HubError('本轮未授权该工具')
+    if name=='memory':
+        from .long_term_memory import action
+        return action(self.hub,run['agent'],run_id=run['id'],**args)
     if name in ('read_file','write_file'):
         root=Path(run['cwd']).resolve();path=(root/args['path']).resolve()
         if not path.is_relative_to(root):raise HubError('文件工具只允许当前项目目录')

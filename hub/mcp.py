@@ -15,6 +15,7 @@ def schema(properties=None,required=None):
 S={'type':'string'}
 N={'type':'number'}
 TOOLS=[
+    ('memory','当前项目经理跨项目长期记忆：read读取实时内容与revision；add追加、patch唯一原文替换、remove删除。写入必须带expected_revision，锁定或冲突会拒绝。target=user用户偏好或memory经验笔记。不保存密钥、临时状态或整段聊天。',schema({'operation':{'enum':['read','add','patch','remove']},'target':{'enum':['user','memory']},'content':S,'old_text':S,'expected_revision':{'type':'integer','minimum':0}},['operation'])),
     ('project_vm','虚拟机工具：status查连接/用request_id查异步结果；queued仅入队，exec/push/pull须查到completed，failed要读error，不能据queued宣称成功。exec在Session 0；GUI用desktop_launch(path相对exe路径,value可选参数)在登录桌面启动，再windows/screenshot验证；不得仅凭无窗口推断缺OpenGL。push/pull传cwd相对path。桌面优先windows→ui_tree→ui_invoke/ui_set_value；screenshot返回图片。key(key_codes虚拟键码组合)/mouse(x,y屏幕像素，button=0移动/1左键/2右键)仅作Hyper-V备用。操作后desktop_release释放120秒桌面租约；不要重复提交。',schema({'action':{'enum':['status','exec','push','pull','desktop_launch','desktop_status','desktop_release','screenshot','windows','ui_tree','ui_invoke','ui_set_value','key','mouse']},'request_id':S,'script':S,'path':S,'timeout_seconds':{'type':'integer','minimum':1,'maximum':3600},'window_handle':{'type':'integer'},'element_id':S,'value':S,'key_codes':{'type':'array','items':{'type':'integer'}},'x':{'type':'integer'},'y':{'type':'integer'},'button':{'type':'integer'}})),
     ('project_git','独立Git工作区：status查看成员分支；commit保存自己的修改；经理用integrate加agent合并成员提交。冲突保留现场，解决后commit，不自动覆盖。',schema({'action':{'enum':['status','commit','integrate']},'agent':S,'message':S})),
     ('browser_render','用独立浏览器渲染项目或已确认设计基线内的本地HTML，返回PNG图片及证据；只读检查也可用，不修改源码。不接受远程URL。',schema({'path':S,'width':{'type':'integer'},'height':{'type':'integer'}},['path'])),
@@ -49,7 +50,7 @@ def call(name,args):
     parsed=urllib.parse.urlsplit(base)
     if parsed.scheme!='http' or parsed.hostname not in ('127.0.0.1','localhost') or parsed.path not in ('','/') or parsed.username or parsed.query or parsed.fragment:
         raise ValueError('HUB_URL must be a loopback HTTP origin')
-    if name in ('project_vm','project','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact','project_git','project_status','project_assign','report_result','project_complete','project_mailbox','project_set_role','project_cancel_task','project_stop_task','project_queue','project_return_manager','project_schedule_wake'):
+    if name in ('memory','project_vm','project','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact','project_git','project_status','project_assign','report_result','project_complete','project_mailbox','project_set_role','project_cancel_task','project_stop_task','project_queue','project_return_manager','project_schedule_wake'):
         run_id=os.environ.get('HUB_RUN_ID')
         if not run_id:raise ValueError('tool requires a Hub-owned active execution')
         args={**args,'run_id':run_id}
@@ -72,11 +73,11 @@ class Protocol:
         if msg.get('jsonrpc')!='2.0' or not isinstance(params,dict):return error(-32600,'invalid request')
         if method=='initialize':
             self.initialized=True
-            return result({'protocolVersion':params.get('protocolVersion') if params.get('protocolVersion') in ('2024-11-05','2025-03-26','2025-06-18','2025-11-25') else '2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'agent-message-hub','version':'0.1.0'},'instructions':'身份由 HUB_TOKEN 确定，不能用参数冒充；真实模型审批不通过 MCP 开放。'})
+            return result({'protocolVersion':params.get('protocolVersion') if params.get('protocolVersion') in ('2024-11-05','2025-03-26','2025-06-18','2025-11-25') else '2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'agent-message-hub','version':'0.2.1'},'instructions':'身份由 HUB_TOKEN 确定，不能用参数冒充；真实模型审批不通过 MCP 开放。'})
         if method=='ping':return result({})
         if not self.ready:return error(-32000,'initialize and notifications/initialized required')
         allowed=json.loads(os.environ['HUB_TOOL_ALLOWLIST']) if os.environ.get('HUB_TOOL_ALLOWLIST') else None
-        if method=='tools/list':return result({'tools':[{'name':n,'description':d,'inputSchema':s} for n,d,s in TOOLS if (allowed is None or n in allowed) and (allowed is not None or not os.environ.get('HUB_RUN_ID') or n in ({'project_vm','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact','send','report_result','project_git','project_status','project_assign','project_complete','project','project_mailbox','project_set_role','project_cancel_task','project_stop_task','project_queue','project_schedule_wake','project_return_manager'} if os.environ.get('HUB_IS_MANAGER')=='1' else {'project_vm','send','project_git','report_result','project_status','project_mailbox','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact'}))]})
+        if method=='tools/list':return result({'tools':[{'name':n,'description':d,'inputSchema':s} for n,d,s in TOOLS if (allowed is None or n in allowed) and (allowed is not None or not os.environ.get('HUB_RUN_ID') or n in ({'memory','project_vm','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact','send','report_result','project_git','project_status','project_assign','project_complete','project','project_mailbox','project_set_role','project_cancel_task','project_stop_task','project_queue','project_schedule_wake','project_return_manager'} if os.environ.get('HUB_IS_MANAGER')=='1' else {'project_vm','send','project_git','report_result','project_status','project_mailbox','schedule_wake','timer_list','timer_cancel','browser_render','publish_artifact'}))]})
         if method=='tools/call':
             try:
                 name=params.get('name');args=params.get('arguments',{})

@@ -241,7 +241,7 @@ class AntigravityRuntime(CodexRuntime):
                 plain_dialogue=run.get('purpose')=='question' and not project_step
                 session=self.sessions.get(run)
                 if session:run['_conversation']=session['session_id']
-                if run.get('purpose')!='discussion':run['_hub_env']=self.run_environment(run)
+                run['_hub_env']=self.run_environment(run)
                 if self.stream_factory is AntigravityStream:self.ensure_mcp()
                 actual_content=run.get('_manager_content',instructions+'\n\n用户任务（按以下内容实际执行）：\n'+run['prompt'])
                 with self.hub.tx():self.hub.db.execute('UPDATE executions SET actual_input=? WHERE id=?',(actual_content,run['id']))
@@ -272,7 +272,7 @@ class AntigravityRuntime(CodexRuntime):
                         with self.hub.tx():self.hub.db.execute('UPDATE executions SET thread_id=? WHERE id=?',(event.get('conversation_id'),run['id']))
                     elif kind=='step_update':
                         step=event.get('step_update') or {}
-                        if (run.get('purpose')=='discussion' or plain_dialogue) and step.get('step_type')=='tool':raise HubError('当前是普通对话，CLI尝试调用工具，已停止本地回合；未恢复项目执行。请通过项目恢复入口继续派工。')
+                        if (run.get('purpose')=='discussion' or plain_dialogue) and step.get('step_type')=='tool' and step.get('tool_name') not in ('memory','mcp_agent-message-hub_memory','mcp__agent-message-hub__memory'):raise HubError('当前是普通对话，CLI尝试调用工具，已停止本地回合；未恢复项目执行。请通过项目恢复入口继续派工。')
                         if step.get('step_type')=='agent_response' and isinstance(step.get('text_delta'),str):self.public_reply(run,step['text_delta'],phase='正在生成回复')
                         if step.get('step_type')=='tool':self.public_reply(run,phase='正在使用工具：'+str(step.get('tool_name') or '项目工具'))
                         if step.get('step_type') in ('tool','agent_response','checkpoint'):

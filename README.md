@@ -9,6 +9,7 @@
 ## 功能概览
 
 - **按项目协作**：经理对话、Agent 群聊、任务队列、进度与原始回复集中展示。
+- **跨项目长期记忆**：经理主动保存偏好与经验；用户可在设置中编辑、预览历史、回滚和锁定。详见[长期记忆指南](docs/LONG_TERM_MEMORY.md)。
 - **先讨论，再执行**：审阅计划后批准制作；可先生成产品演示，确认设计后进入正式实现，也可跳过演示。
 - **单 Agent 或多 Agent**：一位 Agent 可以兼任经理并独立完成任务；多成员可以分工、汇报和集成。
 - **模块化接入**：内置与自定义 Python 适配器共用接口，也支持 JSON Lines 子进程桥接。
@@ -65,7 +66,7 @@ API 凭据按接入要求通过环境变量或已有凭据流程配置。设置�
 
 ## 安装版与首次配置
 
-仓库提供源码和构建脚本，克隆仓库不会得到已编译的 Agent Hub 安装包。如果你已有 `AgentHub-Setup-0.1.0.exe`：
+从 [GitHub Releases](https://github.com/Dias-Dd/agent-hub-desktop/releases/latest) 下载 `AgentHub-Setup-0.2.1.exe` 并运行。仓库同时提供源码和构建脚本。
 
 1. 运行安装程序，选择简体中文或 English。
 2. 在独立引导中添加 Agent 并指定经理；也可跳过，稍后在工作台配置。
@@ -84,7 +85,7 @@ python -m venv .venv
 .\desktop\build_installer.ps1 -Python .\.venv\Scripts\python.exe -Compiler "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-输出：`desktop/installer-dist/AgentHub-Setup-0.1.0.exe`，包含主程序、独立配置程序、MCP 工具通道与诊断导出工具。脚本会检查 Inno Setup 编译器和微软 WebView2 引导安装器的数字签名。
+输出：`desktop/installer-dist/AgentHub-Setup-0.2.1.exe`，包含主程序、独立配置程序、MCP 工具通道与诊断导出工具。脚本会检查 Inno Setup 编译器和微软 WebView2 引导安装器的数字签名。
 
 ## 数据、权限与排错
 

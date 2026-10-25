@@ -346,4 +346,8 @@ body:has(#viewModeStatusRadio:checked) #emptyWorkspace{display:none}
 .interface-color-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;}
 .interface-color-theme{min-width:0;}
 .interface-color-theme h4{margin:0 0 10px;}
+.memory-toolbar,.memory-history-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0;}
+.memory-settings textarea{display:block;box-sizing:border-box;width:100%;min-height:90px;max-height:340px;resize:vertical;overflow:auto;background:var(--bg-inset);color:var(--text-main);}
+.memory-settings label{display:block;margin:14px 0 6px;}.memory-settings small{display:block;color:var(--text-dim);margin:4px 0 12px;}
+.memory-history-controls select{min-width:0;flex:1;max-width:100%;}.memory-settings #memoryStatus{flex:1;font-size:12px;color:var(--text-dim);}
 @media(max-width:620px){.interface-color-grid{grid-template-columns:1fr;}}

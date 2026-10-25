@@ -6,3 +6,9 @@ __pycache__/
 build/
 dist/
 .env
+local-data/
+native-profile*/
+desktop/*-build/
+desktop/*-dist/
+desktop/installer-tools/inno/
+.release-work/
