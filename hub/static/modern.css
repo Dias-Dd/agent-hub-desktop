@@ -342,3 +342,8 @@ body .hub-color-picker input.color-hue::-webkit-slider-thumb{appearance:none;-we
 body:has(#viewModeStatusRadio:checked) #emptyWorkspace{display:none}
 
 .empty-workspace{display:flex;flex:1;flex-direction:column;justify-content:center;align-items:center;align-self:stretch;max-width:none;min-height:0}
+
+.interface-color-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;}
+.interface-color-theme{min-width:0;}
+.interface-color-theme h4{margin:0 0 10px;}
+@media(max-width:620px){.interface-color-grid{grid-template-columns:1fr;}}

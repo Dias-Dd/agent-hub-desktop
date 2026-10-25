@@ -728,7 +728,7 @@ progress::-moz-progress-bar {
 #chatTabManagerRadio:checked ~ .workspace-desktop label[for="chatTabManagerRadio"] {
   background: var(--bg-panel);
   color: var(--text-main);
-  border-bottom: 2px solid var(--accent);
+  border-bottom: none;
 }
 
 #chatTabGroupRadio:checked ~ .workspace-desktop #panelGroupChat {
@@ -740,7 +740,7 @@ progress::-moz-progress-bar {
 #chatTabGroupRadio:checked ~ .workspace-desktop label[for="chatTabGroupRadio"] {
   background: var(--bg-panel);
   color: var(--text-main);
-  border-bottom: 2px solid var(--accent);
+  border-bottom: none;
 }
 
 /* Config Modal Pure CSS Toggle */

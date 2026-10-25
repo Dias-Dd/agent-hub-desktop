@@ -4,7 +4,8 @@ from ctypes import wintypes as W
 class Tray:
  MESSAGE=0x8012
  def __init__(self,window,icon,status=None,select_project=None):
-  self.status=status;self.select_project=select_project
+  import queue
+  self.status=status;self.select_project=select_project;self.notification_fallback=queue.SimpleQueue()
   from .ui_preferences import language
   self.language=language(status.directory) if status else 'zh-CN';self.notification_project=None
   self.window=window;self.user=C.windll.user32;self.shell=C.windll.shell32
@@ -23,12 +24,26 @@ class Tray:
  def notify_pending(self):
   if not self.active or not self.status:return
   import queue
-  try:event=self.status.notifications.get_nowait()
-  except queue.Empty:return
+  fallback=False
+  try:event=self.notification_fallback.get_nowait();fallback=True
+  except queue.Empty:
+   try:event=self.status.notifications.get_nowait()
+   except queue.Empty:return
   english=self.language=='en';demo=event['kind']=='demo'
   self.data.szInfoTitle=('Product demo ready' if demo else 'Project completed') if english else ('产品演示已完成' if demo else '项目已完成')
   description=('Open Agent Hub to review the demo.' if demo else 'Open Agent Hub to view the delivery.') if english else ('打开工作台审阅演示并确认设计。' if demo else '打开工作台查看交付结果。')
-  self.data.szInfo=(event.get('name','')+'\n'+description).strip()[:255];self.data.dwInfoFlags=1;self.data.uFlags=0x10
+  message=(event.get('name','')+'\n'+description).strip()
+  if not fallback:
+   import threading
+   title=self.data.szInfoTitle
+   def deliver():
+    try:
+     from .system_notifications import send
+     send(title,message)
+    except Exception:self.notification_fallback.put(event)
+   threading.Thread(target=deliver,daemon=True,name='hub-completion-notification').start()
+   return
+  self.data.szInfo=message[:255];self.data.dwInfoFlags=1;self.data.uFlags=0x10
   self.shell.Shell_NotifyIconW(1,C.byref(self.data));self.data.uFlags=7;self.notification_project=event.get('project')
  def handle(self,event):
   if event==0x405:

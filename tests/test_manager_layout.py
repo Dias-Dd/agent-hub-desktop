@@ -1,6 +1,23 @@
 import unittest,subprocess,tempfile,re,threading
 import test_nine_browser as base
 CHECK=r"""
+for(const id of ['tabManagerChat','tabGroupChat','tabProjectStatus']){
+ const tab=document.getElementById(id),label=tab.lastElementChild;
+ const offset=()=>label.getBoundingClientRect().top-tab.getBoundingClientRect().top;
+ const before=offset();tab.click();const after=offset();tab.click();
+ if(Math.abs(before-after)>.5||Math.abs(after-offset())>.5)throw Error('tab text shifts: '+id);
+}
+document.getElementById('tabManagerChat').click();
+const colorInputs=[...document.querySelectorAll('#interfaceColors input[data-token]')];
+if(colorInputs.length!==14)throw Error('both theme palettes must be editable');
+const darkColor=colorInputs.find(x=>x.dataset.mode==='dark'&&x.dataset.token==='--accent');
+const currentTheme=document.documentElement.dataset.theme;
+document.documentElement.dataset.theme='light';
+const previousAccent=getComputedStyle(document.documentElement).getPropertyValue('--accent');
+darkColor.value='#123456';darkColor.dispatchEvent(new Event('input'));
+if(getComputedStyle(document.documentElement).getPropertyValue('--accent')!==previousAccent)throw Error('inactive palette changed current theme');
+if(JSON.parse(localStorage.getItem('hub.interfaceColors.v2')).dark['--accent']!=='#123456')throw Error('dark palette not saved');
+if(currentTheme===undefined)delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=currentTheme;
 const surface=document.querySelector('.workbench-content-surface');
 if(!surface)throw Error("content surface missing");
 {

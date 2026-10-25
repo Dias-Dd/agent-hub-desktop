@@ -1,4 +1,7 @@
 {
+  "浅色模式": "Light palette",
+  "深色模式": "Dark palette",
+  "浅色与深色配色独立保存；当前主题即时预览。": "Light and dark palettes are saved separately; changes to the active theme preview immediately.",
   "工作台快捷菜单": "Workspace menu",
   "工作台快捷操作": "Workspace shortcuts",
   "复制选中文本": "Copy selection",
