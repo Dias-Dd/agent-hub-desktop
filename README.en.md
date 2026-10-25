@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-**A Windows desktop workspace for coordinating AI agents.** Connect different harnesses, CLIs and APIs to a project, and let a manager agent organize discussions, assign work, track progress and deliver results.
+**A desktop workspace for coordinating AI agents.** Connect different harnesses, CLIs and APIs to a project, and let a manager agent organize discussions, assign work, track progress and deliver results.
 
 Keep your existing model accounts and execution tools while managing collaboration in one interface. Agent Hub is not a model service and does not include subscriptions or API credits.
 
