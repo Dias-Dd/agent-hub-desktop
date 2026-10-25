@@ -1,12 +1,16 @@
 """Windows notification-center delivery, invoked only for completion events."""
 import base64
 import subprocess
+import sys
 from xml.etree import ElementTree as ET
 
 APP_ID = 'AgentHub.Desktop'
 
 
 def send(title, message):
+    if sys.platform=='darwin':
+        from .macos_notifications import send as native_send
+        return native_send(title,message)
     import winreg
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, 'Software\\Classes\\AppUserModelId\\' + APP_ID) as key:
         winreg.SetValueEx(key, 'DisplayName', 0, winreg.REG_SZ, 'Agent Hub')

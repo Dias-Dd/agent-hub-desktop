@@ -5,6 +5,7 @@ import json,os,re,secrets,shutil,subprocess,sys,time,threading
 from contextlib import contextmanager
 from pathlib import Path
 from .core import HubError,uid,text
+from .cli_paths import which
 from .codex_runtime import CodexRuntime,AppServer,codex_executable
 from .antigravity import AntigravityRuntime,executable as agy_executable
 from .deepseek_runtime import DeepSeekRuntime
@@ -23,17 +24,17 @@ def locate(kind,supplied=''):
 
 def command(argv):
  # Batch launchers need cmd on Windows; no user-supplied shell text is accepted.
- if Path(argv[0]).suffix.lower() in ('.mjs','.cjs','.js'):return [shutil.which('node') or 'node',*argv]
+ if Path(argv[0]).suffix.lower() in ('.mjs','.cjs','.js'):return [which('node') or 'node',*argv]
  if Path(argv[0]).is_file() and not Path(argv[0]).suffix:
   with open(argv[0],'rb') as source:header=source.read(64)
-  if header.startswith(b'#!') and b'node' in header:return [shutil.which('node') or 'node',*argv]
+  if header.startswith(b'#!') and b'node' in header:return [which('node') or 'node',*argv]
  if os.name=='nt' and Path(argv[0]).suffix.lower() in ('.cmd','.bat'):
   launcher=Path(argv[0]);base=launcher.parent.resolve()
   for match in re.finditer(r'%dp0%[\\/]+(node_modules[\\/][^"\r\n]+)',launcher.read_text(encoding='utf-8',errors='replace')):
    target=(base/match.group(1)).resolve()
    if target.is_file() and target.is_relative_to(base/'node_modules'):
     if target.suffix.lower()=='.exe':return [str(target),*argv[1:]]
-    if target.suffix.lower() in ('.js','.mjs','.cjs') or (not target.suffix and target.read_bytes()[:128].startswith(b'#!') and b'node' in target.read_bytes()[:128]):return [shutil.which('node') or 'node',str(target),*argv[1:]]
+    if target.suffix.lower() in ('.js','.mjs','.cjs') or (not target.suffix and target.read_bytes()[:128].startswith(b'#!') and b'node' in target.read_bytes()[:128]):return [which('node') or 'node',str(target),*argv[1:]]
   if any(re.search(r'["&|<>^%!\r\n]',value) for value in argv):raise HubError('此批处理启动器无法安全传递参数，请指定原生 EXE 或 Node 入口文件')
   return ['cmd.exe','/d','/s','/c',subprocess.list2cmdline(argv)]
  return argv
@@ -45,12 +46,12 @@ class Integrations:
    self.hub.db.execute('CREATE TABLE IF NOT EXISTS integration_connections(id TEXT PRIMARY KEY,body TEXT)')
    self.hub.db.execute('CREATE TABLE IF NOT EXISTS agent_profiles(id TEXT PRIMARY KEY,body TEXT)')
    self.hub.db.execute('CREATE TABLE IF NOT EXISTS agent_change_queue(project_id TEXT,agent TEXT,before_json TEXT,after_json TEXT,first_at REAL,updated REAL,version TEXT,PRIMARY KEY(project_id,agent))')
-   if not self.hub.db.execute('SELECT 1 FROM integration_connections').fetchone():
+   if not self.hub.db.execute('SELECT 1 FROM integration_connections').fetchone() and self.hub.db.execute('SELECT 1 FROM agents').fetchone():
     self.hub.db.execute('INSERT INTO integration_connections VALUES(?,?)',('deepseek-default',json.dumps({'id':'deepseek-default','name':'DeepSeek Harness','kind':'deepseek-harness','legacy':True,'enabled':True,'models':[{'id':'deepseek-flash','efforts':KINDS['deepseek-harness'][1]}],'quota':{'source':'unknown','remaining':None,'resets_at':None}})))
     for a in self.hub.db.execute('SELECT * FROM agents').fetchall():
      self.hub.db.execute('INSERT INTO agent_profiles VALUES(?,?)',(a['id'],json.dumps({'id':a['id'],'name':a['id'],'connection_id':'deepseek-default','model':'deepseek-flash','effort':server.deepseek.efforts().get(a['id'],'high'),'role':a['role'],'enabled':bool(a['enabled'])},ensure_ascii=False)))
    for kind in KINDS:
-    if kind in ('deepseek-harness','custom-harness'):continue
+    if kind=='custom-harness' or kind=='deepseek-harness' and getattr(self.hub,'seed_defaults',True):continue
     preset={'id':kind+'-local','name':KINDS[kind][0],'kind':kind,'enabled':False,'cwd':server.deepseek.config()['cwd'],'permission':'workspace' if kind=='codex' or kind.endswith('-api') else 'full','call_limit':0 if kind=='deepseek-api' else 1000,'executable':'','key_env':BASES.get(kind,('',''))[1],'models':[],'quota':{'source':'unknown','remaining':None,'resets_at':None}}
     self.hub.db.execute('INSERT OR IGNORE INTO integration_connections VALUES(?,?)',(preset['id'],json.dumps(preset,ensure_ascii=False)))
   with self.hub.tx():
@@ -96,7 +97,9 @@ class Integrations:
  def adapters(self,actor,open_folder=False):
   self.hub.require(actor,{'user'});self.scan_adapters(force=True)
   folder=custom_directory(self.hub.directory)
-  if open_folder:os.startfile(str(folder.resolve()))
+  if open_folder:
+   from .platform_paths import open_directory
+   open_directory(folder)
   self.apply()
   return {'directory':str(folder.resolve()),'parent_directory':str(folder.parent.resolve()),'builtin_directory':str((folder.parent/'builtin').resolve()),'errors':self.adapter_errors,'inference_sent':False}
 
@@ -231,6 +234,7 @@ class Integrations:
   connections=[]
   for c in self.rows('integration_connections'):
    if c['kind'] not in KINDS:continue
+   if c.get('legacy') and not getattr(self.hub,'seed_defaults',True) and not any(a['enabled'] and a['connection_id']==c['id'] for a in self.rows('agent_profiles')):continue
    if c.get('legacy'):c['enabled']=self.server.deepseek.config()['enabled']
    api=c['kind'] in BASES;exe=locate(c['kind'],c.get('executable',''))
    connections.append({**c,'installed':True if api else bool(exe),'resolved_executable':exe,'key_present':bool(os.environ.get(c.get('key_env') or BASES.get(c['kind'],('',''))[1])) if api else None,'verification':c.get('verification','未验证真实模型调用'),'effort_options':KINDS[c['kind']][1]})
@@ -433,6 +437,18 @@ class Integrations:
  def wizard_add(self,actor,connection_id,model,name='',confirmed=False,candidate_confirmed=False):
   self.hub.require(actor,{'user'});c=self.get('integration_connections',connection_id)
   if c['kind'] not in KINDS:raise HubError('请选择已有接入选项')
+  # New identities always use the same module path as other providers. Keep
+  # legacy identities/sessions intact; a disabled legacy provider is not an
+  # instruction to send the user back to the removed configuration screen.
+  if c.get('legacy') and confirmed and not self.server.deepseek.config()['enabled']:
+   if not c.get('probed_at'):raise HubError('请先重新读取 Harness 官方模型目录，再启用接入')
+   target=next((x for x in self.rows('integration_connections') if x['id']=='deepseek-harness-local'),None)
+   if target is None:
+    target=self.save_connection(actor,{'id':'deepseek-harness-local','name':'DeepSeek Harness','kind':'deepseek-harness','cwd':self.server.deepseek.config()['cwd'],'permission':'workspace','enabled':False})
+   if target.get('enabled'):raise HubError('请在添加 Agent 时选择 DeepSeek Harness 模块连接，避免覆盖已有连接配置')
+   target.update({k:c[k] for k in ('models','probed_at','probe_detail','verification') if k in c})
+   with self.hub.tx():self.put('integration_connections',target)
+   return self.wizard_add(actor,target['id'],model,name,confirmed,candidate_confirmed)
   item=next((m for m in c.get('models',[]) if m['id']==model),None)
   if not item and candidate_confirmed is True and c['kind']=='workbuddy':item=next((m for m in c.get('candidate_models',[]) if m['id']==model),None)
   if not item:raise HubError('请从已读取的模型列表中选择，不接受手动提供商或模型')

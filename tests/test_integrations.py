@@ -147,6 +147,35 @@ class RegistryTests(unittest.TestCase):
  def test_legacy_agent_editor_effort_reaches_actual_harness(self):
   a=self.registry.get('agent_profiles','deepseek-2');a['effort']='low';self.registry.save_agent('user',a)
   self.assertEqual(self.server.deepseek.efforts()['deepseek-2'],'low')
+ def test_disabled_legacy_wizard_uses_module_after_catalog_confirmation(self):
+  (Path(self.temp.name)/'projects').mkdir(exist_ok=True)
+  c=self.registry.get('integration_connections','deepseek-default');c['probed_at']=123
+  self.registry.put('integration_connections',c)
+  with patch('hub.integrations.locate',return_value='/official/harness'):
+   a=self.registry.wizard_add('user',c['id'],'deepseek-flash',confirmed=True)
+  self.assertEqual(a['connection_id'],'deepseek-harness-local')
+  self.assertTrue(self.registry.get('integration_connections',a['connection_id'])['enabled'])
+  self.assertFalse(self.server.deepseek.config()['enabled'])
+  self.assertEqual(self.registry.get('agent_profiles','deepseek-1')['connection_id'],'deepseek-default')
+
+ def test_disabled_legacy_without_catalog_cannot_enable(self):
+  with self.assertRaisesRegex(HubError,'官方模型目录'):
+   self.registry.wizard_add('user','deepseek-default','deepseek-flash',confirmed=True)
+
+ def test_mac_registry_has_modular_deepseek_without_unused_legacy_option(self):
+  self.server.hub.seed_defaults=False
+  for a in self.registry.rows('agent_profiles'):
+   a['enabled']=False;self.registry.put('agent_profiles',a)
+  # Reopen registration as the Mac desktop does, without replacing old records.
+  other=Integrations(self.server)
+  try:
+   options=other.snapshot()['connections']
+   self.assertNotIn('deepseek-default',{c['id'] for c in options})
+   c=next(c for c in options if c['id']=='deepseek-harness-local')
+   self.assertFalse(c.get('legacy',False));self.assertFalse(c['enabled'])
+   self.assertEqual(c['models'],[])
+  finally:other.close()
+
  def test_wizard_uses_catalog_and_numbers_duplicate_models(self):
   c=self.connection();c['models']=[{'id':'google/gemini-test','efforts':['default','high']}]
   with self.server.hub.tx():self.registry.put('integration_connections',c)

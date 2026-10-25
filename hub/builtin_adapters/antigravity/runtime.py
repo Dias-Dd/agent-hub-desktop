@@ -7,18 +7,20 @@ from pathlib import Path
 import queue
 import re
 import shutil
+from hub.cli_paths import which
 import subprocess
 import threading
 import time
 from hub.core import HubError
 from hub.codex_runtime import CodexRuntime
 from hub.process_job import ProcessJob
-from hub.proxy_env import inherit_system_proxy,describe
+from hub.proxy_env import describe
+from hub.cli_paths import cli_environment as inherit_system_proxy
 
 MODELS={'deepseek-1':'gemini-3.8-flash-medium','deepseek-2':'gemini-3.8-flash-medium','deepseek-3':'gemini-3.8-flash-medium','deepseek-4':'gemini-4-argon-medium','deepseek-5':'claude-opus-5-5-medium'}
 
 def executable():
-    found=shutil.which('agy')
+    found=which('agy')
     if found:return found
     root=os.environ.get('LOCALAPPDATA')
     path=Path(root)/'agy/bin/agy.exe' if root else None
@@ -59,7 +61,7 @@ class AntigravityProbe:
         if not exe:raise HubError('找不到 agy；支持 PATH 及 Windows 官方默认安装位置')
         personal_settings()
         try:
-            out=subprocess.run([exe,*args],cwd=cwd,env=environment(),stdin=subprocess.DEVNULL,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=35,creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
+            out=subprocess.run([exe,*args],cwd=cwd,env=environment(),stdin=subprocess.DEVNULL,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=35,start_new_session=os.name!='nt',creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
         except subprocess.TimeoutExpired:raise HubError('Antigravity 官方只读检查超时') from None
         if out.returncode:raise HubError('Antigravity 官方检查失败；请在终端运行 agy 并确认个人 Google 账号已登录')
         return out.stdout
@@ -97,7 +99,7 @@ class AntigravityStream:
         if run.get('_conversation'):args+=['--conversation',run['_conversation']]
         if run.get('purpose') in ('discussion','question'):
             args[args.index('--mode')+1]='plan';args.remove('--dangerously-skip-permissions');args.append('--sandbox')
-        self.proc=subprocess.Popen(args,cwd=run['cwd'],env={**{k:v for k,v in environment().items() if not k.startswith('HUB_')},**run.get('_hub_env',{})},stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',bufsize=1,creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
+        self.proc=subprocess.Popen(args,cwd=run['cwd'],env={**{k:v for k,v in environment().items() if not k.startswith('HUB_')},**run.get('_hub_env',{})},stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',bufsize=1,start_new_session=os.name!='nt',creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
         self.closed=False;self.inbox=queue.Queue();self.invalid=False
         try:self.job=ProcessJob(self.proc)
         except Exception:
@@ -199,7 +201,7 @@ class AntigravityRuntime(CodexRuntime):
                 command=[(self.connection_executable() if hasattr(self,'connection_executable') else executable()),'mcp','add','agent-message-hub','--',sys.executable,'--mcp-server']
         else:
             command=[(self.connection_executable() if hasattr(self,'connection_executable') else executable()),'mcp','add','agent-message-hub',sys.executable,str(host_resource('mcp.py').resolve())]
-        check=subprocess.run(command,env=environment(),capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=20,creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
+        check=subprocess.run(command,env=environment(),capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=20,start_new_session=os.name!='nt',creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0)
         if check.returncode:raise HubError('官方 CLI 未能配置 Hub MCP；未启动本轮推理')
         self.mcp_ready=True
 

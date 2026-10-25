@@ -29,7 +29,8 @@ def text(value, limit=20000):
     return value
 
 class Hub:
-    def __init__(self, directory, recover=True):
+    def __init__(self, directory, recover=True, seed_defaults=True):
+        self.seed_defaults=seed_defaults
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
@@ -58,10 +59,10 @@ class Hub:
         self.db.execute('PRAGMA cache_size=-16384')
         credentials = self.directory / 'credentials.json'
         if not credentials.exists():
-            credentials.write_text(json.dumps({a: secrets.token_urlsafe(32) for a in ['user'] + [x[0] for x in AGENTS]}, indent=2), encoding='utf-8')
+            credentials.write_text(json.dumps({a: secrets.token_urlsafe(32) for a in ['user'] + [x[0] for x in AGENTS if seed_defaults]}, indent=2), encoding='utf-8')
         self.tokens = json.loads(credentials.read_text(encoding='utf-8'))
         with self.tx():
-            for a in AGENTS:
+            for a in (AGENTS if seed_defaults else []):
                 self.db.execute('INSERT OR IGNORE INTO agents(id,model,role,prompt) VALUES(?,?,?,?)', (*a[:3], prompt(a)))
                 customized=self.db.execute("SELECT 1 FROM sqlite_master WHERE name='agent_profiles'").fetchone() and self.db.execute('SELECT 1 FROM agent_profiles WHERE id=?',(a[0],)).fetchone()
                 if not customized:self.db.execute('UPDATE agents SET model=?,prompt=? WHERE id=?', (a[1],prompt(a), a[0]))

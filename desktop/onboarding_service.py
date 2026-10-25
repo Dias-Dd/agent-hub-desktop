@@ -1,6 +1,7 @@
 """Configuration-only host. Never constructs a runtime or starts a worker."""
 import json
 import os
+import sys
 from pathlib import Path
 import subprocess
 import threading
@@ -200,11 +201,15 @@ class SetupService:
         from hub.deepseek_runtime import protect
         if not isinstance(key,str) or not 10<=len(key.strip())<=500 or any(c.isspace() for c in key.strip()):raise HubError('API 密钥格式无效')
         if self.registry.busy([a['id'] for a in self.registry.rows('agent_profiles')]):raise HubError('存在在途任务，请等待任务结束再更换密钥')
-        path=self.directory/'deepseek-key.dpapi';temp=path.with_suffix('.tmp')
-        temp.write_bytes(base64.b64encode(protect(key.strip().encode())));temp.replace(path)
+        if sys.platform=='darwin':
+            from hub.macos_keychain import save
+            save(self.directory,key.strip())
+        else:
+            path=self.directory/'deepseek-key.dpapi';temp=path.with_suffix('.tmp')
+            temp.write_bytes(base64.b64encode(protect(key.strip().encode())));temp.replace(path)
         with self.hub.tx():
             self.hub.db.execute("DELETE FROM settings WHERE key='deepseek_validation'")
-            self.hub.audit('user','deepseek.key_saved',{'storage':'Windows DPAPI','key':'[redacted]'})
+            self.hub.audit('user','deepseek.key_saved',{'storage':'macOS Keychain' if sys.platform=='darwin' else 'Windows DPAPI','key':'[redacted]'})
 
     @staticmethod
     def open_environment():

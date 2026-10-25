@@ -2,7 +2,7 @@ import hashlib,json,os,re,queue,shutil,subprocess,sys,threading,time,urllib.requ
 from pathlib import Path
 from hub.core import HubError
 from hub.process_job import ProcessJob
-from hub.proxy_env import inherit_system_proxy
+from hub.cli_paths import cli_environment as inherit_system_proxy
 from hub.deepseek_harness import ACP
 from hub.integration_runtime import cli_failure,workbuddy_auth_failure,workbuddy_session_failure,bridge
 def execute(self,run):
@@ -47,7 +47,7 @@ def execute(self,run):
    env=workbuddy_environment()
   env.update(self.run_environment(run))
   stage='启动 CLI 进程'
-  proc=subprocess.Popen(command(argv),cwd=session_cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0));job=ProcessJob(proc);self.track_client(run,type('Command',(),{'proc':proc,'job':job})())
+  proc=subprocess.Popen(command(argv),cwd=session_cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',start_new_session=os.name!='nt',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0));job=ProcessJob(proc);self.track_client(run,type('Command',(),{'proc':proc,'job':job})())
   stage='读取 CLI 输出'
   def drain_errors():
    for line in proc.stderr:

@@ -15,6 +15,7 @@ class FastHub:
         root=Path(__file__).resolve().parents[1]
         class Server(ThreadingHTTPServer):
             daemon_threads=True;allow_reuse_address=True
+            request_queue_size=128
         owner=self
         session=secrets.token_urlsafe(32)
         class Shell(BaseHTTPRequestHandler):
@@ -101,6 +102,9 @@ class FastHub:
         if self.closing:return
         from hub.vm_bridge import VmBridge
         bridge=VmBridge(self.data)
+        if __import__('sys').platform=='darwin':
+            if not bridge.preferences().get('auto_connect',True):
+                self.stage('vm','skipped','已关闭 Tart 自动连接');return
         saved=bridge.saved_connections()
         if not saved:
             self.stage('vm','skipped','未保存虚拟机凭据，可在配置中连接');return
@@ -108,8 +112,9 @@ class FastHub:
             preferred=json.loads((bridge.root/'last-vm.json').read_text(encoding='utf-8-sig'))['vm']
         except (OSError,ValueError,KeyError):preferred=saved[0]['vm']
         try:
-            self.stage('vm','loading','启动并连接虚拟机（可能需要 Windows 授权）')
-            request=bridge.control('connect_saved',vm_name=preferred)
+            mac=__import__('sys').platform=='darwin'
+            self.stage('vm','loading','启动并验证 Tart Guest Agent' if mac else '启动并连接虚拟机（可能需要 Windows 授权）')
+            request=bridge.control('auto_connect' if mac else 'connect_saved',vm_name=preferred)
             end=time.monotonic()+600
             while not self.closing and time.monotonic()<end:
                 result=bridge.control('result',request_id=request['request_id'])

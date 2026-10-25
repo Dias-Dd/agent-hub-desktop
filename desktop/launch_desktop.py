@@ -15,12 +15,22 @@ import urllib.request
 ROOT_DIR = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
-DEFAULT_DATA = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'AgentMessageHubDesktop' / 'data'
+DEFAULT_DATA = ((Path.home() / 'Library/Application Support') if sys.platform == 'darwin'
+                else Path(os.environ.get('LOCALAPPDATA', str(Path.home())))) / 'AgentMessageHubDesktop' / 'data'
+MAC_DESKTOP_BUILD='macos-main-sync-0.2.2-5'
 
 
 def detect_environment():
-    from desktop.native_webview import find_loader
-    env = {'python': sys.version, 'platform': sys.platform, 'native_webview2':find_loader()}
+    # Do not import the Win32 host on macOS (ctypes.wintypes is Windows-only).
+    if sys.platform == 'win32':
+        from desktop.native_webview import find_loader
+        loader = find_loader()
+    else:
+        loader = None
+    import importlib.util
+    import platform
+    env = {'python': sys.version, 'platform': sys.platform, 'native_webview2': loader,
+           'native_wkwebview': sys.platform == 'darwin' and int(platform.mac_ver()[0].split('.')[0]) >= 14 and bool(importlib.util.find_spec('WebKit'))}
     for name, vendor, exe in [('msedge', 'Microsoft/Edge', 'msedge.exe'), ('chrome', 'Google/Chrome', 'chrome.exe')]:
         candidates = [Path(os.environ.get(base, '')) / vendor / 'Application' / exe
                       for base in ('PROGRAMFILES', 'PROGRAMFILES(X86)', 'LOCALAPPDATA')]
@@ -83,7 +93,8 @@ class OwnedHub:
     def __init__(self, data, port, simulate=False, prebound=None):
         from hub.server import build, Handler
         from hub.core import HubError
-        self.server = build(str(data), port=port, simulate=simulate,prebound=prebound)
+        self.server = build(str(data), port=port, simulate=simulate,prebound=prebound,seed_defaults=sys.platform!='darwin')
+        if sys.platform=='darwin':self.server.desktop_build=MAC_DESKTOP_BUILD
         # Only an owned desktop instance exposes this bridge. Bearer credentials
         # never appear in HTML, URLs, browser storage, logs or command arguments.
         session = getattr(self.server,"desktop_session",None) or secrets.token_urlsafe(32)
@@ -128,12 +139,18 @@ class OwnedHub:
                         if not isinstance(payload,dict): raise HubError('invalid payload')
                         resp = {}
                         if 'zoom' in payload:
-                            from desktop.native_webview import request_native_zoom
+                            if sys.platform == 'darwin':
+                                from desktop.macos_webview import request_native_zoom
+                            else:
+                                from desktop.native_webview import request_native_zoom
                             if not request_native_zoom(payload['zoom']):
                                 raise HubError('native zoom unavailable or invalid')
                             resp['zoom'] = payload['zoom']
                         if 'theme' in payload:
-                            from desktop.native_webview import set_native_dark_mode
+                            if sys.platform == 'darwin':
+                                from desktop.macos_webview import set_native_dark_mode
+                            else:
+                                from desktop.native_webview import set_native_dark_mode
                             set_native_dark_mode(payload['theme'] == 'dark')
                             resp['theme'] = payload['theme']
                         handler.respond(200, resp)
@@ -190,6 +207,10 @@ def check_static_assets(port):
 
 def listener_pid(port):
     """Resolve a local IPv4 listener through the public Windows TCP owner table."""
+    if sys.platform=='darwin':
+        result=subprocess.run(['/usr/sbin/lsof','-nP','-iTCP:'+str(port),'-sTCP:LISTEN','-t'],capture_output=True,text=True,timeout=3)
+        values=set(result.stdout.split())
+        return int(next(iter(values))) if len(values)==1 else None
     if sys.platform!='win32':return None
     import ctypes as C,socket
     class Row(C.Structure):
@@ -210,6 +231,14 @@ def listener_pid(port):
 
 
 def restore_existing_window(port):
+    if sys.platform=='darwin':
+        import AppKit as A
+        import Foundation as F
+        pid=listener_pid(port)
+        app=A.NSRunningApplication.runningApplicationWithProcessIdentifier_(pid) if pid else None
+        if not app:return False
+        F.NSDistributedNotificationCenter.defaultCenter().postNotificationName_object_('AgentHubActivate',str(pid))
+        return bool(app.activateWithOptions_(A.NSApplicationActivateAllWindows|A.NSApplicationActivateIgnoringOtherApps))
     if sys.platform!='win32':return False
     import ctypes as C
     pid=listener_pid(port)
@@ -271,6 +300,7 @@ def main(argv=None):
     p.add_argument('--window-smoke-test', action='store_true', help='Open and verify a real native window, then close it')
     p.add_argument('--result-file', type=Path, help='Write non-secret diagnostics for GUI executable smoke tests')
     p.add_argument('--sync-context', action='store_true', help='Sync project context into desktop database')
+    p.add_argument('--setup', action='store_true', help='Open the in-app Harness configuration guide')
     args = p.parse_args(argv)
     if args.module_smoke_test:
         from hub.module_diagnostics import check
@@ -324,9 +354,12 @@ def main(argv=None):
             if not args.connect_only:
                 request = urllib.request.Request(f'http://127.0.0.1:{port}/health',headers={'Authorization':'Bearer '+token})
                 with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request,timeout=2) as response:
-                    current_mode = json.load(response).get('simulation')
+                    current_health=json.load(response)
+                    current_mode = current_health.get('simulation')
                 if current_mode is not args.sim:
                     raise RuntimeError('The existing Hub has a different run mode. Close the previous desktop instance, or explicitly use --connect-only to retain its mode. No service was restarted.')
+                if sys.platform=='darwin' and current_health.get('desktop_build')!=MAC_DESKTOP_BUILD:
+                    raise RuntimeError('旧版 Agent Hub 仍在运行。请先保存草稿，从旧应用菜单退出，再打开新版本。已有任务未被强制停止。 / Quit the previous app after saving drafts, then reopen this version.')
                 if args.engine in ('auto','native') and not args.window_smoke_test and restore_existing_window(port):
                     if args.result_file:args.result_file.write_text(json.dumps({'ok':True,'existing_window_restored':True}),encoding='utf8')
                     return 0
@@ -371,7 +404,7 @@ def main(argv=None):
                 cli=locate('workbuddy');child=None;job=None
                 try:
                     if cli:
-                        child=subprocess.Popen(command([cli,'--version']),stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',env=environment(),creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                        child=subprocess.Popen(command([cli,'--version']),stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',env=environment(),start_new_session=os.name!='nt',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
                         job=ProcessJob(child);out,err=child.communicate(timeout=20)
                         diagnostics['cli_startup']={'ok':child.returncode==0,'version':out.strip()[:80],'error':err[:160]}
                     else:diagnostics['cli_startup']={'skipped':True}
@@ -412,10 +445,13 @@ def main(argv=None):
             return 0
         engine = args.engine
         if engine == 'auto':
-            engine = next((key for key, found in [('native', env['native_webview2']), ('pywebview', env['pywebview'])] if found), None)
+            engine = next((key for key, found in [('native', env['native_wkwebview'] or env['native_webview2']), ('pywebview', env['pywebview'])] if found), None)
         if engine == 'native':
-            from desktop.native_webview import run_native
-            result = run_native(url, args.data.parent / ('native-profile-' + str(port)), smoke=args.window_smoke_test,data_directory=args.data)
+            if sys.platform == 'darwin':
+                from desktop.macos_webview import run_native
+            else:
+                from desktop.native_webview import run_native
+            result = run_native(url+('#setup' if args.setup else ''), args.data.parent / ('native-profile-' + str(port)), smoke=args.window_smoke_test,data_directory=args.data)
             if args.result_file: args.result_file.write_text(json.dumps({'ok':True,**result}),encoding='utf-8')
         elif engine in ('edge', 'chrome'):
             executable = env['msedge' if engine == 'edge' else 'chrome']
@@ -432,14 +468,22 @@ def main(argv=None):
             webview.create_window('Agent Hub', url, width=1366, height=860)
             webview.start(debug=False)
         else:
+            if sys.platform == 'darwin':
+                raise RuntimeError('WKWebView host requires macOS 14+. Install desktop/requirements-macos.txt using Python 3.11+.')
             raise RuntimeError('Native WebView2 is unavailable. Install the Microsoft WebView2 Runtime or pywebview; no browser is launched automatically.')
         return 0
     except (OSError, RuntimeError) as error:
         print('ERROR: ' + str(error), file=sys.stderr)
         if args.result_file: args.result_file.write_text(json.dumps({'ok':False,'error':str(error)}),encoding='utf-8')
-        elif getattr(sys,'frozen',False):
+        elif getattr(sys,'frozen',False) and sys.platform == 'win32':
             import ctypes
             ctypes.windll.user32.MessageBoxW(None,str(error),'Agent Message Hub · 无法启动',0x10)
+        elif getattr(sys,'frozen',False) and sys.platform=='darwin':
+            import AppKit as A
+            app=A.NSApplication.sharedApplication();app.setActivationPolicy_(A.NSApplicationActivationPolicyRegular)
+            app.activateIgnoringOtherApps_(True)
+            alert=A.NSAlert.alloc().init();alert.setMessageText_('Agent Hub · 无法启动 / Unable to start')
+            alert.setInformativeText_(str(error));alert.runModal()
         return 1
     finally:
         if owned:

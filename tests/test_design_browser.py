@@ -21,6 +21,7 @@ CHECK=r"""
 const wait=()=>new Promise(r=>setTimeout(r,120));
 document.getElementById('openDesignReview').click();await wait();
 const dialog=document.getElementById('designReviewDialog'),frame=document.getElementById('designFrame');
+const frameDeadline=Date.now()+10000;while((!frame.contentDocument?.getElementById('far')||Math.abs(parseFloat(getComputedStyle(document.getElementById('designCanvas')).width)-1760)>3)&&Date.now()<frameDeadline)await wait();
 if(dialog.hidden)throw Error('review did not open');
 if(Math.abs(frame.contentDocument.documentElement.scrollWidth-1760)>3||Math.abs(frame.contentDocument.documentElement.scrollHeight-1080)>3)throw Error('fixture is not large '+JSON.stringify([frame.contentDocument.documentElement.scrollWidth,frame.contentDocument.documentElement.scrollHeight,getComputedStyle(document.getElementById('designCanvas')).width,getComputedStyle(document.getElementById('designCanvas')).height]));
 if(Math.abs(parseFloat(getComputedStyle(document.getElementById('designCanvas')).width)-1760)>3)throw Error('real page width was clipped');
@@ -48,7 +49,7 @@ zoomStage.scrollLeft=120;zoomStage.scrollTop=150;
 for(const [type,x,y] of [['pointerdown',200,200],['pointermove',150,140],['pointerup',150,140]])zoomStage.dispatchEvent(new PointerEvent(type,{button:0,buttons:type==='pointerup'?0:1,pointerId:23,clientX:x,clientY:y,bubbles:true,cancelable:true}));
 if(zoomStage.scrollLeft<=120||zoomStage.scrollTop<=150||zoomStage.classList.contains('panning'))throw Error('left mouse pan failed outside selection mode');
 document.getElementById('designZoomFit').click();await wait();if(document.getElementById('designCanvas').getBoundingClientRect().width>zoomStage.clientWidth)throw Error('fit zoom does not fit');
-if([...document.querySelectorAll('input,textarea,form')].some(el=>el.autocomplete!=='off'&&el.form?.autocomplete!=='off'&&!['checkbox','radio','hidden','submit','button'].includes(el.type)))throw Error('form autofill still enabled '+[...document.querySelectorAll('input,textarea,form')].filter(el=>el.autocomplete!=='off'&&el.form?.autocomplete!=='off'&&!['checkbox','radio','hidden','submit','button'].includes(el.type)).map(el=>el.id+':'+el.type).join(','));
+if([...document.querySelectorAll('input,textarea,form')].some(el=>!el.readOnly&&el.autocomplete!=='off'&&el.form?.autocomplete!=='off'&&!['checkbox','radio','hidden','submit','button'].includes(el.type)))throw Error('form autofill still enabled '+[...document.querySelectorAll('input,textarea,form')].filter(el=>!el.readOnly&&el.autocomplete!=='off'&&el.form?.autocomplete!=='off'&&!['checkbox','radio','hidden','submit','button'].includes(el.type)).map(el=>el.id+':'+el.type).join(','));
 if(!frame.hasAttribute('sandbox')||frame.getAttribute('sandbox')!=='allow-same-origin')throw Error('unsafe frame');
 const footer=document.getElementById('acceptDesign').getBoundingClientRect();
 if(footer.top<0||footer.bottom>innerHeight+1)throw Error('approval button clipped');

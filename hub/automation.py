@@ -315,7 +315,8 @@ class Automation:
         if item.get('kind')!='folder' or not Path(item.get('path','')).is_dir():raise HubError('文件夹不存在或链接无效')
         target=Path(item['path']).resolve()
         if not any(target.is_relative_to(Path(root)) for root in item.get('folder_roots',[])):raise HubError('文件夹位置已变化，请重新分享')
-        os.startfile(str(target))
+        from .platform_paths import open_directory
+        open_directory(target)
         return {'opened':True}
 
     def publish_artifact(self, actor, run_id, path, kind='image', caption=''):

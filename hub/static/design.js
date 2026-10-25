@@ -3,9 +3,29 @@
  const H=window.HubDesktop, {$,bind,node,text}=H;
  let loaded=null,current=null,page=null,region=null,start=null,selecting=false,previousFocus=null,loadedProject=null;
  let zoom=60,zoomMode='fit',opening=false,restoreAttempt=null,pageDrafts={};
- const zoomRules=new WeakMap();let zoomDocument=null,zoomRule=null,canvasWidth=1280,canvasHeight=900;
  const pageSizes=new Map();
- function applyZoom(){const doc=$('designCanvas').ownerDocument;if(!zoomRule||zoomDocument!==doc){zoomDocument=doc;zoomRule=zoomRules.get(doc);if(!zoomRule){const sheet=[...doc.styleSheets].find(s=>s.href?.endsWith('/design.css'));const index=sheet.insertRule('.design-canvas {}',sheet.cssRules.length);zoomRule=sheet.cssRules[index];zoomRules.set(doc,zoomRule);}}zoomRule.style.zoom=String(zoom/100);zoomRule.style.width=canvasWidth+'px';zoomRule.style.height=canvasHeight+'px';}
+ const zoomRules=new WeakMap();let zoomDocument=null,zoomRule=null,spaceRule=null,canvasWidth=1280,canvasHeight=900;
+ function applyZoom(){
+  const canvas=$('designCanvas'),doc=canvas.ownerDocument;
+  let space=canvas.parentElement;
+  if(!space.classList.contains('design-zoom-space')){
+   space=doc.createElement('div');space.className='design-zoom-space';canvas.before(space);space.append(canvas);
+  }
+  if(!zoomRule||zoomDocument!==doc){
+   zoomDocument=doc;let rules=zoomRules.get(doc);
+   if(!rules){
+    const sheet=[...doc.styleSheets].find(s=>s.href?.endsWith('/design.css'));
+    const insert=selector=>sheet.cssRules[sheet.insertRule(selector+' {}',sheet.cssRules.length)];
+    rules={canvas:insert('.design-canvas'),space:insert('.design-zoom-space')};zoomRules.set(doc,rules);
+   }
+   zoomRule=rules.canvas;spaceRule=rules.space;
+  }
+  // Scale the iframe's rendered surface, not its viewport. WKWebView's CSS zoom
+  // resizes an iframe viewport without reliably scaling the document inside it.
+  const ratio=zoom/100;
+  zoomRule.style.transform='scale('+ratio+')';zoomRule.style.width=canvasWidth+'px';zoomRule.style.height=canvasHeight+'px';
+  spaceRule.style.width=canvasWidth*ratio+'px';spaceRule.style.height=canvasHeight*ratio+'px';
+ }
  function feedbackCount(){text('designFeedbackCount','已填写 '+Object.values(pageDrafts).filter(d=>d.text?.trim()).length+' 页修改意见，提交时与整体意见一起发送。');}
  const reviewKey=()=> 'hub.designReview.'+(loadedProject||H.client.getSelectedProjectId()||'');
  const savedReview=()=>{try{return JSON.parse(sessionStorage.getItem(reviewKey())||'null');}catch{return null;}};

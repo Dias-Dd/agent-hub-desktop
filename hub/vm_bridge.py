@@ -14,6 +14,12 @@ from .core import HubError
 
 
 class VmBridge:
+    def __new__(cls, directory):
+        if cls is VmBridge and sys.platform == 'darwin':
+            from .tart_bridge import TartBridge
+            return TartBridge(directory)
+        return super().__new__(cls)
+
     _launch_lock=threading.RLock()
     _starting={}
     _status_cache={}
@@ -199,7 +205,8 @@ class VmBridge:
         return {'request_id': job['id'], 'state': 'queued'}
 
     def call(self, project, agent, cwd, action='status', request_id=None, script='', path='', timeout_seconds=300,
-             window_handle=None, element_id='', value='', key_codes=None, x=None, y=None, button=0):
+             window_handle=None, element_id='', value='', key_codes=None, x=None, y=None, button=0, shell=None):
+        if shell is not None:raise HubError('Hyper-V 使用 PowerShell，不接受 POSIX shell')
         # Separate VM directories preserve independent member worktrees.
         if not re.fullmatch(r'[\w-]{1,100}', project) or not re.fullmatch(r'[\w-]{1,100}', agent):
             raise HubError('项目或成员标识无效')

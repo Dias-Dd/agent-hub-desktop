@@ -27,6 +27,7 @@ class LinkedRuntime(DeepSeekRuntime):
  def title(self):return self.connection()['name']
  def config(self):
   cfg=CodexRuntime.config(self);cfg={**cfg,'unlimited':cfg.get('max_runs',0)==0,'input_rate':0,'output_rate':0};cfg['engine']='harness' if self.connection()['kind']=='deepseek-harness' else 'api'
+  if self.connection()['kind']=='deepseek-harness' and self.connection().get('executable'):cfg['harness_install']=self.connection()['executable']
   cfg['enabled']=bool(cfg.get('enabled') and self.connection().get('enabled'))
   return cfg
  def submit(self,*args,**kwargs):

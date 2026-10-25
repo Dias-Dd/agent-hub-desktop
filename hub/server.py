@@ -26,6 +26,9 @@ from .live_replies import LiveReplies
 class Server(ThreadingHTTPServer):
     daemon_threads=True
     allow_reuse_address=True
+    # WebKit/Chromium load many deferred assets together; the default backlog
+    # of five can reset local connections on macOS during first paint.
+    request_queue_size=128
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
@@ -141,7 +144,7 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path=='/health':
                 self.actor()
                 fresh=time.monotonic()-self.server.last_tick<10
-                self.respond(200 if fresh else 503,{'ok':fresh,'supervisor':'running' if fresh else 'stale','simulation':self.server.simulate})
+                self.respond(200 if fresh else 503,{'ok':fresh,'supervisor':'running' if fresh else 'stale','simulation':self.server.simulate,'desktop_build':getattr(self.server,'desktop_build',None)})
             else:self.respond(404,{'error':'not found'})
         except HubError as e:self.respond(403,{'error':str(e)})
 
@@ -170,6 +173,9 @@ class Handler(BaseHTTPRequestHandler):
             elif action=='memory':
                 from .long_term_memory import action as memory_action
                 result=memory_action(self.server.hub,actor,**args)
+            elif action=='desktop_onboarding':
+                from desktop.first_run import action as onboarding_action
+                result=onboarding_action(self.server.hub,actor,**args)
             elif action=='integration_submit':
                 result=self.server.workflows.runtime(args['agent']).submit(actor,**args)
             elif action=='integration_stop':
@@ -243,12 +249,12 @@ class Handler(BaseHTTPRequestHandler):
         except (HubError,ValueError,TypeError) as e:self.respond(400,{'error':str(e)})
         except Exception:self.respond(500,{'error':'internal error; inspect service state'})
 
-def build(directory,port=8765,simulate=True,prebound=None):
+def build(directory,port=8765,simulate=True,prebound=None,seed_defaults=True):
     # Bind first: a second instance cannot reset the first instance's durable state.
     guard=acquire(directory,'service.lock')
     try:
         server=prebound if prebound is not None else Server(('127.0.0.1',port),Handler)
-        server.hub=Hub(directory)
+        server.hub=Hub(directory,seed_defaults=seed_defaults)
     except Exception:
         guard.close()
         raise

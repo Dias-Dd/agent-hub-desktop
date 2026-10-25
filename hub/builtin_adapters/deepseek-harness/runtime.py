@@ -6,7 +6,7 @@ from pathlib import Path
 from hub.core import HubError
 from hub.user_followup import direct as direct_followup
 from hub.process_job import ProcessJob
-from hub.proxy_env import inherit_system_proxy
+from hub.cli_paths import cli_environment as inherit_system_proxy
 
 DISABLED_ALWAYS=['otel','session-telemetry','deepseek-account','llm-deepseek-account','tool-plugin-manager','tool-subagent','tool-subagent-fork','tool-subagent-control','tool-subagent-list-agents','tool-workflow','workflow-ptc','goal-round-driver','tool-goal','tool-working-directory']
 DIALOGUE_TOOLS=['tool-bash','tool-pwsh','tool-jobs','tool-fs','tool-fs-search','tool-skill','tool-web','tool-todo']
@@ -44,10 +44,20 @@ exports.apply = (ctx, config) => {
 
 def installation(config=None):
     supplied=(config or {}).get('harness_install')
+    if sys.platform=='darwin':
+        candidates=[Path(supplied)] if supplied else [Path('/Applications/DeepSeek Harness.app'),Path.home()/'Applications/DeepSeek Harness.app']
+        for root in candidates:
+            if root.name=='DeepSeek Harness' and root.parent.name=='MacOS':root=root.parents[2]
+            contents=root if root.name=='Contents' else root/'Contents'
+            exe=contents/'MacOS/DeepSeek Harness'
+            launcher=contents/'Resources/runtime/cli/bin/dsh'
+            cli=contents/'Resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-desktop-host/lib/cli.js'
+            # Electron resolves the ASAR entry; it is not an ordinary filesystem path.
+            if exe.is_file() and launcher.is_file() and os.access(exe,os.X_OK) and (contents/'Resources/app.asar').is_file():return exe,cli
+        raise HubError('未找到官方 DeepSeek Harness.app；请安装到 Applications 或指定应用路径')
     root=Path(supplied) if supplied else Path(os.environ.get('LOCALAPPDATA',''))/'Programs'/'DeepSeek Harness'
     exe=root/'DeepSeek Harness.exe'
     cli=root/'resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-desktop-host/lib/cli.js'
-    # This exact entry is the one the installed, official dsh.cmd launcher uses.
     if not exe.is_file() or not (root/'resources/runtime/cli/bin/dsh.cmd').is_file():raise HubError('未找到已安装的官方 DeepSeek Harness；不会回退到简化 API 执行器')
     return exe,cli
 
@@ -73,7 +83,7 @@ def patch_text(agent,role,dialogue=False,policy="",workspace_root=None,sandbox_m
 class ACP:
     def __init__(self,argv,cwd,env,on_update=None,permission=False,factory=subprocess.Popen):
         self.on_update=on_update or (lambda _u:None);self.permission=permission;self.queue=queue.Queue();self.lock=threading.Lock();self.serial=0;self.responses={};self.errors=[];self.redactions=[env.get('DEEPSEEK_API_KEY',''),env.get('HUB_TOKEN','')]
-        self.proc=factory(argv,cwd=cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        self.proc=factory(argv,cwd=cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',start_new_session=os.name!='nt',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         try:self.job=ProcessJob(self.proc)
         except Exception:self.proc.kill();self.proc.wait();raise
         self.reader=threading.Thread(target=self._read,daemon=True);self.reader.start()
@@ -187,7 +197,9 @@ def execute(runtime,run):
         bridge={'name':'agent-message-hub','command':sys.executable,'args':[str(host_resource('mcp.py').resolve())],'env':[]}
         run['_read_only']=read_only
         allowed=[x['function']['name'] for x in runtime.definitions(run) if x['function']['name'] not in ('read_file','write_file','run_command')]
-        if allowed and getattr(sys,'frozen',False):
+        if allowed and getattr(sys,'frozen',False) and sys.platform=='darwin':
+            bridge['command']=sys.executable;bridge['args']=['--mcp-server']
+        elif allowed and getattr(sys,'frozen',False):
             companion=Path(sys.executable).with_name(Path(sys.executable).name.replace('AgentMessageHubDesktop','AgentHubMcp'))
             if not companion.is_file():raise HubError('安装包缺少 AgentHubMcp.exe，请重新安装完整应用')
             bridge['command']=str(companion);bridge['args']=[]

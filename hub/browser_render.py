@@ -5,6 +5,13 @@ from urllib.parse import urlsplit
 from .core import HubError,uid
 
 def executable():
+    supplied=os.environ.get('HUB_TEST_BROWSER','')
+    if supplied and Path(supplied).is_file():return supplied
+    if sys.platform=='darwin':
+        for base in (Path('/Applications'),Path.home()/'Applications'):
+            for app,name in (('Microsoft Edge','Microsoft Edge'),('Google Chrome','Google Chrome'),('Chromium','Chromium')):
+                candidate=base/(app+'.app')/'Contents/MacOS'/name
+                if candidate.is_file():return str(candidate)
     for base in ('PROGRAMFILES(X86)','PROGRAMFILES','LOCALAPPDATA'):
         for rel in ('Microsoft/Edge/Application/msedge.exe','Google/Chrome/Application/chrome.exe'):
             file=Path(os.environ.get(base,''))/rel
@@ -25,6 +32,7 @@ def browser_environment():
     return env
 
 def spawn_browser(argv,**kwargs):
+    kwargs.setdefault('start_new_session',os.name!='nt')
     kwargs.setdefault('env',browser_environment());kwargs.setdefault('creationflags',getattr(subprocess,'CREATE_NO_WINDOW',0))
     with _spawn_lock:
         kernel=None;old=None

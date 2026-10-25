@@ -119,7 +119,8 @@ class Projects:
         self.hub.require(actor,{'user'});project=self.get(project_id)
         import os
         if not Path(project['cwd']).is_dir():raise HubError('工作目录不存在')
-        os.startfile(project['cwd'])
+        from .platform_paths import open_directory
+        open_directory(project['cwd'])
         return {'ok':True}
 
     def update(self,actor,project_id,options):

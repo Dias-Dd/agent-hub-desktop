@@ -2,7 +2,7 @@ import hashlib,json,os,re,queue,shutil,subprocess,sys,threading,time,urllib.requ
 from pathlib import Path
 from hub.core import HubError
 from hub.process_job import ProcessJob
-from hub.proxy_env import inherit_system_proxy
+from hub.cli_paths import cli_environment as inherit_system_proxy
 from hub.deepseek_harness import ACP
 from hub.integration_runtime import cli_failure,workbuddy_auth_failure,workbuddy_session_failure,bridge
 def execute(self,run):
