@@ -513,6 +513,8 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
                 cb=handler([HRESULT,W.LPCWSTR],script_result)
                 call(state['core'],29,HRESULT,[W.LPCWSTR,PTR],expression,cb)
             return 0
+        if msg == 0x8014: # Installer/uninstaller: exit rather than hiding in the tray.
+            state['explicit_exit']=True;user.PostMessageW(window,0x10,0,0);return 0
         if msg == 0x10:
             if state.get('previous_cursor'):
                 saved=state.pop('previous_cursor');user.SetCursorPos(saved.x,saved.y)

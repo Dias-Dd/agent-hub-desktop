@@ -18,5 +18,6 @@
     "login_args": [],
     "terminal": true,
     "note": "在 Antigravity CLI 中完成 Google 登录；不切换到企业或 API 计费。"
-  }
+  },
+  "quota_supported": true
 }

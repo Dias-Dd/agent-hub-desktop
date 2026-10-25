@@ -19,7 +19,8 @@ def proposal(raw,allow_idle=False):
     value=raw.strip()
     if value.startswith('```'):
         value=value.split('\n',1)[1].rsplit('```',1)[0].strip()
-    try:data=json.loads(value)
+    from .plan_response import decode
+    try:data,_=decode(value)
     except (ValueError,TypeError):raise HubError('项目经理未返回有效 JSON；保留原始输出供检查，不自动重试') from None
     if not isinstance(data,dict):raise HubError('项目经理分工格式不正确')
     if not isinstance(data.get('done'),bool) or not isinstance(data.get('tasks'),list):raise HubError('缺少 done/tasks')

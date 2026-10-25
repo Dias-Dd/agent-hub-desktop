@@ -178,17 +178,14 @@ class SetupService:
         status = self.inspect(connection_id)
         if status['state'] == 'missing': raise HubError(status['message'])
         if status['state'] == 'login':
-            self.open_login(connection_id)
             return {'login_required':True, 'message':status['message']}
         if status['state'] == 'unknown' and not login_confirmed:
-            self.open_login(connection_id)
             return {'login_required':True, 'manual_confirmation':True, 'message':status['message']}
         try:
             value = self.registry.probe('user', connection_id)
         except HubError as error:
             if any(word in str(error).lower() for word in ('401','unauth','未登录','login required','authentication')):
-                self.open_login(connection_id)
-                return {'login_required':True,'message':'官方账号凭据已失效，请重新登录。'}
+                return {'login_required':True,'message':'官方账号凭据已失效，请使用打开登录界面完成登录。'}
             raise
         self.verified.add(connection_id)
         return value

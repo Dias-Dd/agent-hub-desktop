@@ -174,7 +174,7 @@ def probe_module(registry, actor, connection_id):
     for model in observations['models']:
         if not isinstance(model,dict) or not isinstance(model.get('id'),str) or not model['id']:raise HubError('模块返回了无效模型目录')
     # Hooks return observations; they cannot replace stable identity or grants.
-    allowed=('models','verification','probe_detail','official_windows','catalog_complete','catalog_status','candidate_models','client_models','quota_error')
+    allowed=('models','verification','probe_detail','official_windows','catalog_complete','catalog_status','candidate_models','client_models','quota_error','official_balance','balance_source','quota_observed_at')
     for key in allowed:
         if key in observations:connection[key]=observations[key]
     connection['probed_at']=time.time()
