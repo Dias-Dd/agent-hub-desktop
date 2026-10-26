@@ -28,7 +28,7 @@ def send(title, message, project=None):
     target.getNotificationSettingsWithCompletionHandler_(settings)
     if not ready.wait(5):raise RuntimeError('读取通知权限超时')
     if observed['status'] not in (U.UNAuthorizationStatusAuthorized, U.UNAuthorizationStatusProvisional):
-        raise RuntimeError('通知未授权；可在应用菜单中申请通知权限')
+        raise RuntimeError('通知未授权；请在设置中点击“允许 macOS 通知”，或在系统设置的通知中允许 Agent Hub')
     content = U.UNMutableNotificationContent.alloc().init()
     content.setTitle_(title)
     content.setBody_(message)

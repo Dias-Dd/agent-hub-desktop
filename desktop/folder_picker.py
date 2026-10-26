@@ -51,6 +51,7 @@ def pick_directory(initial='',_files=False):
             try:
                 panel=A.NSOpenPanel.openPanel()
                 panel.setCanChooseDirectories_(not _files);panel.setCanChooseFiles_(_files)
+                if _files:panel.setTreatsFilePackagesAsDirectories_(False)
                 panel.setAllowsMultipleSelection_(False)
                 if initial and Path(initial).is_dir():panel.setDirectoryURL_(F.NSURL.fileURLWithPath_(str(Path(initial).resolve())))
                 if panel.runModal()==A.NSModalResponseOK:result['path']=str(panel.URL().path())

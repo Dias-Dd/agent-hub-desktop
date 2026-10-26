@@ -1,10 +1,10 @@
 "use strict";
 (() => {
   const H=window.HubDesktop, $=H.$;
-  let busy=false, polling=false,lastState={},preferenceEdited=false;
+  let busy=false, polling=false,lastState={},preferenceEdited=false;const selectedPower=new Map();
   $('vmUnattended').addEventListener('change',()=>{preferenceEdited=true;});
   $('vmSelect').addEventListener('change',()=>{preferenceEdited=false;const saved=lastState.saved_connections?.find(s=>s.vm===$('vmSelect').value);$('vmUnattended').checked=saved?.unattended!==false;});
-  const status=message=>{$('vmConnectionStatus').textContent=message;};
+  const status=message=>{$('vmConnectionStatus').textContent=message;for(const id of ['tartDirectoryDialog','tartInstallDialog','tartAccessibilityDialog']){const dialog=$(id);if(dialog.open)dialog.querySelector('[role=status]').textContent=message;}};
   const call=args=>{H.ready();return H.client.postAction('vm_control',args);};
   async function wait(request) {
     if(request.state==='completed')return request;
@@ -12,6 +12,7 @@
     while(Date.now()<deadline) {
       const result=await call({action:'result',request_id:request.request_id});
       if(result.state==='completed')return result;
+      if(result.progress)status(result.progress);
       if(!['queued','running'].includes(result.state))throw Error(result.error||'虚拟机操作未完成');
       await new Promise(resolve=>setTimeout(resolve,700));
     }
@@ -19,11 +20,11 @@
   }
   async function operate(fn) {
     if(busy)return;busy=true;
-    const buttons=[...$('vmSettings').querySelectorAll('button')],disabled=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
+    const buttons=[...$('vmSettings').querySelectorAll('button'),...$('tartDirectoryDialog').querySelectorAll('button'),...$('tartInstallDialog').querySelectorAll('button'),...$('tartAccessibilityDialog').querySelectorAll('button')].filter(button=>!button.hasAttribute('data-close-tart')),disabled=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
     try{H.ready();await fn();}catch(error){status(error.message);$('vmAgentStatus').textContent=error.message;}
-    finally{busy=false;buttons.forEach((b,i)=>b.disabled=disabled[i]);}
+    finally{busy=false;buttons.forEach((b,i)=>b.disabled=disabled[i]);void refreshPower().catch(()=>{});}
   }
-  $('vmRefresh').addEventListener('click',()=>operate(async()=>{
+  async function refreshInventory(){
     status(lastState.backend==='tart'?'正在读取 Tart 虚拟机…':'正在读取，如 Windows 请求管理员授权，请确认…');
     const result=await wait(await call({action:'list'}));const selected=$('vmSelect').value;
     $('vmSelect').replaceChildren();
@@ -33,7 +34,8 @@
     }
     if([...$('vmSelect').options].some(o=>o.value===selected))$('vmSelect').value=selected;
     status(result.vms?.length?(result.backend==='tart'?'请选择虚拟机，使用 Tart Guest Agent 连接，无需账号密码。':'请选择虚拟机，填写该系统的账号密码后连接。'):(result.backend==='tart'?'此数据目录内尚无 Tart 虚拟机。':'没有发现 Hyper-V 虚拟机。'));
-  }));
+  }
+  $('vmRefresh').addEventListener('click',()=>operate(refreshInventory));
   $('vmConnectForm').addEventListener('submit',event=>{
     event.preventDefault();void operate(async()=>{
       status('正在连接并验证命令执行、双向文件传输…');
@@ -43,7 +45,7 @@
       try{pending=call(args);}finally{$('vmPassword').value='';}
       let request;try{request=await pending;}finally{args.password='';}
       const result=await wait(request);
-      status('已连接 '+result.vm+' · '+result.account+(result.transfer_verified===false?' · 命令验证通过；文件传输未验证':' · 文件传输测试通过')+(result.credential_saved?' · 凭据已加密保存':'')+(result.unattended_warning?' · '+result.unattended_warning:result.unattended_configured?' · 无人值守'+(result.unattended_enabled?'已配置':'已关闭'):'')+(result.desktop_warning?' · 桌面：'+result.desktop_warning:''));
+      status('已连接 '+result.vm+' · '+result.account+(result.transfer_verified!==true?' · 命令验证通过；文件传输未验证':' · 文件传输测试通过')+(result.credential_saved?' · 凭据已加密保存':'')+(result.unattended_warning?' · '+result.unattended_warning:result.unattended_configured?' · 无人值守'+(result.unattended_enabled?'已配置':'已关闭'):'')+(result.desktop_warning?' · 桌面：'+result.desktop_warning:''));
     });
   });
   $('vmReconnectSaved').addEventListener('click',()=>operate(async()=>{
@@ -57,11 +59,11 @@
   $('vmDisconnect').addEventListener('click',()=>operate(async()=>{
     await wait(await call({action:'disconnect'}));$('vmPassword').value='';status('已断开；虚拟机仍保持原状态。');
   }));
-  const powerName=()=>lastState.vm||$('vmSelect').value||lastState.saved_connections?.[0]?.vm;
+  const powerName=()=>$('vmSelect').value||lastState.vm||lastState.saved_connections?.[0]?.vm;
   async function power(action){const run=async()=>{
     const name=powerName();if(!name)throw Error('请先在配置中选择虚拟机。');
     $('vmAgentStatus').textContent=name+' · 正在处理电源操作…';
-    await wait(await call({action,vm_name:name}));
+    const result=await wait(await call({action,vm_name:name}));if(lastState.backend==='tart')selectedPower.set(name,result.power_state);
     if(action==='power_on'&&lastState.saved_connections?.some(s=>s.vm===name))await wait(await call({action:'connect_saved',vm_name:name}));
     await refreshPower();
   };if(action==='power_force'){try{H.ready();await run();}catch(error){status(error.message);}return;}return operate(run);}
@@ -78,27 +80,37 @@
     lastState=value;
     if(value.backend==='tart'){
       $('tartSetupOptions').hidden=false;
+      $('tartEnvironment').hidden=false;
       $('tartEnvironment').textContent=!value.supported?'当前设备不满足 Tart 的 Apple Silicon / macOS 要求。':value.installed?'已检测到 Tart。':'尚未安装 Tart。'+(value.homebrew_installed?'可点击安装。':'请先安装 Homebrew，再返回重试。');
-      $('tartHome').value=value.tart_home||'';
+      $('tartActiveHome').textContent=(window.HubI18n?.t('实际使用目录：')||'实际使用目录：')+(value.tart_home||'');
+      if(document.activeElement!==$('tartHome')&&!$('tartHome').dataset.dirty)$('tartHome').value=value.tart_home||'';
+      $('tartCpu').max=$('tartManageCpu').max=value.max_cpu||1;
+
       $('tartInstall').hidden=!!value.installed;$('tartInstall').disabled=!value.supported||!value.homebrew_installed;
       $('tartHomebrewGuide').hidden=!!value.homebrew_installed;
-      $('tartCreate').disabled=!value.installed||!value.supported;
+      $('tartCreate').disabled=!value.supported||(!value.installed&&!value.homebrew_installed);
       if(document.activeElement!==$('tartAutoConnect'))$('tartAutoConnect').checked=value.auto_connect!==false;
       for(const id of ['vmUsername','vmPassword','vmUnattended']){$(id).disabled=true;}
       $('vmUsername').closest('.vm-account-grid').hidden=true;
+      $('vmSelection').after($('vmConnectForm'));
+      const quick=$('vmConnectForm').querySelector('.vm-quick-actions');quick.prepend($('vmConnect'));
+      $('vmConnect').textContent='连接';$('vmReconnectSaved').hidden=true;
+      $('vmRemember').checked=true;$('vmForget').hidden=true;
+      $('vmConnectForm').querySelector('.vm-credentials-details').hidden=true;
       $('vmUnattended').closest('label').hidden=true;
       $('vmSettings').querySelector('.config-desc').textContent='Tart · 可选的独立执行环境';
       $('vmSettings').querySelector('.vm-credentials-details h4').textContent='Tart Guest Agent';
       $('vmRemember').closest('label').querySelector('small').textContent='仅保存虚拟机名称，不保存账号密码。';
       $('vmSettings').querySelector('.vm-credentials-details > .settings-help').textContent='访客需要 Tart Guest Agent；文件传输还需要 Python 3。连接时逐项验证。';
+      $('vmSettings').querySelector(':scope > .settings-help').hidden=true;
       $('vmSettings').querySelector(':scope > .settings-help').textContent='可跳过虚拟机。点击安装指南查看安装方法；命令和文件传输按实际验证结果显示。';
       $('vmOpenManager').textContent='Tart 安装指南 ↗';
       $('vmOpenManager').title=value.install_command||'';
       $('vmForget').textContent='忘记已保存的连接';
       $('vmRefresh').title='刷新本机 Tart 列表';
       if(!$('vmSelect').value&&$('vmSelect').options.length===1)$('vmSelect').options[0].textContent='选择此数据目录内的 Tart 虚拟机';
-      $('vmThumbnailRefresh').disabled=true;$('vmThumbnailStatus').textContent='Tart 屏幕预览尚未实现';
-      $('vmThumbnailEmpty').lastElementChild.textContent='Tart 屏幕预览尚未实现';
+      $('vmThumbnailRefresh').disabled=!value.desktop?.ready;
+      $('vmThumbnailEmpty').lastElementChild.textContent='连接桌面后可读取真实预览';
       if(!value.vm)$('vmPreviewName').textContent='Tart';
     }
     if(!preferenceEdited){const saved=value.saved_connections?.find(s=>s.vm===($('vmSelect').value||value.vm));if(saved)$('vmUnattended').checked=saved.unattended!==false;}const labels={Running:'运行中',Off:'已关机',Starting:'正在开机',Stopping:'正在关机',Saved:'已保存',Paused:'已暂停',Unknown:'状态未知'};
@@ -107,8 +119,9 @@
     const connectionLabel=value.connected?(value.backend==='tart'?'命令已连接':value.desktop?.ready===false?'命令已连接 · 等待桌面就绪':'已连接'):(phases[value.connection_phase]||'未连接');
     $('vmSettingsBadge').textContent=connectionLabel;$('vmSettingsBadge').classList.toggle('is-connected',!!value.connected);
     $('vmAgentStatus').textContent=(value.vm||value.saved_connections?.[0]?.vm||'虚拟机')+' · '+(labels[state]||'状态未知')+' · '+connectionLabel;
-    $('vmPowerOn').disabled=state==='Running'||state==='Starting';
-    $('vmPowerOff').disabled=state==='Off';$('vmPowerForce').disabled=state==='Off';
+    const selectedState=value.backend==='tart'&&$('vmSelect').value&&$('vmSelect').value!==value.vm?(selectedPower.get($('vmSelect').value)||'Unknown'):state;
+    $('vmPowerOn').disabled=selectedState==='Running'||selectedState==='Starting';
+    $('vmPowerOff').disabled=selectedState==='Off';$('vmPowerForce').disabled=selectedState==='Off';
     window.dispatchEvent(new CustomEvent('hub-vm-status',{detail:value}));
   }
   async function refreshPower(){const value=await call({action:'status'});displayPower(value);return value;}
@@ -133,13 +146,85 @@
     await wait(await call({action:'install',confirmed:true}));await refreshPower();status('Tart 安装检测通过。');
   }));
   $('tartHomebrewGuide').addEventListener('click',()=>operate(()=>call({action:'open_homebrew'})));
-  $('tartCreate').addEventListener('click',()=>operate(async()=>{
-    status('正在下载镜像并创建虚拟机，可能需要较长时间；请保持应用运行。');
-    const name=$('tartVmName').value.trim();await wait(await call({action:'create',vm_name:name,image:$('tartImage').value,confirmed:true}));
-    const result=await wait(await call({action:'list'}));$('vmSelect').replaceChildren();
-    for(const vm of result.vms||[]){const option=document.createElement('option');option.value=vm.name;option.textContent=vm.name+' · '+vm.state+' · Tart';$('vmSelect').append(option);}
-    $('vmSelect').value=name;status('虚拟机已创建，请保存并连接；将实际验证 Guest Agent。');
+  const confirmAction=(message,run)=>{
+    const dialog=H.node('dialog','','new-project-dialog project-delete-dialog');dialog.id='tartConfirmDialog';const header=H.node('header','','new-project-header');
+    header.append(H.node('h2','确认虚拟机操作'));
+    const close=H.node('button','×','dialog-close');close.type='button';close.setAttribute('aria-label','关闭');close.onclick=()=>dialog.close();header.append(close);
+    const cancel=H.node('button','取消','secondary-btn');cancel.type='button';cancel.onclick=()=>dialog.close();
+    const yes=H.node('button','确认','primary-btn');yes.type='button';yes.onclick=()=>{dialog.close();void operate(run);};
+    dialog.append(header,H.node('p',message),cancel,yes);dialog.addEventListener('close',()=>dialog.remove());document.body.append(dialog);dialog.showModal();cancel.focus();
+  };
+  H.openTartInstaller=()=>{if(!$('tartInstallDialog').open)$('tartInstallDialog').showModal();};
+  $('tartOpenInstaller').addEventListener('click',H.openTartInstaller);
+  $('tartEditHome').addEventListener('click',()=>{$('tartHome').value=lastState.tart_home||'';delete $('tartHome').dataset.dirty;$('tartDirectoryDialog').showModal();});
+  document.querySelectorAll('[data-close-tart]').forEach(button=>button.addEventListener('click',()=>$(button.dataset.closeTart).close()));
+  $('tartDirectoryDialog').addEventListener('close',()=>{$('tartHome').value=lastState.tart_home||'';delete $('tartHome').dataset.dirty;});
+  $('tartHome').addEventListener('input',()=>{$('tartHome').dataset.dirty='1';});
+  $('tartBrowseHome').addEventListener('click',()=>operate(async()=>{const result=await call({action:'browse_home'});if(result.path){$('tartHome').value=result.path;$('tartHome').dataset.dirty='1';}}));
+  $('tartSaveHome').addEventListener('click',()=>{
+    const home=$('tartHome').value.trim();confirmAction('切换到 '+home+'。不会移动或删除原目录；请先关闭虚拟机。',async()=>{
+      await call({action:'set_home',tart_home:home,confirmed:true});delete $('tartHome').dataset.dirty;$('vmSelect').replaceChildren();await refreshPower();await refreshInventory();$('tartDirectoryDialog').close();status('目录已应用，虚拟机列表已更新。');
+    });
+  });
+  $('tartImage').addEventListener('change',()=>{$('tartVmName').value=$('tartImage').value==='macos'?'agent-hub-macos':'agent-hub-ubuntu';});
+  $('tartCreate').addEventListener('click',()=>{
+    if($('tartHome').dataset.dirty){status('目录修改尚未应用，请先点击“使用此目录”，再创建虚拟机。');return;}
+    const args={action:'create',vm_name:$('tartVmName').value.trim(),image:$('tartImage').value,source:$('tartSource').value.trim(),source_type:$('tartSourceType').value,cpu:Number($('tartCpu').value),memory:Number($('tartMemory').value),confirmed:true};
+    confirmAction('将在 '+$('tartHome').value+' 创建 '+args.vm_name+'。在线 macOS 镜像需要下载数十 GB；请保持应用运行。',async()=>{
+      if(!lastState.installed){status('正在安装 Tart…');await wait(await call({action:'install',confirmed:true}));}
+      status('正在创建虚拟机；下载可能需要较长时间，请保持应用运行。');
+      const created=await wait(await call(args));
+      const result=await wait(await call({action:'list'}));$('vmSelect').replaceChildren();
+      for(const vm of result.vms||[]){const option=document.createElement('option');option.value=vm.name;option.textContent=vm.name+' · '+vm.state+' · Tart';$('vmSelect').append(option);}
+      $('vmSelect').value=args.vm_name;
+      if(created.manual_setup){status(created.note);return;}
+      status('虚拟机已创建，正在启动并验证连接…');
+      const connected=await wait(await call({action:'connect',vm_name:args.vm_name,remember:true,auto_connect:$('tartAutoConnect').checked}));
+      await refreshPower();status('已创建并连接 '+connected.vm+' · '+(connected.root_verified?'root 已验证':'root 未验证')+' · '+(connected.desktop_verified?'桌面截图已验证':connected.desktop_warning));
+    });
+  });
+  $('vmSelect').addEventListener('change',async()=>{
+    if(lastState.backend!=='tart'||!$('vmSelect').value)return;const name=$('vmSelect').value;
+    try{const result=await wait(await call({action:'details',vm_name:name}));const state=String(result.details.State||'').toLowerCase();selectedPower.set(name,state==='running'?'Running':state==='stopped'?'Off':'Unknown');displayPower(lastState);}catch(error){status(error.message);}
+  });
+  $('tartReadResources').addEventListener('click',()=>operate(async()=>{
+    const result=await wait(await call({action:'details',vm_name:powerName()}));$('tartManageCpu').value=result.details.CPU;$('tartManageMemory').value=result.details.Memory;status('已读取 '+result.vm+' 的实际资源。');
   }));
+  $('tartConfigure').addEventListener('click',()=>{
+    const args={action:'configure',vm_name:powerName(),cpu:Number($('tartManageCpu').value),memory:Number($('tartManageMemory').value),confirmed:true};
+    confirmAction('修改 '+args.vm_name+'：CPU '+args.cpu+' 核，内存 '+args.memory+' MiB。必须先关机。',async()=>{await wait(await call(args));status('资源设置已保存。');});
+  });
+  $('tartDelete').addEventListener('click',()=>{
+    const name=powerName();confirmAction('永久删除 '+name+' 的虚拟机磁盘，无法撤销。下载的镜像缓存单独保留。',async()=>{
+      await wait(await call({action:'delete',vm_name:name,confirmed:true}));[...$('vmSelect').options].filter(o=>o.value===name).forEach(o=>o.remove());await refreshPower();status('所选虚拟机已删除。');
+    });
+  });
+  $('tartImagesRefresh').addEventListener('click',()=>operate(async()=>{
+    const result=await wait(await call({action:'images'}));$('tartCachedImage').replaceChildren();
+    for(const image of result.images||[]){const option=document.createElement('option');option.value=option.textContent=image.Name||image.name;$('tartCachedImage').append(option);}status('已读取下载的镜像缓存。');
+  }));
+  $('tartDeleteImage').addEventListener('click',()=>{
+    const source=$('tartCachedImage').value;if(!source)return;
+    confirmAction('删除镜像缓存 '+source+'。再次使用时需要重新下载；已有虚拟机保留。',async()=>{await wait(await call({action:'delete_image',source,confirmed:true}));[...$('tartCachedImage').options].filter(o=>o.value===source).forEach(o=>o.remove());status('所选镜像缓存已删除。');});
+  });
+  const renderAccessibility=value=>{
+    const state=value.accessibility||{};
+    $('tartAccessibilityStatus').textContent=state.error||((state.ready?'控件通道已就绪':'控件通道未就绪')+(state.permissions?.length?' · '+state.permissions.map(p=>p.name+'：'+(p.isGranted?'已授权':'未授权')).join(' · '):''));
+  };
+  H.openTartAccessibility=()=>{if(!$('tartAccessibilityDialog').open)$('tartAccessibilityDialog').showModal();};
+  $('tartOpenAccessibility').addEventListener('click',H.openTartAccessibility);
+  $('tartCheckAccessibility').addEventListener('click',()=>operate(async()=>{
+    status('正在检查访客控件权限…');renderAccessibility(await wait(await call({action:'peekaboo_status',vm_name:powerName()})));
+  }));
+  $('tartAccessibilityPermissions').addEventListener('click',()=>operate(async()=>{
+    await wait(await call({action:'peekaboo_permissions',vm_name:powerName()}));status('已请求打开访客内的 Peekaboo 和权限设置，请在虚拟机内完成授权。');
+  }));
+  $('tartInstallAccessibility').addEventListener('click',()=>{
+    const name=powerName();confirmAction('在 '+name+' 内安装官方 Peekaboo 4.9.7 控件驱动（约 60 MB）。需要访客 macOS 15+，首次使用需在访客内手动授权。',async()=>{
+      status('正在下载、验证并安装访客控件驱动…');renderAccessibility(await wait(await call({action:'peekaboo_install',vm_name:name,confirmed:true})));
+    });
+  });
+  $('tartOpenConsole').addEventListener('click',()=>operate(()=>call({action:'open_console',vm_name:powerName()})));
   $('btnViewStatus')?.addEventListener('click',()=>void H.connectSavedVm());
   async function refreshStatus() {
     if(busy||polling||!H.client.hasToken()||document.hidden)return;
@@ -153,7 +238,7 @@
   let thumbBusy=false,thumbName='',thumbCaptured=false,thumbAttempt=0;
   const previewVisible=()=>$('configModalToggle').checked&&!$('vmSettings').classList.contains('settings-section-inactive')&&!document.hidden;
   async function thumbnail(prefetch=false){
-    if(lastState.backend==='tart')return;
+    if(lastState.backend==='tart'&&!lastState.desktop?.ready)return;
     if(thumbBusy||(!previewVisible()&&prefetch!==true)||!H.client.hasToken())return;
     if(prefetch===true&&Date.now()-thumbAttempt<15000)return;
     const name=$('vmSelect').value||lastState.vm;if(!name)return;
@@ -164,6 +249,11 @@
       const data=await wait(await call({action:'thumbnail',vm_name:name}));
       if(name!==($('vmSelect').value||lastState.vm))return;
       if(!data.available){canvas.hidden=true;$('vmThumbnailEmpty').hidden=false;label.textContent=data.note||'暂无屏幕预览';return;}
+      if(data.format==='png'){
+        const img=new Image();img.src='data:image/png;base64,'+data.image_data;await img.decode();
+        canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;canvas.getContext('2d').drawImage(img,0,0);
+        thumbCaptured=true;canvas.hidden=false;$('vmThumbnailEmpty').hidden=true;label.textContent='控制台预览 · '+new Date().toLocaleTimeString();return;
+      }
       const raw=atob(data.image_data||''),width=Number(data.width),height=Number(data.height);
       if(data.format!=='rgb565le'||width<1||height<1||width>640||height>480||raw.length!==width*height*2)throw Error('缩略图数据格式不正确');
       canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d'),frame=ctx.createImageData(width,height);

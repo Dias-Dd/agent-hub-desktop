@@ -12,3 +12,6 @@ desktop/*-build/
 desktop/*-dist/
 desktop/installer-tools/inno/
 .release-work/
+
+# Application-owned Tart VM disks and OCI cache
+TartVMs/

@@ -43,7 +43,7 @@ class Fixture(base.Fixture):
             if action in ('connect','connect_saved','list','disconnect','power_on','power_off','power_force'):result={'request_id':action}
             elif action=='status':result={'vm':'Hub','helper_alive':True,'power_state':'Running','connected':True}
             elif action=='result':
-                result={'state':'completed','vms':[{'name':'Hub','state':'Running','generation':2}], 'vm':'Hub','account':'desktop\\hub','credential_saved':True,'unattended_configured':True,'unattended_enabled':True}
+                result={'state':'completed','vms':[{'name':'Hub','state':'Running','generation':2}], 'vm':'Hub','account':'desktop\\hub','credential_saved':True,'transfer_verified':True,'unattended_configured':True,'unattended_enabled':True}
         self.respond(200,{'result':result})
 
 

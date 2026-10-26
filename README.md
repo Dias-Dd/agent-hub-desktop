@@ -37,7 +37,7 @@
 `macos-port` 分支新增 Cocoa / WKWebView 原生窗口及可选 Tart 后端，目前仅在
 Apple Silicon、macOS 27.2 上验证。源码宿主需要 macOS 14+、Python 3.11+ 与
 `desktop/requirements-macos.txt`；提供本地 arm64 `.app` 和 DMG 开发安装包。
-首次打开自动显示配置指引，可在正常数据目录创建 Tart VM 并自动连接；关闭窗口后通过菜单栏恢复。
+首次打开自动显示配置指引，可安装 Tart、自动创建 macOS VM 或指定镜像。默认 VM 目录在应用数据内的 `vm-bridge/tart/machines/`，保留已有目录，设置可切换。支持 root 并发命令、文件传输和实验性桌面截图/键鼠；关闭窗口后通过菜单栏恢复。
 普通项目无需虚拟机。运行方法、实际验证范围及尚未支持的功能见
 [macOS 移植记录](docs/MACOS_PORT.md)。这不是已签名公证的正式 Mac Release。
 

@@ -48,11 +48,15 @@ class Tray:
     try:
      from .system_notifications import send
      send(title,message)
+     from hub.notification_settings import record_delivery
+     record_delivery(self.status.directory,event,True,channel='windows')
     except Exception:self.notification_fallback.put(event)
    threading.Thread(target=deliver,daemon=True,name='hub-completion-notification').start()
    return
   self.data.szInfo=message[:255];self.data.dwInfoFlags=1;self.data.uFlags=0x10
-  self.shell.Shell_NotifyIconW(1,C.byref(self.data));self.data.uFlags=7;self.notification_project=event.get('project')
+  submitted=bool(self.shell.Shell_NotifyIconW(1,C.byref(self.data)));self.data.uFlags=7;self.notification_project=event.get('project')
+  from hub.notification_settings import record_delivery
+  record_delivery(self.status.directory,event,submitted,None if submitted else 'Windows 托盘通知提交失败',channel='windows-tray')
  def handle(self,event):
   if event==0x405:
    self.user.ShowWindow(self.window,9);self.user.SetForegroundWindow(self.window)

@@ -48,7 +48,7 @@ class PortBoundaries(unittest.TestCase):
                 time.sleep(.01)
             with patch.object(bridge,'status',return_value={'connected':True,'vm':'test'}):
                 with self.assertRaisesRegex(HubError,'shell='):bridge.call('p','one',directory,action='exec',script='Get-ChildItem')
-                with self.assertRaises(HubError):bridge.call('p','one',directory,action='screenshot')
+                with self.assertRaises(HubError):bridge.call('p','one',directory,action='unknown_action')
                 with self.assertRaises(HubError):bridge.call('p','one',directory,action='pull',path='../outside')
 
     def test_tart_queued_failure_is_never_reported_as_completed(self):

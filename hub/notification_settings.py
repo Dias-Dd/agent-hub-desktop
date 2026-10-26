@@ -1,5 +1,6 @@
 """User-owned system notification preferences; delivery checks the latest cache."""
-import json
+import json,time,os,threading
+from pathlib import Path
 from .core import HubError, uid
 DEFAULTS={'enabled':True,'when':'always','demo':True,'project':True,'attention':False}
 
@@ -24,6 +25,21 @@ def wording(kind,english=False):
     titles={'demo':('产品演示已完成','Product demo ready'),'project':('项目已完成','Project completed'),'attention':('项目需要处理','Project needs attention'),'test':('测试通知','Test notification')}
     return titles.get(kind,titles['attention'])[int(english)]
 
+def record_delivery(directory,event,submitted,error=None,channel='system'):
+    """Record OS acceptance, not a claim that the user saw a banner."""
+    root=Path(directory)
+    value={'submitted':bool(submitted),'event':event['id'],'error':error,'channel':channel,'checked_at':time.time()}
+    names=['notification-status.json']
+    if event.get('kind')=='test':names.append('notification-test-status.json')
+    for name in names:
+        path=root/name;temporary=root/(name+'.'+str(os.getpid())+'.'+str(threading.get_ident())+'.tmp')
+        try:
+            temporary.write_text(json.dumps(value,ensure_ascii=False),encoding='utf-8');temporary.replace(path)
+        except OSError:pass  # A diagnostics failure must never replay a sent notification.
+        finally:
+            try:temporary.unlink(missing_ok=True)
+            except OSError:pass
+
 def action(hub,actor,operation='read',config=None):
     hub.require(actor,{'user'})
     if operation=='save':
@@ -33,7 +49,13 @@ def action(hub,actor,operation='read',config=None):
             hub.audit(actor,'notifications.configured',config)
     elif operation=='test':
         from .desktop_notifications import enqueue
-        with hub.tx():enqueue(hub,'test:'+uid(),'test',None)
-        return {'queued':True}
+        ident='test:'+uid()
+        with hub.tx():enqueue(hub,ident,'test',None)
+        return {'queued':True,'event_id':ident}
+    elif operation=='delivery_status':
+        try:
+            value=json.loads((hub.directory/'notification-test-status.json').read_text(encoding='utf-8'))
+            return {'delivery':value if isinstance(value,dict) else None}
+        except (OSError,ValueError):return {'delivery':None}
     elif operation!='read':raise HubError('未知通知设置操作')
     with hub.lock:return read(hub.db)

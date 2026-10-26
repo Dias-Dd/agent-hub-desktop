@@ -363,6 +363,12 @@ body:has(#viewModeStatusRadio:checked) #emptyWorkspace{display:none}
 .memory-history-controls select{min-width:0;flex:1;max-width:100%;}.memory-settings #memoryStatus{flex:1;font-size:12px;color:var(--text-dim);}
 @media(max-width:620px){.interface-color-grid{grid-template-columns:1fr;}}
 
+.vm-status-surface>span:not([hidden])+span::before{content:" · ";}
+.tart-directory-row{display:flex;align-items:center;gap:12px;margin:16px 0;}.tart-directory-row>p{flex:1;min-width:0;margin:0;overflow-wrap:anywhere;}.tart-directory-row>button{flex-shrink:0;}
+.tart-setup-dialog{width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;}.tart-dialog-content{min-width:0;padding-block:12px;}.tart-dialog-content label{display:block;margin-top:12px;}.tart-dialog-content input,.tart-dialog-content select{width:100%;min-width:0;box-sizing:border-box;}.tart-setup-dialog>header,.tart-setup-dialog>footer{position:sticky;background:var(--bg-panel);z-index:2;}.tart-setup-dialog>header{top:0;}.tart-setup-dialog>footer{bottom:0;padding:12px 0;}
+.hub-window-body>.tart-setup-dialog{display:block;width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;box-sizing:border-box;}
+
+.tart-setup-dialog{background:var(--bg-panel);}.tart-setup-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:12px;}.tart-setup-dialog>header h2{margin:0;font-size:18px;}.tart-setup-dialog>footer{display:flex;justify-content:flex-end;}
 #managerReadingArea .shared-artifact.artifact-attachment.memory-update{max-width:340px;}
 .memory-update .artifact-web-link{padding:9px 12px!important;gap:9px;cursor:default;}
 .memory-update .artifact-web-link small{margin-left:auto;}

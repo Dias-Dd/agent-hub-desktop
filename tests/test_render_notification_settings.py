@@ -13,7 +13,7 @@ class Settings(unittest.TestCase):
     def test_browser_selection_persists_and_does_not_silently_fallback(self):
         exe=Path(self.tmp.name)/'browser.exe';exe.touch();exe.chmod(0o755)
         config=render.action(self.h,'user','save',mode='custom',path=str(exe))
-        self.assertEqual(config['config']['mode'],'custom');self.assertEqual(render.resolve(self.h),str(exe))
+        self.assertEqual(config['config']['mode'],'custom');self.assertEqual(render.resolve(self.h),str(exe.resolve()))
         exe.unlink()
         with self.assertRaises(HubError):render.resolve(self.h)
         self.assertIn('不存在',render.action(self.h,'user')['error'])

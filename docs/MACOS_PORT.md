@@ -229,3 +229,76 @@ Cocoa 关闭按钮返回原 DOM 和保留草稿的路径。本地 ad-hoc 包通�
 ## 合入 main 后的 0.2.2 构建
 
 Mac 打包版本号从 `pyproject.toml` 读取，避免主分支更新版本后 Mac 包仍显示 0.2.1；宿主构建标识更新为 `macos-main-sync-0.2.2-5`。本地 DMG 路径为 `desktop/macos-installer-dist/AgentHub-macOS-arm64-0.2.2.dmg`，验证摘要和 SHA-256 校验文件同目录。签名仍为本地 ad-hoc，未公证；不将已有 Release 安装包静默替换。
+
+## macOS 客体与 VNC 实机验证（2026-10-25）
+
+按用户要求先安装验证，设置/首次引导的自动安装产品功能仍暂停。独立 `TART_HOME` 为 `local-data/macos-validation/machines`，VM 为 `agent-hub-macos-validation`；官方 `macos-sequoia-base:latest` 下载大小约 25.4 GB，客体实测 macOS 15.7.7 / 24G720 / arm64，2 CPU、4096 MB、1280×800。未覆盖正常数据目录的 Ubuntu VM。
+
+真实通过：Guest Agent 命令、52 字节二进制文件写入读回比对、VNC 桌面截图、鼠标点击、窗口标题栏拖动、显式 Shift 大小写输入、全选与保存快捷键。客体磁盘读回文本精确为 `Agent hub VNC validation 20261025`。长文本首行从 1 滚至 24 再回到 1，双向滚动有截图证据。本次 VNC 键符 Alt_L 对应 Command、Meta_L 对应 Option；客体自然滚动下按钮 4 向下、5 向上，正式接入应明确处理映射。
+
+真实兼容性问题：仅声明 RAW 的最小 RFB 客户端在 SetEncodings 阶段触发 Tart 实验性 VNC 断言（SIGTRAP），测试 VM 因此停止。重启后使用 vncdotool 1.4.2，声明 cursor / desktop-size / last-rect 后通过本轮验证；尚未逐项隔离最小扩展集合。首次黑帧也不能算成功，需等待后续真实桌面帧。故障记录保留在测试报告，危险的最小测试脚本已删除。
+
+验证详情与截图保存在 `local-data/macos-validation/validation.json` 和同目录 PNG，VNC 临时密码仅留在权限受限的本地运行日志，不写入源码/报告。VM 保留运行供继续检查。没有修改宿主安全策略、付费调用、提交或发布。以上是隔离验证脚本能力，尚未接入应用的 project_vm 桌面工具或设置/引导；Unicode 输入、横向滚动和其他系统/架构未验证。
+
+
+## Tart macOS 正式接入开发（2026-10-25，本地未发布）
+
+本节取代上一节“尚未接入应用”的阶段状态。新增 `tart_management.py`、`tart_desktop.py`、`tart_rfb.py`，仍从同一个 `project_vm` 工具进入，保留 Windows Hyper-V 实现和宿主授权检查。内置/用户 Harness 无需增加独立 VM 协议。
+
+- 默认 VM/OCI 缓存在程序旁 `TartVMs/`，不写入签名 `.app`。已有 `vm-bridge/tart/machines` 非空时继续使用旧目录；若应用所在卷不可写，使用应用数据内目录。设置显示实际绝对路径，并可选择其他目录。切换前要求没有运行 VM 或未完成作业，不自动搬移、覆盖或删除旧磁盘。
+- 设置和 Mac 首次引导共用安装入口：检测 Homebrew/Tart、明确确认后安装 Tart，默认官方 macOS OCI 镜像，也可填写其他 OCI 地址、本机 `.tvm` 或 `.ipsw`。创建时设置 CPU/内存，成功后启动并分别验证命令、root、文件、桌面。IPSW 需要在访客手动完成初始化和 Guest Agent 安装，不假称无人值守已就绪。没有 Homebrew 时提供官方手动引导，不自动执行宿主 sudo。
+- 管理支持读取实际资源、关机后修改 CPU/内存、删除指定 VM、列出及删除指定下载缓存。删除需要用户确认；模型没有 VM 安装/删除/资源管理权限。`TART_NO_AUTO_PRUNE=1` 避免隐式删除用户数据。
+- 命令使用每次独立 `tart exec` 和 `sudo -n /bin/sh`，要求 `shell=posix`，每项目/Agent 有独立且重启后保留的 `/var/agent-hub/<project>/<agent>` 访客工作目录（原临时 `/tmp` 工作目录不再用于新任务）。没有非交互 root 权限时真实报错，不降级为假成功。输入作业不自动重放，超时明确提示访客命令可能仍运行。
+- 桌面通过 Hub 启动的 `--no-graphics --vnc-experimental` 本地控制台；VNC 临时凭据只留在私有运行日志，打开系统屏幕共享使用 Cocoa URL API，不放进进程参数。使用系统 CommonCrypto 和标准库 RFB/PNG，不依赖 Edge、第三方 VNC Python 包或访客屏幕共享服务。保留 ServerInit 格式，不发送曾触发 Tart 崩溃的 RAW-only SetEncodings。黑帧不算成功；首次开机只对截图探测等待重试，不重复输入。
+- 已接入截图、鼠标、命名快捷键、ASCII 文本、拖动、纵向滚动、相对路径桌面启动及 120 秒跨 Agent 桌面租约。截图返回 MCP 图片和工作目录内证据。命令并发不受桌面租约阻塞。`keys=["cmd","a"]` 使用已验证的 Mac 键映射；`text(value)` 预先拒绝非 ASCII，避免部分输入。
+- 连接时实际读取当前 console 用户和 `sysadminctl -autologin status`。官方 base 镜像实测重启后自动登录 admin，且 root 可用；自定义镜像不自动更改账号、安全策略或伪造登录能力。Windows 无人值守选项不套用到 Mac。
+
+实际通过（macOS 27.2 arm64 / Tart 2.40.1 / 客体 macOS 15.7.7）：两个 Agent 各执行 2 秒 root 作业，总耗时约 2.4–2.5 秒且目录/输出分离；二进制文件精确往返；截图、桌面租约冲突与释放、滚动、鼠标；由新工具打开 TextEdit 文件，发送 Command-A、精确 ASCII/Shift 输入、Command-S，读回文件精确等于 `Tart bridge input 2026`。本地克隆副本改为 3 核/4352 MiB 后读回一致并定向删除；新增自动创建接口从缓存官方 OCI 创建、设置资源、删除测试副本通过；Hub 关机/启动/连接链路通过。未重复下载完整镜像或卸载已安装 Tart 来模拟全新设备。
+
+界面检查通过：AGENTS.md 三个真实浏览器回归；新增 Tart 设置三尺寸（1440×900、1024×600、600×800）安装/导入/资源读取/删除确认/滚动/草稿测试；Mac 首次引导、Windows 虚拟机设置兼容测试。新增后端 6 项、Mac 边界 4 项、引导 3 项、长期记忆 9 项、统一模块 12 项通过。沙箱下本地监听/ps 受限的测试提升权限重跑后通过，不将权限错误算通过。真实打包 `.app` 的原生 WKWebView 首次引导、独立设置窗口、菜单栏隐藏恢复、标题栏和草稿检查通过。
+
+打包检查另发现旧 spec 的 `collect_submodules('hub')` 在 Analysis 设置路径前可能静默漏掉动态模块，实际 `.app` 报 `hub.sessions` 缺失；改为从源码路径明确列举模块后重建验证通过。构建标识 `macos-tart-macos-integration-6`。本次没有提交、推送或发布 Release。
+
+限制：实验性 VNC 仍可能随 Tart/macOS 改变；Windows 的 `windows/ui_tree/ui_invoke/ui_set_value` 尚无 Mac AX 通道，明确不可用；Unicode 直接输入、横向滚动、本机 `.tvm` 实际导入和 IPSW 全新安装尚未实测；不声称所有架构、所有客体、全套 Harness 或所有历史测试已通过。现有正常应用的 Ubuntu VM 和应用配置未被测试数据替换。测试记录在 gitignored `local-data/macos-validation/`，含私有运行日志，不应上传整个目录。
+
+最终补验：新持久目录中的 22 字节文件在客体关机/重启后精确读回；新 project_vm 的标题栏拖动使 TextEdit 从 (118,54) 移至 (218,154)，有前后截图。系统屏幕共享实际打开本机 Tart 控制窗口。最终本地安装包为 `desktop/macos-installer-dist/AgentHub-macOS-arm64-tart-macos-dev.dmg`，同目录含 SHA-256 与验证摘要；应用签名、DMG 校验和最终原生首次启动检查通过。本地开发包未公证，未上传 Release。
+
+
+## VM 目录显示与安装路径修复（2026-10-25）
+
+用户截图显示输入开发测试路径时列表仍是 Ubuntu。只读检查确认正常应用 preferences 只有 auto_connect，没有保存 tart_home；正常目录仅有 Ubuntu，测试目录有独立 macOS VM。原界面把待应用输入称为“当前目录”，切换成功后还要求手动刷新，造成歧义。
+
+默认目录统一为应用数据下 `vm-bridge/tart/machines`，不依赖源码 checkout、.app 位置或升级目录；保留用户明确保存的自定义路径及已有磁盘。设置分别显示不可混淆的实际使用路径与待应用输入；成功应用自动重载列表，待应用时禁止创建，避免在旧目录创建。正常安装不创建 my_agent_hub，开发用 macOS VM 不被静默搬入用户数据。构建标识 `macos-tart-storage-sync-7`。
+
+
+## 已连接但预览 Loading error 修复（2026-10-25）
+
+从用户实际应用检查：命令/root/自动登录/桌面验证均成功，thumbnail 作业连续返回 1280×800 PNG，但原生设置窗口显示 Loading error。生产 CSP 的 default-src self 未允许 data 图片，前端 new Image 使用 data:image/png;base64，因此被拦截。旧设置夹具的 desktop.ready=false 没覆盖真实 PNG 显示路径；此前仅后端截图验证不足以证明安装包预览可用。
+
+修复仅为应用网页增加 img-src self data，不放宽脚本或连接来源，不修改主机安全策略。新增 test_tart_preview.py 使用真正 PNG、生产 HTTP/CSP 和原有前端渲染器核对 canvas 像素：修复前 Chromium/WKWebView 均失败，修复后均通过。未打包测试宿主可能被系统标为后台，WK 图片测试单独控制测试页 visibility 以隔离正常后台暂停逻辑；实际 PNG 解码仍由真正 WebKit 完成。另用用户 VM 已返回的真实 1280×800 PNG 重跑 WK 像素测试通过。没有重启或停止用户 VM。
+
+清理连接成功后的笼统重启提示，desktop.warning 只表示当前故障，实验性 VNC/控件树限制独立放入 limitations。AGENTS.md 三项布局/阅读/草稿测试通过；最终应用包原生首次引导、设置弹窗、菜单栏恢复和草稿检查通过。构建 macos-tart-preview-csp-8，本地 DMG 为 desktop/macos-installer-dist/AgentHub-macOS-arm64-preview-fix.dmg，签名/镜像校验通过；未提交、推送或发布。
+
+
+## 虚拟机设置精简与独立窗口（2026-10-26）
+
+按用户要求将 VM 选择置顶，Tart 检测和连接状态合并在同一状态栏。当前目录行只保留实际路径和“修改”，目录输入/浏览/应用进入独立窗口；自动安装/导入改为按钮及独立窗口，首次配置引导复用该入口。移除指定的默认目录说明、root/console/登录/截图调试状态长行及额外策略说明，保留官方 base 与自定义镜像登录说明。
+
+Mac 不再同时显示“使用已保存的连接”“保存连接”勾选和“保存并连接”：单一“连接”按钮自动记住所选 VM，自动连接仍由开关控制；Windows 凭据界面保留原行为。安装进度/错误同步显示在独立窗口，关闭不丢失输入。
+
+真实验证通过：新增设置三尺寸及中英文/目录确认/安装弹窗/草稿测试，Windows VM 设置、Mac 引导，AGENTS.md 三项浏览器回归及 Chromium/WK 图片像素回归。最终原生打包程序实际打开/关闭两个独立窗口并检查节点返回、菜单栏、标题栏及草稿保留（tart_dialogs=true）。本地 DMG desktop/macos-installer-dist/AgentHub-macOS-arm64-vm-settings.dmg 已校验，构建 macos-tart-settings-dialogs-9；未提交、推送、发布或变更用户 VM 状态。
+
+
+## 2026-10-26：合入 main 的浏览器与通知设置
+
+先将 Tart/Peekaboo 版本推送为 eee73c7，再合入 origin/main 的 9ac74e1；保留两边的动态英文翻译和独立弹窗样式。main 的长期记忆版本/锁定/经理权限及新增里程碑通知均保留。
+
+- 渲染设置可选择 macOS 浏览器 `.app`，按 Info.plist 的 CFBundleExecutable 解析并验证包内可执行文件；也支持直接指定二进制。NSOpenPanel 将应用包作为可选文件，不要求用户手工展开 Contents。
+- 主窗口继续使用系统 WKWebView，Agent browser_render 使用单独配置的 Chromium 内核浏览器，临时 profile 不访问个人浏览器资料。真实打包应用选择 Edge.app、保存自定义设置并渲染 PNG 通过。
+- 读取官方 Mac_Arm LAST_CHANGE 和归档元数据成功，路径为 chrome-mac/Chromium.app/Contents/MacOS/Chromium。本轮未完整下载并启动应用专用 Chromium，不宣称 Intel 或所有浏览器已实测。
+- 通知设置增加用户触发的 macOS 授权入口；“始终通知”增加 UNUserNotificationCenter 的前台展示代理回调。测试事件返回唯一编号，并显示该次 OS 接受/拒绝结果，诊断写入失败不自动重发。Windows 的原生/托盘回退均记录提交结果。
+- 真正 Cocoa 应用的显式通知测试经过数据库事件、托盘状态缓存和 macOS 发送通道，返回“通知未授权”。未请求或修改系统权限，未宣称横幅已送达；获准后前台/后台的真实横幅仍待人工授权实测。
+
+验证：111 项后端、浏览器渲染/路由、通知、长期记忆和 VM 边界回归通过；新增 macOS `.app`、架构选择、通知拒绝/OS 错误、诊断失败共 8 项通过；渲染通知设置、记忆卡、Windows VM 设置、原生标题栏、PNG 预览，以及 AGENTS 要求的 manager_layout/reading/nine 检查通过。修复合并后通知表单 autocomplete 缺失，设计检查三种尺寸通过。未重跑或宣称扩大旧浏览器套件全部通过；前述旧基线失败仍单独保留。
+
+构建标识：macos-main-browser-notifications-11。仅本地应用构建与验证，本次不发布 Release 或合回 main。

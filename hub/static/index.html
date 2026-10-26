@@ -472,12 +472,12 @@
         </section>
         <section class="config-section-card" id="notificationSettings">
           <h3>系统通知</h3><p class="settings-help">选择哪些事件发送系统通知，以及何时提醒。应用内的聊天和状态提示不受影响。</p>
-          <form id="notificationForm"><label class="settings-toggle-row"><input id="notificationsEnabled" type="checkbox" checked><span>启用系统通知</span></label>
+          <form id="notificationForm" autocomplete="off"><label class="settings-toggle-row"><input id="notificationsEnabled" type="checkbox" checked><span>启用系统通知</span></label>
           <label for="notificationWhen">发送时机</label><select id="notificationWhen"><option value="always">始终通知</option><option value="background">仅应用在后台时通知</option></select>
           <label class="settings-toggle-row"><input id="notifyDemo" type="checkbox" checked><span>产品演示完成，可供审阅</span></label>
           <label class="settings-toggle-row"><input id="notifyProject" type="checkbox" checked><span>正式项目完成</span></label>
           <label class="settings-toggle-row"><input id="notifyAttention" type="checkbox"><span>项目阻塞或需要处理</span></label>
-          <div class="settings-actions"><button type="submit" class="primary-btn">保存通知设置</button><button id="notificationTest" type="button" class="secondary-btn">发送测试通知</button></div><p id="notificationSaveStatus" class="settings-help" role="status"></p></form>
+          <div class="settings-actions"><button type="submit" class="primary-btn">保存通知设置</button><button id="notificationPermission" type="button" class="secondary-btn" hidden>允许 macOS 通知</button><button id="notificationTest" type="button" class="secondary-btn">发送测试通知</button></div><p id="notificationSaveStatus" class="settings-help" role="status"></p></form>
         </section>
         <section class="config-section-card memory-settings" id="memorySettings">
           <h3>长期记忆</h3>
@@ -502,24 +502,30 @@
         </section>
         <section class="config-section-card vm-settings" id="vmSettings">
           <header class="settings-section-heading"><div><h3>虚拟机</h3><p class="config-desc">Hyper-V · 独立的执行与测试环境</p></div><span id="vmSettingsBadge" class="vm-connection-badge">未连接</span></header>
+          <div id="vmSelection">
+            <label for="vmSelect">选择虚拟机</label><div class="settings-path-row"><select id="vmSelect" form="vmConnectForm" required><option value="">选择本机 Hyper-V 虚拟机</option></select><button id="vmRefresh" type="button" class="secondary-btn" title="刷新本机 Hyper-V 列表">刷新列表</button></div>
+          </div>
           <div class="vm-machine-overview"><div class="vm-preview"><canvas id="vmThumbnail" width="320" height="180" aria-label="Hyper-V 虚拟机屏幕缩略图" hidden></canvas><div id="vmThumbnailEmpty" class="vm-preview-placeholder"><span aria-hidden="true">▣</span><span>选择虚拟机后显示预览</span></div></div><div class="vm-machine-info"><strong id="vmPreviewName">Hyper-V</strong><p id="vmThumbnailStatus" class="settings-help" role="status">官方控制台缩略图</p><button id="vmOpenManager" type="button" class="secondary-btn btn-sm">打开 Hyper-V 管理器 ↗</button><button id="vmThumbnailRefresh" type="button" class="settings-text-button">刷新预览</button></div></div>
-          <p id="vmConnectionStatus" class="vm-status-surface" role="status" aria-live="polite">尚未连接</p>
+          <p class="vm-status-surface" role="status" aria-live="polite"><span id="tartEnvironment" hidden></span><span id="vmConnectionStatus">尚未连接</span></p>
           <div id="tartSetupOptions" hidden>
-            <h4>Tart 环境与虚拟机</h4>
-            <p id="tartEnvironment" class="settings-help" role="status"></p>
             <div class="settings-path-row"><button id="tartInstall" type="button" class="secondary-btn">安装 Tart（需要 Homebrew）</button><button id="tartHomebrewGuide" type="button" class="secondary-btn">Homebrew 官方安装指南 ↗</button></div>
-            <label for="tartHome">当前应用的虚拟机目录</label><input id="tartHome" type="text" readonly>
-            <p class="settings-help">虚拟机保存在当前应用数据目录，普通项目可跳过。不会修改主机安全策略。</p>
-            <details><summary>创建虚拟机</summary>
-              <label for="tartImage">镜像模板</label><select id="tartImage"><option value="ubuntu">Ubuntu ARM · 数 GB</option><option value="macos">macOS Sequoia · 数十 GB</option></select>
-              <label for="tartVmName">虚拟机名称</label><input id="tartVmName" type="text" value="agent-hub-ubuntu" maxlength="100" autocomplete="off">
-              <p class="settings-help">创建会下载免费镜像并占用磁盘。访客需包含 Tart Guest Agent，文件传输还需 Python 3；连接时会实际验证。</p>
-              <button id="tartCreate" type="button" class="secondary-btn">下载镜像并创建</button>
+            <div class="tart-directory-row"><p id="tartActiveHome" class="settings-help" data-user-content></p><button id="tartEditHome" type="button" class="secondary-btn">修改</button></div>
+            <button id="tartOpenInstaller" type="button" class="secondary-btn">自动安装或导入虚拟机</button>
+            <details><summary>管理所选虚拟机与镜像缓存</summary>
+              <p class="settings-help">修改资源和删除前必须关机；删除不可撤销。</p>
+              <button id="tartReadResources" type="button" class="secondary-btn">读取所选虚拟机资源</button>
+              <label for="tartManageCpu">CPU 核心数</label><input id="tartManageCpu" autocomplete="off" type="number" min="1" value="2">
+              <label for="tartManageMemory">内存（MiB）</label><input id="tartManageMemory" autocomplete="off" type="number" min="4096" step="256" value="4096">
+              <button id="tartConfigure" type="button" class="secondary-btn">保存资源设置（关机后）</button>
+              <button id="tartDelete" type="button" class="settings-text-button danger-text">删除所选虚拟机</button>
+              <button id="tartImagesRefresh" type="button" class="secondary-btn">刷新下载的镜像</button><select id="tartCachedImage" aria-label="下载的镜像"></select>
+              <button id="tartDeleteImage" type="button" class="settings-text-button danger-text">删除所选镜像缓存</button>
             </details>
+            <button id="tartOpenConsole" type="button" class="secondary-btn">打开桌面控制窗口</button><button id="tartOpenAccessibility" type="button" class="secondary-btn">启用控件操作</button>
+            <p class="settings-help">官方 macOS base 镜像预配置桌面登录和 Guest Agent；自定义镜像需自行完成登录配置。</p>
             <label class="settings-toggle-row"><input id="tartAutoConnect" type="checkbox" checked><span>启动应用或打开面板时，自动开机并连接已保存的虚拟机</span></label>
           </div>
           <form id="vmConnectForm" class="vm-connection-form" autocomplete="off">
-            <label for="vmSelect">选择虚拟机</label><div class="settings-path-row"><select id="vmSelect" required><option value="">选择本机 Hyper-V 虚拟机</option></select><button id="vmRefresh" type="button" class="secondary-btn" title="刷新本机 Hyper-V 列表">刷新列表</button></div>
             <div class="vm-quick-actions"><button id="vmReconnectSaved" type="button" class="primary-btn">使用已保存的连接</button><button id="vmDisconnect" type="button" class="secondary-btn">断开</button></div>
             <section class="vm-credentials-details"><h4>账号与连接设置</h4>
               <div class="vm-account-grid"><div><label for="vmUsername">Windows 用户名</label><input id="vmUsername" type="text" autocomplete="off" placeholder="Hub 或 计算机名\Hub" required></div><div><label for="vmPassword">密码 <span class="muted">（不是 PIN）</span></label><input id="vmPassword" type="password" autocomplete="new-password" placeholder="已保存时无需重填"></div></div>
@@ -725,5 +731,13 @@
 <script src="/live-ui.js" defer></script><script src="/vm-ui.js" defer></script><script src="/startup.js" defer></script>
 <script src="/render-notifications.js" defer></script>
 <script src="/colors.js" defer></script><script src="/memory.js" defer></script>
+<dialog id="tartDirectoryDialog" class="new-project-dialog tart-setup-dialog" aria-labelledby="tartDirectoryDialogTitle"><header class="new-project-header"><h2 id="tartDirectoryDialogTitle">修改虚拟机目录</h2><button type="button" class="dialog-close" data-close-tart="tartDirectoryDialog" aria-label="关闭">×</button></header><div class="tart-dialog-content"><p class="settings-help" role="status"></p><label for="tartHome">虚拟机目录</label><input id="tartHome" autocomplete="off" type="text"><div class="settings-path-row"><button id="tartBrowseHome" type="button" class="secondary-btn">选择目录</button><button id="tartSaveHome" type="button" class="primary-btn">应用目录</button></div><p class="settings-help">切换前请关闭虚拟机。原目录的文件会保留。</p></div><footer><button type="button" class="secondary-btn" data-close-tart="tartDirectoryDialog">关闭</button></footer></dialog>
+<dialog id="tartInstallDialog" class="new-project-dialog tart-setup-dialog" aria-labelledby="tartInstallDialogTitle"><header class="new-project-header"><h2 id="tartInstallDialogTitle">自动安装或导入虚拟机</h2><button type="button" class="dialog-close" data-close-tart="tartInstallDialog" aria-label="关闭">×</button></header><div class="tart-dialog-content"><p class="settings-help" role="status"></p><div id="tartCreateDetails">
+              <label for="tartImage">镜像模板</label><select id="tartImage"><option value="macos">macOS Sequoia · 数十 GB</option><option value="ubuntu">Ubuntu ARM · 数 GB</option></select>
+              <label for="tartSourceType">镜像来源</label><select id="tartSourceType"><option value="oci">在线 OCI 镜像</option><option value="tvm">本机 .tvm 镜像</option><option value="ipsw">本机 .ipsw（需手动初始化）</option></select><label for="tartSource">自定义镜像地址或文件绝对路径（可选）</label><input id="tartSource" type="text" autocomplete="off"><label for="tartVmName">虚拟机名称</label><input id="tartVmName" type="text" value="agent-hub-macos" maxlength="100" autocomplete="off">
+              <p class="settings-help">创建会下载免费镜像并占用磁盘。访客需包含 Tart Guest Agent，文件传输还需 Python 3；连接时会实际验证。</p>
+              <label for="tartCpu">CPU 核心数</label><input id="tartCpu" autocomplete="off" type="number" min="1" value="2"><label for="tartMemory">内存（MiB）</label><input id="tartMemory" autocomplete="off" type="number" min="4096" step="256" value="4096"><button id="tartCreate" type="button" class="secondary-btn">安装 Tart 并创建、连接虚拟机</button>
+            </div></div><footer><button type="button" class="secondary-btn" data-close-tart="tartInstallDialog">关闭</button></footer></dialog>
+<dialog id="tartAccessibilityDialog" class="new-project-dialog tart-setup-dialog" aria-labelledby="tartAccessibilityTitle"><header><h2 id="tartAccessibilityTitle">控件操作 · Peekaboo</h2><button type="button" class="dialog-close" data-close-tart="tartAccessibilityDialog" aria-label="关闭">×</button></header><div class="tart-dialog-content"><p class="settings-help">驱动只安装在所选 macOS 虚拟机内。请在访客中为 Peekaboo 开启辅助功能和屏幕录制，再检查权限。</p><p class="settings-help">官方 macOS base 镜像的默认用户名和密码均为 admin；自定义镜像使用自己的账号。</p><div class="settings-path-row"><button id="tartInstallAccessibility" type="button" class="secondary-btn">安装访客控件驱动（约 60 MB）</button><button id="tartAccessibilityPermissions" type="button" class="secondary-btn">打开访客权限设置</button><button id="tartCheckAccessibility" type="button" class="primary-btn">检查权限</button></div><p id="tartAccessibilityStatus" class="vm-status-surface" role="status">尚未检查</p></div><footer><button type="button" class="secondary-btn" data-close-tart="tartAccessibilityDialog">关闭</button></footer></dialog>
 </body>
 </html>

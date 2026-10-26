@@ -1,5 +1,5 @@
 """Browser discovery and user-owned rendering choices. Never touches browser profiles."""
-import json,os,shutil,sys,threading
+import json,os,plistlib,shutil,sys,threading
 from pathlib import Path
 from .core import HubError
 DEFAULTS={'mode':'auto','path':''}
@@ -29,6 +29,16 @@ def config(hub):
 def validate(path):
     if not isinstance(path,str) or not path.strip():raise HubError('请选择浏览器主程序')
     file=Path(path.strip()).expanduser()
+    if sys.platform=='darwin' and file.suffix.lower()=='.app' and file.is_dir():
+        try:
+            with (file/'Contents/Info.plist').open('rb') as source:info=plistlib.load(source)
+            name=info['CFBundleExecutable']
+            if not isinstance(name,str) or not name or Path(name).name!=name:raise ValueError('Invalid executable')
+            binary=file/'Contents/MacOS'/name
+            if not binary.resolve().is_relative_to(file.resolve()):raise ValueError('Executable outside app')
+            file=binary
+        except (OSError,ValueError,KeyError,TypeError,plistlib.InvalidFileException):
+            raise HubError('应用包中没有有效的浏览器主程序') from None
     if not file.is_absolute() or not file.is_file():raise HubError('浏览器主程序不存在，请选择绝对文件路径')
     if os.name=='nt' and file.suffix.lower()!='.exe':raise HubError('请选择浏览器的 exe 主程序')
     if os.name!='nt' and not os.access(file,os.X_OK):raise HubError('浏览器主程序没有执行权限')

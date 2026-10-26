@@ -1,13 +1,17 @@
 # Local arm64 .app build. Ad-hoc signing only; no release/notarization implied.
 from pathlib import Path
 import tomllib
-from PyInstaller.utils.hooks import collect_submodules
 
 root = Path(SPECPATH).parent
 version = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 adapter_data = [(str(p), str(p.parent.relative_to(root)))
                 for p in (root / 'hub/builtin_adapters').rglob('*')
                 if p.is_file() and p.suffix in ('.py', '.json')]
+# Enumerate sources explicitly: the spec executes before Analysis applies pathex,
+# so collect_submodules('hub') can silently miss modules with this CLI layout.
+hub_modules = ['hub'] + sorted('.'.join(p.relative_to(root).with_suffix('').parts)
+                              for p in (root/'hub').rglob('*.py')
+                              if p.name != '__init__.py')
 a = Analysis([str(root / 'desktop/launch_desktop.py')], pathex=[str(root)],
     binaries=[], datas=adapter_data + [
         (str(root / 'hub/static'), 'hub/static'),
@@ -15,7 +19,7 @@ a = Analysis([str(root / 'desktop/launch_desktop.py')], pathex=[str(root)],
         (str(root / 'hub/mcp.py'), 'hub'),
         *[(str(root / 'tools' / name), 'tools') for name in
           ('HubDesktopAgent.ps1','Configure-HubVmUnattended.ps1','Start-HubVmBridge.ps1')]],
-    hiddenimports=collect_submodules('hub') + ['desktop.macos_webview',
+    hiddenimports=hub_modules + ['desktop.macos_webview',
         'desktop.macos_notifications', 'desktop.macos_tray', 'desktop.first_run', 'desktop.tray_status', 'AppKit', 'WebKit',
         'UserNotifications', 'PyObjCTools.AppHelper'],
     excludes=['tests','tkinter','desktop.onboarding','desktop.native_webview',

@@ -25,6 +25,8 @@ document.getElementById('notificationForm').dispatchEvent(new Event('submit',{ca
 await waitUI(()=>document.getElementById('notificationSaveStatus').textContent.includes('已保存'));
 await new Promise(r=>setTimeout(r,50));document.getElementById('notificationTest').click();
 await waitUI(()=>document.getElementById('notificationSaveStatus').textContent.includes('已提交'));
+await waitUI(()=>document.getElementById('notificationSaveStatus').textContent.includes('fixture permission denied'));
+if(document.getElementById('notificationSaveStatus').textContent.includes('系统已接受'))throw Error('denied notification reported as accepted');
 if(document.querySelectorAll('.settings-navigation [aria-controls="notificationSettings"]').length!==1)throw Error('duplicate notification page');
 """
 
@@ -39,7 +41,9 @@ class Fixture(base.Fixture):
                    'managed':{'revision':'123','path':'C:/owned/chrome.exe'} if self.server.installed else None,'download':{'state':'completed' if self.server.installed else 'idle','received':100,'total':100}}
         elif action=='notification_settings':
             if args.get('operation')=='save':self.server.notification_config=args['config']
-            value={'queued':True} if args.get('operation')=='test' else self.server.notification_config
+            if args.get('operation')=='test':value={'queued':True,'event_id':'test:fixture'}
+            elif args.get('operation')=='delivery_status':value={'delivery':{'event':'test:fixture','submitted':False,'error':'fixture permission denied'}}
+            else:value=self.server.notification_config
         else:value={}
         self.respond(200,{'result':value})
 
@@ -49,7 +53,7 @@ class SettingsBrowser(unittest.TestCase):
         original=base.DRIVER;base.DRIVER=original.replace("out.textContent='PASS",CHECK+"out.textContent='PASS")
         server=base.Server(('127.0.0.1',0),Fixture);thread=threading.Thread(target=server.serve_forever);thread.start()
         try:
-            for size in ['1440,900','600,800']:
+            for size in ['1440,900','1024,600','600,800']:
                 server.browser_config={'mode':'auto','path':''};server.installed=False
                 server.notification_config={'enabled':True,'when':'background','demo':True,'project':True,'attention':False}
                 with self.subTest(size=size),tempfile.TemporaryDirectory() as folder:
