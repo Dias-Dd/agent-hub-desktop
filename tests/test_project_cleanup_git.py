@@ -57,3 +57,30 @@ class CleanupGit(unittest.TestCase):
  def test_storage_includes_external_worktree_bytes(self):
   self.workspace();(self.work/'large').write_bytes(b'x'*10000);data=self.p.storage('user');project=next(p for p in data['projects'] if p['id']==self.ident)
   self.assertGreater(project['bytes'],10000);self.assertTrue(any('git-worktrees' in p['path'] for p in project['associated_paths']))
+ def test_removed_project_disappears_after_cleanup_without_erasing_history(self):
+  with self.h.tx():self.h.db.execute('INSERT INTO settings VALUES(?,?)',('deleted_project:'+self.ident,'true'))
+  self.assertIn(self.ident,{p['id'] for p in self.p.storage('user')['projects']})
+  plan=self.p.cleanup('user',self.ident)
+  self.assertTrue(self.p.cleanup('user',self.ident,True,plan['inventory_key'])['ok'])
+  self.assertNotIn(self.ident,{p['id'] for p in self.p.storage('user')['projects']})
+  self.assertEqual(self.p.get(self.ident)['name'],'Fixture')
+ def test_retained_project_still_shows_after_its_files_are_cleaned(self):
+  plan=self.p.cleanup('user',self.ident)
+  self.assertTrue(self.p.cleanup('user',self.ident,True,plan['inventory_key'])['ok'])
+  project=next(p for p in self.p.storage('user')['projects'] if p['id']==self.ident)
+  self.assertFalse(project['exists']);self.assertFalse(project['removed'])
+ def test_removed_project_with_missing_root_keeps_external_leftovers_visible(self):
+  import shutil
+  self.work=Path(self.h.directory)/'git-worktrees'/hashlib.sha256(self.ident.encode()).hexdigest()[:16]/'worker';self.work.mkdir(parents=True)
+  with self.h.tx():self.h.db.execute('INSERT INTO git_workspaces VALUES(?,?,?,?,?)',(self.ident,'a',str(self.root),str(self.work),'worker'))
+  attachment=Path(self.h.directory)/'shared-artifacts'/('c'*32);attachment.mkdir(parents=True)
+  with self.h.tx():
+   self.h.db.execute('INSERT INTO settings VALUES(?,?)',('deleted_project:'+self.ident,'true'))
+   self.h.db.execute('INSERT INTO shared_artifacts VALUES(?,?)',('c'*32,json.dumps({'id':'c'*32,'project_id':self.ident})))
+  shutil.rmtree(self.root)
+  project=next(p for p in self.p.storage('user')['projects'] if p['id']==self.ident)
+  self.assertFalse(project['exists']);self.assertTrue(project['removed'])
+  shutil.rmtree(self.work.parent)
+  self.assertIn(self.ident,{p['id'] for p in self.p.storage('user')['projects']})
+  shutil.rmtree(attachment)
+  self.assertNotIn(self.ident,{p['id'] for p in self.p.storage('user')['projects']})

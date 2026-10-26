@@ -63,6 +63,10 @@ class Projects:
             root=Path(project['cwd'])
             from .project_files import inventory
             owned=inventory(self,project['id'])['paths']
+            # Removed records retain history, but storage lists only leftovers.
+            # Check every associated path: the project root alone may be gone
+            # while worktrees, demos or published artifacts still need cleanup.
+            if project['id'] in deleted and not any(item['exists'] for item in owned):continue
             scan_roots=[]
             for item in sorted(owned,key=lambda x:len(Path(x['path']).parts)):
                 target=Path(item['path'])
