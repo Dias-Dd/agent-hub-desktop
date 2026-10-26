@@ -225,3 +225,7 @@ Cocoa 关闭按钮返回原 DOM 和保留草稿的路径。本地 ad-hoc 包通�
 合并后通过：计划响应 6、经理拥有计划 5、Harness 账号 7、接入注册 25、Mac Harness 5、长期记忆 9、统一模块 12、Mac 引导服务 3 项；可运行的旧引导服务测试 9 项通过、1 项平台跳过。AGENTS.md 三项浏览器测试、Mac 引导浏览器、Mac 标题栏浏览器、演示三尺寸/恢复测试、WKWebView 50%/100%/200% 像素测试通过。
 
 未验证的旧 Tk 引导：本机缺少 `_tkinter`，两项 Tk 布局及一项 VM 向导测试无法运行，不计为通过。另将原始 main 提取到隔离目录对照：`test_planning.py` 两边均 18 项/17 错误，`test_workflows.py` 两边均 10 项/9 错误，均为旧 `sol-2` 身份夹具；`test_manager_owned_plan.py` 两边均 5 项通过。没有改写这些旧夹具，也没有声称全套测试通过。无真实付费推理；本次为源码合并，之前发布的安装包仍对应此前构建。
+
+## 合入 main 后的 0.2.2 构建
+
+Mac 打包版本号从 `pyproject.toml` 读取，避免主分支更新版本后 Mac 包仍显示 0.2.1；宿主构建标识更新为 `macos-main-sync-0.2.2-5`。本地 DMG 路径为 `desktop/macos-installer-dist/AgentHub-macOS-arm64-0.2.2.dmg`，验证摘要和 SHA-256 校验文件同目录。签名仍为本地 ad-hoc，未公证；不将已有 Release 安装包静默替换。
