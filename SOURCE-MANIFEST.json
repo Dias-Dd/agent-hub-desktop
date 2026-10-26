@@ -6,8 +6,8 @@
     "AGENTS.md": "8dc531eddddf6d251d2630eb79c7c2e5123beb8ce50795d32bb434f645fa9b69",
     "LICENSE": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6",
     "Open-Desktop.cmd": "43622c14b5a88d6612945930b7c1e64b2ced1d4396cf81278053c452789d8b30",
-    "README.en.md": "24e7473219b5f1d090b3e41fc05d17ee6c7ea69b96220b57b8ac6e83e574000d",
-    "README.md": "891ea01200ff44e8a9aa593c909114a473c33b7330e002eda4b26ac37830c191",
+    "README.en.md": "8ec2fd7162297a4f9af13589c0c74b71af730bd81304555ef047f83364304500",
+    "README.md": "fa463400ff16164cb79212f2c7a452671be684991ab7d84d3f9f941d9781d228",
     "Register-Startup.ps1": "9f0a21751c1385a8301a44e0941377a0632e074fe315f0cb887fe12e2ce96dc8",
     "Start-Hub.cmd": "69a261b8df8d5960987c4ec93f7413708641dafe662990bbd5a60f08fb65eedc",
     "Start-Hub.ps1": "5e3e3a16edcccca683fba87bdab08d89e6bdc4f4b0f28f0604ceb8dc44ab142e",
@@ -30,7 +30,7 @@
     "desktop/hub_desktop_fast.spec": "86b3ebaa2a1bc8967a3fe4592a8f772819e3b7a20eaa75e541bc5a9f0f65b9a7",
     "desktop/hub_installer_bundle.spec": "fd19c6602ae5ed4a31a5d63d5aece1d39c6f4c956fadc8432d611508c86abf40",
     "desktop/installer-tools/MicrosoftEdgeWebview2Setup.exe": "f414de01c4680f0bb0694d1ea7803c6968f3a81bf6bad01b89bfc65dce14c2a2",
-    "desktop/launch_desktop.py": "aa2a5b472172833106f4ca65af9be4bb7355912fc37c84e607b91a5558afc6c4",
+    "desktop/launch_desktop.py": "b10fa1d140498b15bd2042fc1943655a914eb5b39ea5915f9bbf9c6fe93220a7",
     "desktop/launch_installed.py": "79a05b98017af1394a77196f774c88ac9f19ed3b09c2a3874d6b8ded1565a8d9",
     "desktop/localization.py": "0d15dd06e2cec6f02d1b67db11c4fdd4ca1d752fec416552f5bbe4519fe37cea",
     "desktop/migrate_project_context.py": "1d2cf883ffbaf022cc7489ffa232b021698c7caaa130f02d6554374db73a9a35",
@@ -560,6 +560,8 @@
     "hub/render_settings.py": "4f2691430cf07ecab600c3b4b407930d65ac8e21fb1b73177e3d77ac374319e9",
     "hub/static/render-notifications.js": "6f97018af0bccbf62e404f00d1fb885b266774ec76b722244d029612d7c7208c",
     "tests/test_render_notification_browser.py": "d9fccd3e6d5fb69278dc07048669bbed2a63304beefe6565329aaede76b04b36",
-    "tests/test_render_notification_settings.py": "12be967db24095f26cf9d5ddac8e3c3042b6dfe0c42e22d71907565a92d8ca99"
+    "tests/test_render_notification_settings.py": "12be967db24095f26cf9d5ddac8e3c3042b6dfe0c42e22d71907565a92d8ca99",
+    "desktop/hub_macos.spec": "8923aca008460e0deff8a4a31ebacbd5cd23085abefc3a096dd94efa19da2aea",
+    "docs/MACOS_PORT.md": "fa2838982b3cc5de06f137a3dc9bd7620a7c229d80fc9d21db429bd1ac5cb9fc"
   }
 }
