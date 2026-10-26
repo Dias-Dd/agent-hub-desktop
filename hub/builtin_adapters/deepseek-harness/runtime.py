@@ -185,8 +185,9 @@ def execute(runtime,run):
         policy=instructions(runtime,run,style='tool_agent',project=project,read_only=read_only,dialogue=dialogue)
         key=runtime.sessions.key(run)
         with runtime.hub.lock:old=runtime.hub.db.execute('SELECT * FROM harness_sessions WHERE key=?',(key,)).fetchone()
-        target_cwd=str(Path(run['cwd']).resolve())
-        session_cwd=old['cwd'] if old else target_cwd
+        from hub.module_sdk import working_directory
+        target_cwd=working_directory(run['cwd'],'项目工作目录')
+        session_cwd=working_directory(old['cwd'],'原会话工作目录') if old else target_cwd
         moved=bool(old and Path(session_cwd).resolve()!=Path(target_cwd))
         if moved:
             from hub.module_sdk import workspace_notice

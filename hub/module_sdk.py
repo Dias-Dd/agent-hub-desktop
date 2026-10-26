@@ -3,6 +3,16 @@ import json
 import time
 
 
+def working_directory(value,label='执行工作目录'):
+    from pathlib import Path
+    from .core import HubError
+    try:
+        path=Path(value)
+        if path.is_absolute() and path.is_dir():return str(path.resolve(strict=True))
+    except (TypeError,ValueError,OSError):pass
+    raise HubError(label+'已不存在或不是有效目录：'+str(value)+'。请检查项目目录；未启动 Harness，不会自动新建会话或重放任务。')
+
+
 def runtime_view(host, implementation=None, provider=None):
     """Use a module-owned implementation with the current host grant and scope.
 

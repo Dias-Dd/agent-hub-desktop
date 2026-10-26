@@ -18,6 +18,16 @@ class Planning:
     def save(self,s):
         with self.hub.tx():self.hub.db.execute('INSERT OR REPLACE INTO planning_sessions VALUES(?,?)',(s['id'],json.dumps(s,ensure_ascii=False)))
 
+    def submit_discussion(self,runtime,manager,prompt,scope,cwd):
+        from .module_sdk import working_directory
+        cwd=working_directory(cwd,'项目工作目录')
+        # Hold the Hub lock until the queued execution has its own directory.
+        # A previous workflow may have changed the shared runtime's default.
+        with self.hub.lock:
+            job=runtime.submit('user',manager,prompt,True,purpose='discussion',session_scope=scope)
+            with self.hub.tx():self.hub.db.execute('UPDATE executions SET cwd=? WHERE id=?',(cwd,job['id']))
+        return job
+
     def get(self,ident):
         with self.hub.lock:row=self.hub.db.execute('SELECT body FROM planning_sessions WHERE id=?',(ident,)).fetchone()
         if not row:raise HubError('讨论不存在')
@@ -98,7 +108,7 @@ class Planning:
             if len(prompt)>60000:raise HubError('讨论请求包含设置后超过60000字符，请精简设置或需求')
             rt=self.workflows.runtime(mgr)
             with self.hub.lock:
-                run=rt.submit('user',mgr,prompt,True,purpose='discussion',session_scope='hub-project:'+(s.get('project_id') or 'default'))
+                run=self.submit_discussion(rt,mgr,prompt,'hub-project:'+(s.get('project_id') or 'default'),s['options']['cwd'])
                 with self.hub.tx():self.hub.db.execute('INSERT INTO discussion_prompt_context VALUES(?,?)',(run['id'],json.dumps(system_snapshot,ensure_ascii=False)))
             if changes:registry.acknowledge_changes(changes)
             s.pop('error',None);s.pop('notice',None)
@@ -147,7 +157,7 @@ class Planning:
                 '。请只修正上一份计划的 JSON 格式，完整保留用户要求、排除的成员、任务内容与页面清单，不重新设计、不执行、不派工、不调用工具。'
                 '仅返回一个合法 JSON 对象，包含 done:false、report（字符串）、tasks（agent/instruction 对象数组）和原有 preview。'
                 '这是本轮唯一一次自动格式纠错，仍须用户审阅批准才可执行。')
-        job=runtime.submit('user',manager,prompt,True,purpose='discussion',session_scope=r['session_scope'])
+        job=self.submit_discussion(runtime,manager,prompt,r['session_scope'],r['cwd'])
         with self.hub.tx():
             prior=self.hub.db.execute('SELECT body FROM discussion_prompt_context WHERE run_id=?',(r['id'],)).fetchone()
             if prior:self.hub.db.execute('INSERT INTO discussion_prompt_context VALUES(?,?)',(job['id'],prior[0]))

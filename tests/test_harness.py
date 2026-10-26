@@ -140,6 +140,13 @@ class HarnessTests(unittest.TestCase):
   self.h.url='http://127.0.0.1:8765';r=self.execute('discussion');self.assertEqual(r['status'],'completed')
   args=next(v for m,v in FakeACP.calls if m=='session/new');self.assertEqual(args['mcpServers'],[]);self.assertFalse(next(v for m,v in FakeACP.calls if m=='launch'))
   text=patch_text('deepseek-4','manager',True);self.assertIn('tool-fs',text);self.assertIn('"disabled": true',text)
+ def test_missing_target_directory_is_reported_before_harness_starts(self):
+  self.h.url='http://127.0.0.1:8765';missing=Path(self.f.t.name)/'missing-project'
+  cfg=self.d.config();cfg['cwd']=str(missing)
+  with self.h.tx():self.h.db.execute("UPDATE settings SET value=? WHERE key='deepseek_runtime'",(json.dumps(cfg),))
+  result=self.execute('discussion')
+  self.assertEqual(result['status'],'failed');self.assertIn('项目工作目录',result['result'])
+  self.assertNotIn('NotADirectoryError',result['result']);self.assertFalse(FakeACP.calls);self.assertFalse(missing.exists())
  def test_provider_cancel_is_interrupted_not_completed(self):
   self.h.url='http://127.0.0.1:8765';FakeACP.stop='cancelled';self.assertEqual(self.execute()['status'],'interrupted')
  def test_configuration_save_preserves_harness_engine(self):
