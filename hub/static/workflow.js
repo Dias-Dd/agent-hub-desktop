@@ -174,6 +174,7 @@
     text('planApprovalSummary', p ? '目录与执行授权：' + H.dump(p.options) + '\n权限：' + H.dump(permissions) + '\n批准当前版本 v' + p.revision + ' 后按所选流程启动（先演示或直接制作）。' : '');
     const timeline=[...(!fresh ? stream.history : []), ...stream.userDirectMessages].map(m=>({id:m.id,time:m.timestamp||0,render:()=>{const row=H.chatMessage(m.senderName,m.text,m.status||m.role,m.timestamp,m.result);row.dataset.messageId=m.id;return row;}}));
     for(const item of H.artifactItems?.(v.rawSnapshot||{})||[])timeline.push({id:'artifact:'+item.id,time:item.created||0,render:()=>H.artifactMessage(item)});
+    for(const item of v.rawSnapshot?.memory_updates||[])timeline.push({id:'memory-update:'+item.revision,time:item.created,render:()=>H.memoryUpdateMessage(item)});
     const discussion=(v.rawSnapshot?.planning||[]).find(x=>x.id===p?.sessionId);
     if(discussion?.error)timeline.push({id:'plan-error:'+discussion.id+':'+discussion.revision+':'+discussion.error,time:discussion.history?.at(-1)?.created||discussion.created||0,render:()=>{const node=H.chatMessage('平台','计划处理失败：'+discussion.error+'。请检查接入状态后重新发送消息；尚未开始执行。','需要处理',null);node.setAttribute('role','alert');return node;}});
     if(discussion?.notice)timeline.push({id:'plan-notice:'+discussion.id+':'+discussion.revision+':'+discussion.notice,time:discussion.history?.at(-1)?.created||discussion.created||0,render:()=>H.chatMessage('平台',discussion.notice,'计划状态',null)});

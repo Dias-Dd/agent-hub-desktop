@@ -24,7 +24,7 @@ def set_native_dark_mode(dark):
         AppHelper.callAfter(_host.theme, dark)
 
 
-def run_native(url, profile, smoke=False, data_directory=None):
+def run_native(url, profile, smoke=False, data_directory=None,notification_probe=False,browser_probe=False):
     import platform
     if int(platform.mac_ver()[0].split('.')[0]) < 14:
         raise RuntimeError('The isolated WKWebView host requires macOS 14 or newer')
@@ -206,6 +206,8 @@ def run_native(url, profile, smoke=False, data_directory=None):
             if hasattr(body,'get') and body.get('language') in ('en','zh-CN') and data_directory:
                 from desktop.ui_preferences import save_language
                 save_language(data_directory,body['language'])
+            if hasattr(body,'get') and body.get('request_notifications') is True:
+                self.requestNotifications_(None)
 
         def requestNotifications_(self, sender):
             from desktop.macos_notifications import request_permission
@@ -222,6 +224,12 @@ def run_native(url, profile, smoke=False, data_directory=None):
             if project:AppHelper.callAfter(self.open_project,project)
             done()
 
+        def userNotificationCenter_willPresentNotification_withCompletionHandler_(self,center,notification,done):
+            # The delivery policy was checked before enqueueing this OS request.
+            done(UserNotifications.UNNotificationPresentationOptionBanner |
+                 UserNotifications.UNNotificationPresentationOptionList |
+                 UserNotifications.UNNotificationPresentationOptionSound)
+
         @objc.python_method
         def notifications(self):
             if self.finished or not self.cache:return
@@ -230,19 +238,24 @@ def run_native(url, profile, smoke=False, data_directory=None):
                 event=self.cache.notifications.get_nowait()
             except queue.Empty:event=None
             if event:
+                from hub.notification_settings import allowed
+                if not allowed(self.cache.value.get('notification_settings',{}),event,bool(A.NSApp().isActive())):event=None
+            if event:
                 if self.tray:self.tray.observe(event)
                 def deliver():
                     from desktop.macos_notifications import send
                     from desktop.ui_preferences import language
                     english=language(data_directory)=='en'
-                    title=('Product demo ready' if event.get('kind')=='demo' else 'Project completed') if english else ('产品演示已完成' if event.get('kind')=='demo' else '项目已完成')
+                    from hub.notification_settings import wording
+                    title=wording(event.get('kind'),english)
                     try:
                         send(title,event.get('name') or title,event.get('project'))
                         observation={'submitted':True, 'event':event['id']}
                     except Exception as error:
                         observation={'submitted':False, 'error':str(error), 'event':event['id']}
                     if data_directory:
-                        (Path(data_directory)/'notification-status.json').write_text(json.dumps(observation),encoding='utf-8')
+                        from hub.notification_settings import record_delivery
+                        record_delivery(data_directory,event,observation['submitted'],observation.get('error'),channel='macos')
                 import threading
                 threading.Thread(target=deliver,daemon=True).start()
             AppHelper.callLater(1,self.notifications)
@@ -312,16 +325,46 @@ def run_native(url, profile, smoke=False, data_directory=None):
                 while(panel.ownerDocument!==document&&Date.now()<returned)await new Promise(r=>setTimeout(r,25));
                 if(panel.open||panel.ownerDocument!==document)throw Error('Tart dialog did not return');
               }
+              let browserRendering=null;
+              if(BROWSER_PROBE){
+                root.querySelector('[aria-controls="renderSettings"]').click();
+                const until=Date.now()+5000;
+                while(document.getElementById('renderBrowserChoice').options.length<2&&Date.now()<until)await new Promise(r=>setTimeout(r,25));
+                const settings=await H.client.postAction('render_settings',{operation:'read'});
+                if(!settings.current)throw Error(settings.error||'No rendering browser');
+                const path=settings.current.split('/Contents/MacOS/')[0];
+                const saved=await H.client.postAction('render_settings',{operation:'save',mode:'custom',path});
+                if(saved.current!==settings.current)throw Error('App bundle browser selection mismatch');
+                browserRendering=await H.client.postAction('render_settings',{operation:'test'});
+                if(!browserRendering.ok)throw Error('Configured browser rendering failed');
+                root.querySelector('[aria-controls="notificationSettings"]').click();
+                if(document.getElementById('notificationPermission').hidden)throw Error('Mac notification permission action missing');
+              }
               window.webkit.messageHandlers.hubNative.postMessage({smoke_close_popup:true});
               const closeEnd=Date.now()+5000;
               while(root.ownerDocument!==document&&Date.now()<closeEnd)await new Promise(r=>setTimeout(r,25));
               if(!popup||document.getElementById('configModal')!==root||editor.value!==draft)
                 throw Error('Independent window or draft preservation failed');
               editor.value=previous;
+              let notificationDelivery=null;
+              if(NOTIFICATION_PROBE){
+                const request=await H.client.postAction('notification_settings',{operation:'test'});
+                const until=Date.now()+15000;
+                while(Date.now()<until){
+                  await new Promise(r=>setTimeout(r,250));
+                  const value=await H.client.postAction('notification_settings',{operation:'delivery_status'});
+                  if(value.delivery?.event===request.event_id){notificationDelivery=value.delivery;break;}
+                }
+                if(!notificationDelivery)throw Error('Notification delivery result timed out');
+              }
               return JSON.stringify({popup:true,tart_dialogs:true,draft_preserved:true,native_chrome:true,sidebar_toggle:true,first_run_shown:firstRunShown,
+              notification_delivery:notificationDelivery,
+              browser_rendering:browserRendering,
               loaded:!!H, authenticated:!!state,
               ready:!!window.HubDesktop?.view, title:document.title,
               width:innerWidth,height:innerHeight});})()"""
+            script=script.replace('NOTIFICATION_PROBE',json.dumps(bool(notification_probe)))
+            script=script.replace('BROWSER_PROBE',json.dumps(bool(browser_probe)))
             # callAsyncJavaScript awaits the promise, unlike evaluateJavaScript.
             self.views[0].callAsyncJavaScript_arguments_inFrame_inContentWorld_completionHandler_(
                 'return await ' + script, {}, None, W.WKContentWorld.pageWorld(), self.checked)

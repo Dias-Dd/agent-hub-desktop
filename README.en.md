@@ -2,13 +2,14 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-**A Windows desktop workspace for coordinating AI agents.** Connect different harnesses, CLIs and APIs to a project, and let a manager agent organize discussions, assign work, track progress and deliver results.
+**A desktop workspace for coordinating AI agents.** Connect different harnesses, CLIs and APIs to a project, and let a manager agent organize discussions, assign work, track progress and deliver results.
 
 Keep your existing model accounts and execution tools while managing collaboration in one interface. Agent Hub is not a model service and does not include subscriptions or API credits.
 
 ## Features
 
 - **Project collaboration:** manager conversations, group chat, task queues, progress and original output.
+- **Rendering and notification settings:** choose an installed browser, a custom Chromium executable or an app-managed download; control notification events and foreground/background timing. See the [settings guide](docs/BROWSER_NOTIFICATIONS.md) (Chinese).
 - **Cross-project memory:** managers can save preferences and reusable lessons. Settings provide editing, history previews, rollback and a user-controlled write lock. See the [memory guide](docs/LONG_TERM_MEMORY.md) (Chinese).
 - **Discuss before executing:** review a plan before approving work. Optionally build a demo, approve its design and then proceed to implementation, or skip the demo.
 - **One agent or a team:** one agent can manage and do the work; multiple agents can divide tasks, report results and integrate changes.

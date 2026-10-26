@@ -11,6 +11,19 @@ def project(hub, run):
     scope = run.get('session_scope') or ''
     if scope.startswith('hub-project:'):
         return scope[len('hub-project:'):]
+    if scope.startswith('project:'):
+        with hub.lock:
+            if hub.db.execute("SELECT 1 FROM sqlite_master WHERE name='workflows'").fetchone():
+                row=hub.db.execute('SELECT body FROM workflows WHERE id=?',(scope[len('project:'):],)).fetchone()
+                if row:
+                    return json.loads(row[0]).get('project_id')
+        return None
+    if scope.startswith('chat:'):
+        ident=scope[len('chat:'):]
+        with hub.lock:
+            if hub.db.execute("SELECT 1 FROM sqlite_master WHERE name='hub_projects'").fetchone() and hub.db.execute('SELECT 1 FROM hub_projects WHERE id=?',(ident,)).fetchone():
+                return ident
+        return None
     with hub.lock:
         if hub.db.execute("SELECT 1 FROM sqlite_master WHERE name='workflow_steps'").fetchone():
             row = hub.db.execute('SELECT w.body FROM workflows w JOIN workflow_steps s ON s.workflow=w.id WHERE s.task=?', (run.get('task_id'),)).fetchone()
@@ -109,3 +122,12 @@ def action(hub, actor, operation='read', run_id=None, target='memory', content='
             hub.db.execute('INSERT INTO long_term_memory_versions(user,memory,locked,actor,reason,project_id,created) VALUES(?,?,?,?,?,?,?)', (state['user'], state['memory'], int(state['locked']), actor, reason, source, time.time()))
             hub.audit(actor, 'long_term_memory', {'operation': reason, 'project_id': source})
         return current(hub)
+
+
+def updates(hub, project_id):
+    """User-facing save receipts contain metadata only, never memory contents."""
+    if not project_id:
+        return []
+    with hub.lock:
+        return [dict(row) for row in hub.db.execute(
+            "SELECT revision,actor,reason,created FROM long_term_memory_versions WHERE project_id=? AND actor!='user' AND reason IN ('add','patch','remove') ORDER BY revision DESC LIMIT 80", (project_id,))]

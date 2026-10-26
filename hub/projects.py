@@ -204,6 +204,10 @@ class Projects:
                         if m.get('run_id'):
                             self.hub.db.execute('UPDATE tasks SET project_id=? WHERE project_id IS NULL AND id IN (SELECT task_id FROM executions WHERE id=?)',(ident,m['run_id']))
                             self.hub.db.execute('UPDATE messages SET project_id=? WHERE project_id IS NULL AND (id IN (SELECT message_id FROM executions WHERE id=?) OR request_key LIKE ?)',(ident,m['run_id'],'execution:'+m['run_id']+':%'))
+            # Follow-ups have no workflow_step. Bind their tasks and receipts to
+            # the explicit source message, including replies saved by older builds.
+            self.hub.db.execute("UPDATE tasks SET project_id=(SELECT m.project_id FROM executions e JOIN messages m ON m.id=e.message_id WHERE e.task_id=tasks.id AND m.project_id IS NOT NULL LIMIT 1) WHERE project_id IS NULL AND EXISTS(SELECT 1 FROM executions e JOIN messages m ON m.id=e.message_id WHERE e.task_id=tasks.id AND m.project_id IS NOT NULL)")
+            self.hub.db.execute("UPDATE messages SET project_id=(SELECT source.project_id FROM executions e JOIN messages source ON source.id=e.message_id WHERE messages.request_key='execution:'||e.id||':user' AND messages.sender=e.agent AND source.project_id IS NOT NULL LIMIT 1) WHERE project_id IS NULL AND recipient='user' AND EXISTS(SELECT 1 FROM executions e JOIN messages source ON source.id=e.message_id WHERE messages.request_key='execution:'||e.id||':user' AND messages.sender=e.agent AND source.project_id IS NOT NULL)")
             # Prepared task messages already belong to a workflow before any execution exists.
             for row in self.hub.db.execute("SELECT s.task,w.body FROM workflow_steps s JOIN workflows w ON w.id=s.workflow").fetchall():
                 workflow=json.loads(row['body']);project=workflow.get('project_id') or workflow['id']

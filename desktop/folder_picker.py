@@ -22,14 +22,14 @@ def checked(hr):
     if hr<0:raise OSError('Windows folder dialog error 0x%08X'%(hr&0xffffffff))
 
 @contextmanager
-def explorer_dialog(initial=''):
+def explorer_dialog(initial='',pick_files=False):
     if sys.platform!='win32':raise OSError('此环境不支持 Windows 资源管理器目录窗口')
     ole=C.OleDLL('ole32');shell=C.WinDLL('shell32');ole.CoInitializeEx.argtypes=[C.c_void_p,C.c_uint32];ole.CoInitializeEx.restype=C.c_long
     checked(ole.CoInitializeEx(None,2));pointer=C.c_void_p()
     try:
         ole.CoCreateInstance.argtypes=[C.POINTER(GUID),C.c_void_p,C.c_uint32,C.POINTER(GUID),C.POINTER(C.c_void_p)];ole.CoCreateInstance.restype=C.c_long
         checked(ole.CoCreateInstance(C.byref(CLSID),None,1,C.byref(IID),C.byref(pointer)))
-        checked(call(pointer,9,(C.c_uint32,),OPTIONS));checked(call(pointer,17,(C.c_wchar_p,),'选择项目工作目录'));checked(call(pointer,18,(C.c_wchar_p,),'选择此文件夹'))
+        checked(call(pointer,9,(C.c_uint32,),(OPTIONS & ~0x20)|0x1000 if pick_files else OPTIONS));checked(call(pointer,17,(C.c_wchar_p,),'选择浏览器主程序' if pick_files else '选择项目工作目录'));checked(call(pointer,18,(C.c_wchar_p,),'选择' if pick_files else '选择此文件夹'))
         if initial and Path(initial).is_absolute() and Path(initial).is_dir():
             folder=C.c_void_p();shell.SHCreateItemFromParsingName.argtypes=[C.c_wchar_p,C.c_void_p,C.POINTER(GUID),C.POINTER(C.c_void_p)];shell.SHCreateItemFromParsingName.restype=C.c_long
             if shell.SHCreateItemFromParsingName(str(Path(initial).resolve()),None,C.byref(SHELL_ITEM),C.byref(folder))>=0:
@@ -40,7 +40,7 @@ def explorer_dialog(initial=''):
         if pointer:call(pointer,2)
         ole.CoUninitialize()
 
-def pick_directory(initial=''):
+def pick_directory(initial='',_files=False):
     if sys.platform=='darwin':
         import threading
         from PyObjCTools import AppHelper
@@ -50,7 +50,8 @@ def pick_directory(initial=''):
         def show():
             try:
                 panel=A.NSOpenPanel.openPanel()
-                panel.setCanChooseDirectories_(True);panel.setCanChooseFiles_(False)
+                panel.setCanChooseDirectories_(not _files);panel.setCanChooseFiles_(_files)
+                if _files:panel.setTreatsFilePackagesAsDirectories_(False)
                 panel.setAllowsMultipleSelection_(False)
                 if initial and Path(initial).is_dir():panel.setDirectoryURL_(F.NSURL.fileURLWithPath_(str(Path(initial).resolve())))
                 if panel.runModal()==A.NSModalResponseOK:result['path']=str(panel.URL().path())
@@ -63,7 +64,7 @@ def pick_directory(initial=''):
             ready.wait()
         if result.get('error'):raise OSError(result['error'])
         return result.get('path')
-    with explorer_dialog(initial) as (dialog,ole):
+    with explorer_dialog(initial,pick_files=_files) as (dialog,ole):
         user=C.WinDLL('user32');user.GetForegroundWindow.restype=C.c_void_p
         hr=call(dialog,3,(C.c_void_p,),user.GetForegroundWindow())
         if (hr&0xffffffff)==0x800704c7:return None
@@ -76,3 +77,7 @@ def pick_directory(initial=''):
             if display:
                 ole.CoTaskMemFree.argtypes=[C.c_void_p];ole.CoTaskMemFree(display)
             call(item,2)
+
+
+def pick_file(initial=''):
+    return pick_directory(initial,_files=True)

@@ -74,6 +74,8 @@ def execute(host,run,folder):
     from .module_sdk import runtime_view,request,finish,finalize
     try:
         host.check_latch(run)
+        from .memory_notices import attach
+        run=attach(host.hub,run)
         module,manifest=load(folder)
         context=runtime_view(host);context._module_manifest=manifest;context.module_directory=str(Path(folder).resolve())
         from . import module_tools

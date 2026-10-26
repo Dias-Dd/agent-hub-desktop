@@ -17,13 +17,14 @@ def compact_manager_input(self,run):
     w=json.loads(row['body'])
     if project_manager(self.hub,record=w)!=run['agent']:return None
     from hub.manager_input import POLICY,content
-    notice=run['prompt']
+    notice=run.get('_memory_prompt_original',run['prompt'])
     if not notice.startswith('成员忙闲：') and notice!=w.get('initial_manager_instruction'):
         notice=self.hub.workflows.manager_prompt(w,self.hub.workflows.steps(w['id']),periodic=notice.startswith('成员忙闲：'),manager_task=run['task_id'])
     policy=POLICY if self.sessions.policy_needed(run,POLICY) else ''
     from .long_term_memory import context
     policy+=context(self.hub,run)
-    value=content(policy,notice)
+    from .memory_notices import suffix
+    value=content(policy,notice+suffix(run))
     run['_manager_policy']=True
     run['_manager_content']=value
     return policy

@@ -70,7 +70,10 @@ def execute(runtime,run):
   return execute_module(runtime,run,runtime.connection()['adapter']['directory'])
  run=dict(run);run['started']=time.time();proc=None;job=None;status='failed';result='';parts=[];session=None;reader_stop=threading.Event();secrets=[]
  try:
-  runtime.guard(run);connection=runtime.connection()
+  runtime.guard(run)
+  from .memory_notices import attach
+  run=attach(runtime.hub,run)
+  connection=runtime.connection()
   current=next((c for c in discover(runtime.hub.directory)[0] if c['id']==connection['id']),None)
   if not current or current['manifest_hash']!=connection.get('manifest_hash'):raise HubError('适配器配置已变化或不可用，请刷新自定义接入后重试；未运行脚本')
   config=connection['adapter']

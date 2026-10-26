@@ -26,6 +26,8 @@ class AutomationTests(unittest.TestCase):
    for item in self.service.timers():
     item['due']=time.time()-100;self.service.save(item)
   self.service.next_poll=0
+ # This fixture exercises the Windows file queue; Tart has separate live/boundary tests.
+ @patch('hub.vm_bridge.VmBridge.__new__',new=staticmethod(lambda cls,directory:object.__new__(cls)))
  def test_vm_tool_uses_active_run_cwd_and_preserves_read_only(self):
   from hub.vm_bridge import VmBridge
   bridge=VmBridge(self.server.hub.directory)

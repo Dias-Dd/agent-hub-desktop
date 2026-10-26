@@ -5,6 +5,12 @@
  H.bind('closeArtifactViewer','click',()=>viewer.close());
  viewer.addEventListener('close',()=>{if(!viewer.open)H.$('artifactViewerContent').replaceChildren();});
  function enlarge(item){H.text('artifactViewerTitle','Agent 成果');const content=H.$('artifactViewerContent');content.replaceChildren();viewer.classList.add('artifact-viewer-full');const media=H.node(item.kind==='image'?'img':'iframe');media.src=item.url;if(item.kind==='image')media.alt=item.caption||'图片';else{media.title=item.caption||'静态网页';media.setAttribute('sandbox','');}content.append(media);if(!viewer.open)viewer.showModal();}
+ H.memoryUpdateMessage=item=>{
+   const row=H.node('article','','shared-artifact artifact-attachment memory-update');row.dataset.memoryRevision=String(item.revision);row.setAttribute('role','status');
+   const card=H.node('div','','artifact-web-link');const icon=H.node('span','✓','artifact-file-icon');icon.setAttribute('aria-hidden','true');
+   card.append(icon,H.node('span','长期记忆已更新','artifact-file-title'),H.node('small','v'+item.revision,'muted'));
+   const footer=H.node('footer','','chat-message-meta artifact-message-meta');footer.append(H.node('span','平台'),H.chatTime(item.created));row.append(card,footer);return row;
+ };
  const states={scheduled:'等待到期',held:'已保留',finished:'已投递／结束',cancelled:'已取消',failed:'需要检查'};
  H.artifactMessage=item=>{
    if(item.kind==='folder'){

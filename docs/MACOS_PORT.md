@@ -287,3 +287,18 @@ Mac 打包版本号从 `pyproject.toml` 读取，避免主分支更新版本后 
 Mac 不再同时显示“使用已保存的连接”“保存连接”勾选和“保存并连接”：单一“连接”按钮自动记住所选 VM，自动连接仍由开关控制；Windows 凭据界面保留原行为。安装进度/错误同步显示在独立窗口，关闭不丢失输入。
 
 真实验证通过：新增设置三尺寸及中英文/目录确认/安装弹窗/草稿测试，Windows VM 设置、Mac 引导，AGENTS.md 三项浏览器回归及 Chromium/WK 图片像素回归。最终原生打包程序实际打开/关闭两个独立窗口并检查节点返回、菜单栏、标题栏及草稿保留（tart_dialogs=true）。本地 DMG desktop/macos-installer-dist/AgentHub-macOS-arm64-vm-settings.dmg 已校验，构建 macos-tart-settings-dialogs-9；未提交、推送、发布或变更用户 VM 状态。
+
+
+## 2026-10-26：合入 main 的浏览器与通知设置
+
+先将 Tart/Peekaboo 版本推送为 eee73c7，再合入 origin/main 的 9ac74e1；保留两边的动态英文翻译和独立弹窗样式。main 的长期记忆版本/锁定/经理权限及新增里程碑通知均保留。
+
+- 渲染设置可选择 macOS 浏览器 `.app`，按 Info.plist 的 CFBundleExecutable 解析并验证包内可执行文件；也支持直接指定二进制。NSOpenPanel 将应用包作为可选文件，不要求用户手工展开 Contents。
+- 主窗口继续使用系统 WKWebView，Agent browser_render 使用单独配置的 Chromium 内核浏览器，临时 profile 不访问个人浏览器资料。真实打包应用选择 Edge.app、保存自定义设置并渲染 PNG 通过。
+- 读取官方 Mac_Arm LAST_CHANGE 和归档元数据成功，路径为 chrome-mac/Chromium.app/Contents/MacOS/Chromium。本轮未完整下载并启动应用专用 Chromium，不宣称 Intel 或所有浏览器已实测。
+- 通知设置增加用户触发的 macOS 授权入口；“始终通知”增加 UNUserNotificationCenter 的前台展示代理回调。测试事件返回唯一编号，并显示该次 OS 接受/拒绝结果，诊断写入失败不自动重发。Windows 的原生/托盘回退均记录提交结果。
+- 真正 Cocoa 应用的显式通知测试经过数据库事件、托盘状态缓存和 macOS 发送通道，返回“通知未授权”。未请求或修改系统权限，未宣称横幅已送达；获准后前台/后台的真实横幅仍待人工授权实测。
+
+验证：111 项后端、浏览器渲染/路由、通知、长期记忆和 VM 边界回归通过；新增 macOS `.app`、架构选择、通知拒绝/OS 错误、诊断失败共 8 项通过；渲染通知设置、记忆卡、Windows VM 设置、原生标题栏、PNG 预览，以及 AGENTS 要求的 manager_layout/reading/nine 检查通过。修复合并后通知表单 autocomplete 缺失，设计检查三种尺寸通过。未重跑或宣称扩大旧浏览器套件全部通过；前述旧基线失败仍单独保留。
+
+构建标识：macos-main-browser-notifications-11。仅本地应用构建与验证，本次不发布 Release 或合回 main。

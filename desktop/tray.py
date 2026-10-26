@@ -29,9 +29,17 @@ class Tray:
   except queue.Empty:
    try:event=self.status.notifications.get_nowait()
    except queue.Empty:return
+  from hub.notification_settings import allowed,wording
+  import os
+  self.user.GetForegroundWindow.restype=W.HWND
+  self.user.GetWindowThreadProcessId.argtypes=[W.HWND,C.POINTER(W.DWORD)]
+  foreground_pid=W.DWORD();self.user.GetWindowThreadProcessId(self.user.GetForegroundWindow(),C.byref(foreground_pid))
+  if not allowed(self.status.value.get('notification_settings',{}),event,foreground_pid.value==os.getpid()):return
   english=self.language=='en';demo=event['kind']=='demo'
-  self.data.szInfoTitle=('Product demo ready' if demo else 'Project completed') if english else ('产品演示已完成' if demo else '项目已完成')
+  self.data.szInfoTitle=wording(event['kind'],english)
   description=('Open Agent Hub to review the demo.' if demo else 'Open Agent Hub to view the delivery.') if english else ('打开工作台审阅演示并确认设计。' if demo else '打开工作台查看交付结果。')
+  if event['kind']=='attention':description='Open Agent Hub to inspect the project.' if english else '打开工作台查看需要处理的问题。'
+  if event['kind']=='test':description='System notifications are working.' if english else '系统通知已成功送达。'
   message=(event.get('name','')+'\n'+description).strip()
   if not fallback:
    import threading
@@ -40,11 +48,15 @@ class Tray:
     try:
      from .system_notifications import send
      send(title,message)
+     from hub.notification_settings import record_delivery
+     record_delivery(self.status.directory,event,True,channel='windows')
     except Exception:self.notification_fallback.put(event)
    threading.Thread(target=deliver,daemon=True,name='hub-completion-notification').start()
    return
   self.data.szInfo=message[:255];self.data.dwInfoFlags=1;self.data.uFlags=0x10
-  self.shell.Shell_NotifyIconW(1,C.byref(self.data));self.data.uFlags=7;self.notification_project=event.get('project')
+  submitted=bool(self.shell.Shell_NotifyIconW(1,C.byref(self.data)));self.data.uFlags=7;self.notification_project=event.get('project')
+  from hub.notification_settings import record_delivery
+  record_delivery(self.status.directory,event,submitted,None if submitted else 'Windows 托盘通知提交失败',channel='windows-tray')
  def handle(self,event):
   if event==0x405:
    self.user.ShowWindow(self.window,9);self.user.SetForegroundWindow(self.window)

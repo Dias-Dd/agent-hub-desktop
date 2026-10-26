@@ -45,3 +45,17 @@ class Notifications(unittest.TestCase):
             d.save({'id':'d','project_id':'p','state':'review','version':1,'versions':[{'version':1}]})
             w=Workflows.__new__(Workflows);w.hub=h;w.save({'id':'w','project_id':'p','status':'active'});w.save({'id':'w','project_id':'p','status':'completed'})
             self.assertEqual(h.db.execute('SELECT count(*) FROM desktop_notifications').fetchone()[0],2);h.db.close()
+
+    def test_attention_notifies_only_when_entering_a_problem_state(self):
+        from hub.workflows import Workflows
+        with tempfile.TemporaryDirectory() as folder:
+            h=Hub(folder,recover=False)
+            try:
+                h.db.execute('CREATE TABLE workflows(id TEXT PRIMARY KEY,body TEXT)')
+                w=Workflows.__new__(Workflows);w.hub=h
+                value={'id':'w','project_id':'p','status':'active'};w.save(value)
+                value['status']='blocked';w.save(value);w.save(value)
+                self.assertEqual(h.db.execute("SELECT count(*) FROM desktop_notifications WHERE kind='attention'").fetchone()[0],1)
+                value['status']='active';w.save(value);value['status']='needs_attention';w.save(value)
+                self.assertEqual(h.db.execute("SELECT count(*) FROM desktop_notifications WHERE kind='attention'").fetchone()[0],2)
+            finally:h.db.close()

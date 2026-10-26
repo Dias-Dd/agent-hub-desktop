@@ -369,3 +369,10 @@ body:has(#viewModeStatusRadio:checked) #emptyWorkspace{display:none}
 .hub-window-body>.tart-setup-dialog{display:block;width:100%;max-width:none;height:100%;max-height:none;margin:0;border:0;border-radius:0;box-sizing:border-box;}
 
 .tart-setup-dialog{background:var(--bg-panel);}.tart-setup-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:12px;}.tart-setup-dialog>header h2{margin:0;font-size:18px;}.tart-setup-dialog>footer{display:flex;justify-content:flex-end;}
+#managerReadingArea .shared-artifact.artifact-attachment.memory-update{max-width:340px;}
+.memory-update .artifact-web-link{padding:9px 12px!important;gap:9px;cursor:default;}
+.memory-update .artifact-web-link small{margin-left:auto;}
+
+.settings-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+#renderDownloadProgress{width:100%;height:6px;margin-top:14px;accent-color:var(--accent);}
+#renderSettings input[type=text],#renderCurrent{overflow-wrap:anywhere;min-width:0;}

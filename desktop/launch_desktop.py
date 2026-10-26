@@ -17,7 +17,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 DEFAULT_DATA = ((Path.home() / 'Library/Application Support') if sys.platform == 'darwin'
                 else Path(os.environ.get('LOCALAPPDATA', str(Path.home())))) / 'AgentMessageHubDesktop' / 'data'
-MAC_DESKTOP_BUILD='macos-peekaboo-controls-10'
+MAC_DESKTOP_BUILD='macos-main-browser-notifications-11'
 
 
 def detect_environment():
@@ -298,10 +298,13 @@ def main(argv=None):
     p.add_argument('--engine', choices=['auto', 'native', 'edge', 'chrome', 'pywebview'], default='auto')
     p.add_argument('--fast-start-smoke-test',action='store_true',help='With window smoke, exercise asynchronous shell without starting optional host apps')
     p.add_argument('--window-smoke-test', action='store_true', help='Open and verify a real native window, then close it')
+    p.add_argument('--notification-smoke-test', action='store_true', help='With macOS window smoke, submit one test notification without requesting permissions')
     p.add_argument('--result-file', type=Path, help='Write non-secret diagnostics for GUI executable smoke tests')
     p.add_argument('--sync-context', action='store_true', help='Sync project context into desktop database')
     p.add_argument('--setup', action='store_true', help='Open the in-app Harness configuration guide')
     args = p.parse_args(argv)
+    if args.notification_smoke_test and (sys.platform!='darwin' or not args.window_smoke_test):
+        p.error('--notification-smoke-test requires macOS --window-smoke-test')
     if args.module_smoke_test:
         from hub.module_diagnostics import check
         try:
@@ -451,7 +454,8 @@ def main(argv=None):
                 from desktop.macos_webview import run_native
             else:
                 from desktop.native_webview import run_native
-            result = run_native(url+('#setup' if args.setup else ''), args.data.parent / ('native-profile-' + str(port)), smoke=args.window_smoke_test,data_directory=args.data)
+            extra={'notification_probe':args.notification_smoke_test,'browser_probe':args.browser_smoke_test} if sys.platform=='darwin' else {}
+            result = run_native(url+('#setup' if args.setup else ''), args.data.parent / ('native-profile-' + str(port)), smoke=args.window_smoke_test,data_directory=args.data,**extra)
             if args.result_file: args.result_file.write_text(json.dumps({'ok':True,**result}),encoding='utf-8')
         elif engine in ('edge', 'chrome'):
             executable = env['msedge' if engine == 'edge' else 'chrome']

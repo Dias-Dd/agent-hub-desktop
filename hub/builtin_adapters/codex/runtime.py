@@ -506,7 +506,12 @@ class CodexRuntime:
             step=self.hub.db.execute('SELECT kind FROM workflow_steps WHERE task=?',(run['task_id'],)).fetchone() if exists else None
         if step and step['kind'] in ('work','message','check'):return
         body='[真实 '+self.title+' · '+status+'] '+result[:19000]
-        self.hub.send(run['agent'],'user',body,request_key='execution:'+run['id']+':user')
+        ids=self.hub.send(run['agent'],'user',body,request_key='execution:'+run['id']+':user')
+        with self.hub.tx():
+            source=self.hub.db.execute('SELECT project_id FROM messages WHERE id=?',(run['message_id'],)).fetchone()
+            if source and source['project_id']:
+                for ident in ids:self.hub.db.execute('UPDATE messages SET project_id=? WHERE id=? AND project_id IS NULL',(source['project_id'],ident))
+                self.hub.db.execute('UPDATE tasks SET project_id=? WHERE id=? AND project_id IS NULL',(source['project_id'],run['task_id']))
         with self.hub.lock:
             original=self.hub.db.execute('SELECT sender,request_key FROM messages WHERE id=?',(run['message_id'],)).fetchone()
         if original and not (original['request_key'] or '').startswith(('execution:','report:')) and original['sender'] not in ('user','平台',run['agent']):
