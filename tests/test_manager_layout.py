@@ -24,7 +24,7 @@ if(!surface)throw Error("content surface missing");
  const style=getComputedStyle(surface);
  for(const corner of ['borderTopLeftRadius','borderTopRightRadius','borderBottomLeftRadius','borderBottomRightRadius']){
   const radius=parseFloat(style[corner]);
-  if(radius<7||radius>9)throw Error('content corner not visibly rounded: '+corner+' '+radius);
+  if(Math.abs(radius-(document.documentElement.classList.contains('native-macos')?12:8))>1)throw Error('content corner not visibly rounded: '+corner+' '+radius);
  }
 }
 const edgeStyle=getComputedStyle(surface);

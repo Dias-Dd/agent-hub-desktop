@@ -20,6 +20,12 @@
   if(!collapsed)list.animate([{opacity:0,transform:'translateX(-12px)'},{opacity:1,transform:'none'}],{duration:200,easing:'cubic-bezier(.22,.8,.25,1)'});
  });
  controls.append(sidebar);
+ if(mac){
+  const icon=(paths)=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.5');svg.setAttribute('stroke-linejoin','round');for(const [tag,attrs] of paths){const node=document.createElementNS(svg.namespaceURI,tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);svg.append(node);}return svg;};
+  sidebar.replaceChildren(icon([['rect',{x:3,y:4,width:18,height:16,rx:3}],['path',{d:'M9 4v16'}]]));
+  const cells=[];for(const y of [3,10,17])for(const x of [3,10,17])cells.push(['rect',{x,y,width:4,height:4,rx:0.7}]);
+  document.getElementById('btnViewStatus')?.replaceChildren(icon(cells));
+ }
  const brand=document.createElement('span');brand.className='titlebar-brand';brand.textContent='Agent Hub';
  const title=document.createElement('span');title.id='nativeProjectTitle';title.textContent='';
  const actions=document.createElement('div');actions.className='titlebar-actions';

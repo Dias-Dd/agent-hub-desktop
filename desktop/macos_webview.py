@@ -81,6 +81,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
                 window.setBackgroundColor_(A.NSColor.clearColor())
             else:window.setContentView_(view)
             window.setDelegate_(self)
+            if main:self.layout_main_chrome(window,view)
             window.center()
             self.windows.append(window)
             self.views.append(view)
@@ -88,6 +89,28 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
             if target:
                 view.loadRequest_(F.NSURLRequest.requestWithURL_(F.NSURL.URLWithString_(target)))
             return view
+
+        @objc.python_method
+        def layout_main_chrome(self,window,view):
+            # Public standard buttons remain native, including hover/full-screen behavior.
+            if window.styleMask() & A.NSWindowStyleMaskFullScreen:return
+            content=window.contentView();height=content.bounds().size.height
+            zoom=float(view.pageZoom())
+            close=window.standardWindowButton_(A.NSWindowCloseButton)
+            close_rect=close.superview().convertRect_toView_(close.frame(),content)
+            horizontal=18-close_rect.origin.x
+            for kind in (A.NSWindowCloseButton,A.NSWindowMiniaturizeButton,A.NSWindowZoomButton):
+                button=window.standardWindowButton_(kind)
+                if button is None or button.superview() is None:continue
+                current=button.superview().convertRect_toView_(button.frame(),content)
+                center=A.NSMakePoint(current.origin.x+horizontal+current.size.width/2,height-24*zoom)
+                point=button.superview().convertPoint_fromView_(center,content)
+                frame=button.frame()
+                button.setFrameOrigin_(A.NSMakePoint(point.x-frame.size.width/2,point.y-frame.size.height/2))
+
+        def windowDidResize_(self,notification):
+            if self.windows and notification.object()==self.windows[0]:
+                self.layout_main_chrome(self.windows[0],self.views[0])
 
         def webView_createWebViewWithConfiguration_forNavigationAction_windowFeatures_(self, view, config, action, features):
             target = action.request().URL()
@@ -264,6 +287,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
         def zoom(self, factor):
             for view in self.views:
                 view.setPageZoom_(factor)
+            if self.windows:self.layout_main_chrome(self.windows[0],self.views[0])
 
         @objc.python_method
         def theme(self, dark):
@@ -359,7 +383,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
               }
               return JSON.stringify({popup:true,tart_dialogs:true,draft_preserved:true,native_chrome:true,sidebar_toggle:true,first_run_shown:firstRunShown,
               notification_delivery:notificationDelivery,
-              browser_rendering:browserRendering,
+              browser_rendering:browserRendering,toolbar_center:bar.getBoundingClientRect().height/2,
               loaded:!!H, authenticated:!!state,
               ready:!!window.HubDesktop?.view, title:document.title,
               width:innerWidth,height:innerHeight});})()"""
@@ -376,6 +400,17 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
             if not error and isinstance(value, str):
                 state = json.loads(value)
                 if state.get('loaded') and state.get('authenticated') and state.get('ready'):
+                    content=self.windows[0].contentView();centers=[];lefts=[]
+                    for kind in (A.NSWindowCloseButton,A.NSWindowMiniaturizeButton,A.NSWindowZoomButton):
+                        button=self.windows[0].standardWindowButton_(kind)
+                        rect=button.superview().convertRect_toView_(button.frame(),content)
+                        centers.append(content.bounds().size.height-rect.origin.y-rect.size.height/2);lefts.append(rect.origin.x)
+                    result['traffic_light_centers']=centers
+                    result['traffic_light_lefts']=lefts
+                    expected=state['toolbar_center']*float(self.views[0].pageZoom())
+                    if any(abs(center-expected)>1 for center in centers) or abs(lefts[0]-18)>1:
+                        result['error']='Native traffic lights and toolbar center differ'
+                        self.finished=True;self.stop();return
                     result.update(state)
                     self.finished = True
                     self.stop()

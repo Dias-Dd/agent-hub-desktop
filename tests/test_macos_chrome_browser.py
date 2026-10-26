@@ -15,7 +15,10 @@ CHECK=r"""
 const bar=document.getElementById('nativeTitlebar'),toggle=bar?.querySelector('.titlebar-tools button');
 if(!toggle||!document.documentElement.classList.contains('native-macos'))throw Error('Mac toolbar absent');
 if(toggle.getBoundingClientRect().left<80)throw Error('sidebar toggle overlaps traffic lights');
-if(bar.getBoundingClientRect().height!==40||bar.getBoundingClientRect().right>innerWidth)throw Error('toolbar clipped');
+if(bar.getBoundingClientRect().height!==48||bar.getBoundingClientRect().right>innerWidth)throw Error('toolbar clipped');
+if(toggle.querySelectorAll('svg rect').length!==1||!toggle.querySelector('svg path'))throw Error('Mac sidebar SVG missing');
+if(document.querySelectorAll('#btnViewStatus svg rect').length!==9)throw Error('Mac grid is font dependent');
+if(getComputedStyle(document.querySelector('.workbench-content-surface')).borderBottomRightRadius!=='12px')throw Error('Mac inset corner incorrect');
 if(bar.querySelectorAll('.titlebar-system button').length)throw Error('Windows caption buttons on Mac');
 if(!document.documentElement.classList.contains('native-backdrop'))throw Error('continuous material missing');
 const draft=document.getElementById('discussionReply').value;
