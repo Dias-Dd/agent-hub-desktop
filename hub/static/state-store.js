@@ -454,6 +454,8 @@ class HubStateStore {
     // 汇集与当前经理直接对话的用户消息，按 created 升序排列
     const projectManagers=new Set([currentManager,...workflows.map(w=>w.manager),...plannings.map(p=>p.manager)].filter(Boolean));
     const discussionReplyRuns=new Set((currentDiscussion?.history||[]).filter(m=>m.role!=='user'&&m.run_id).map(m=>m.run_id));
+    const replyKeys=new Set([...(state.messages||[]),...(state.manager_messages||[])].filter(m=>m.recipient==='user').map(m=>m.request_key));
+    const repliedInputs=new Set(managerRuns.filter(r=>replyKeys.has('execution:'+r.id+':user')).map(r=>r.message_id).filter(Boolean));
     const userDirectMessages = [...new Map([...(state.messages||[]),...(state.manager_messages||[])].map(m=>[m.id,m])).values()]
       .filter(m => !this.isTaskEnvelope(m)&&((m.sender === 'user' && projectManagers.has(m.recipient)) ||
                    (projectManagers.has(m.sender) && m.recipient === 'user')))
@@ -468,7 +470,7 @@ class HubStateStore {
         senderName: m.sender === 'user' ? '用户 (你)' : m.sender,
         text: m.body,
         // Discussion replies belong to manager history/live output, never under the user's bubble.
-        result: m.discussion_session_id ? null : (m.result || null),
+        result: m.discussion_session_id || (m.sender==='user'&&repliedInputs.has(m.id)) ? null : (m.result || null),
         status: m.status,
         timestamp: m.created,
         timestampFormatted: this._formatTime(m.created),

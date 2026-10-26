@@ -46,7 +46,9 @@ def read_status(directory):
   if 'desktop_notifications' in tables:
    for row in db.execute('SELECT id,kind,project_id FROM desktop_notifications ORDER BY rowid DESC LIMIT 100'):
     project=row['project_id'];completions.append({'id':row['id'],'kind':row['kind'],'project':project,'name':names.get(project,'')})
-  return {'projects':projects,'agents':agents,'completions':completions,'updated':time.time(),'stale':False}
+  from hub.notification_settings import read as notification_config
+  preferences=notification_config(db) if 'settings' in tables else {}
+  return {'notification_settings':preferences,'projects':projects,'agents':agents,'completions':completions,'updated':time.time(),'stale':False}
 
 
 class StatusCache:

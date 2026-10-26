@@ -80,7 +80,9 @@ def render(service,actor,run_id,path,width=1280,height=800):
         if w.get('design_baseline'):roots.append(Path(w['design_baseline']['directory']).resolve())
         if not any(source.is_relative_to(r) for r in roots) or not source.is_file() or source.suffix.lower() not in ('.html','.htm'):raise HubError('只能渲染当前项目或已确认基线内的本地HTML页面')
         page_url=source.as_uri()+('?' + query if query_sep else '')+('#' + fragment if sep else '')
-        digest=hashlib.sha256(source.read_bytes()).hexdigest();exe=executable()
+        digest=hashlib.sha256(source.read_bytes()).hexdigest()
+        from .render_settings import config as render_config,resolve
+        exe=resolve(service.hub) if render_config(service.hub)['mode']!='auto' else _automatic_browser(service.hub)
     ident=uid()+uid();folder=service.root/ident;folder.mkdir();output=folder/'screenshot.png'
     try:
         with tempfile.TemporaryDirectory(prefix='hub-browser-',ignore_cleanup_errors=True) as profile:
@@ -114,3 +116,10 @@ def render(service,actor,run_id,path,width=1280,height=800):
     except Exception:
         if folder.resolve().is_relative_to(service.root.resolve()):shutil.rmtree(folder,ignore_errors=True)
         raise
+
+
+def _automatic_browser(hub):
+    try:return executable()
+    except HubError:
+        from .render_settings import resolve
+        return resolve(hub)

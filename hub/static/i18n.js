@@ -10,7 +10,7 @@
   const trimmed=source.trim();if(catalog[trimmed])return source.replace(trimmed,catalog[trimmed]);
   const patterns=[[/^(\d+) 项目$/,'$1 projects'],[/^(\d[\d,]*) \/ 20,000 字符$/,'$1 / 20,000 characters'],[/^当前经理：\s*/,'Current manager: '],[/^经理：\s*/,'Manager: '],[/^已填写 (\d+) 页修改意见，提交时与整体意见一起发送。$/,'Feedback saved for $1 pages; submitted with overall feedback.'],[/^适应窗口 · /,'Fit · '],[/^最近 (\d+) 条 · 每 (\d+) 秒刷新/,'Last $1 entries · Refresh every $2 seconds'],[/^等待 /,'Waiting for '],[/^适配器目录：/,'Adapter directory: '],[/^已接入：/,'Connected: ']];
   for(const [pattern,replacement] of patterns)if(pattern.test(trimmed))return source.replace(pattern,replacement);
-  const dynamic=[[/^当前连接：/,'Connected to: '],[/^计划 v/,'Plan v'],[/^停止 /,'Stop '],[/^经理 /,'Manager '],[/^当前任务：/,'Current task: '],[/^(\d+) 个待执行提醒 · (\d+) 条待交付通知$/,'$1 reminders · $2 pending notifications']];
+  const dynamic=[[/^当前主程序：/,'Current executable: '],[/^应用专用 Chromium · /,'App-managed Chromium · '],[/^正在下载 Chromium/,'Downloading Chromium'],[/^正在校验并安装 Chromium/,'Verifying and installing Chromium'],[/^Chromium 已安装，可在上方选择使用/,'Chromium installed; select it above to use it'],[/^下载失败/,'Download failed'],[/^下载已取消/,'Download cancelled'],[/^当前连接：/,'Connected to: '],[/^计划 v/,'Plan v'],[/^停止 /,'Stop '],[/^经理 /,'Manager '],[/^当前任务：/,'Current task: '],[/^(\d+) 个待执行提醒 · (\d+) 条待交付通知$/,'$1 reminders · $2 pending notifications']];
   for(const [pattern,replacement] of dynamic)if(pattern.test(trimmed))return source.replace(pattern,replacement);
   const cleanup=source.match(/^清理“(.*)”的文件$/);if(cleanup)return 'Clean files for “'+cleanup[1]+'”';
   const testing=source.match(/^测试 (.*)？$/);if(testing)return 'Test '+testing[1]+'?';

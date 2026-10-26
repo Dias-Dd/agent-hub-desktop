@@ -230,12 +230,16 @@ def run_native(url, profile, smoke=False, data_directory=None):
                 event=self.cache.notifications.get_nowait()
             except queue.Empty:event=None
             if event:
+                from hub.notification_settings import allowed
+                if not allowed(self.cache.value.get('notification_settings',{}),event,bool(A.NSApp().isActive())):event=None
+            if event:
                 if self.tray:self.tray.observe(event)
                 def deliver():
                     from desktop.macos_notifications import send
                     from desktop.ui_preferences import language
                     english=language(data_directory)=='en'
-                    title=('Product demo ready' if event.get('kind')=='demo' else 'Project completed') if english else ('产品演示已完成' if event.get('kind')=='demo' else '项目已完成')
+                    from hub.notification_settings import wording
+                    title=wording(event.get('kind'),english)
                     try:
                         send(title,event.get('name') or title,event.get('project'))
                         observation={'submitted':True, 'event':event['id']}

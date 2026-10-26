@@ -102,3 +102,62 @@ class LongTermMemory(unittest.TestCase):
         self.assertEqual(result['memory'],'via tool')
         with self.assertRaises(HubError):action(self.h,'deepseek-9',operation='read',run_id=self.run['id'])
         with self.assertRaises(HubError):self.manager(operation='history')
+
+    def test_save_receipts_are_metadata_only_project_scoped_and_success_only(self):
+        from hub.long_term_memory import updates
+        self.assertEqual(updates(self.h,self.project['id']),[])
+        saved=self.manager(operation='add',target='user',content='Private preference text',expected_revision=0)
+        items=updates(self.h,self.project['id'])
+        self.assertEqual(len(items),1);self.assertEqual(items[0]['revision'],saved['revision'])
+        self.assertEqual(set(items[0]),{'revision','actor','reason','created'})
+        self.assertNotIn('Private preference text',json.dumps(items))
+        self.assertEqual(updates(self.h,'another-project'),[]);self.assertEqual(updates(self.h,None),[])
+        with self.assertRaisesRegex(HubError,'超过容量'):
+            self.manager(operation='add',content='x'*6001,expected_revision=1)
+        self.assertEqual(updates(self.h,self.project['id']),items)
+
+    def test_completed_project_followup_still_exposes_and_executes_memory(self):
+        from hub.module_tools import definitions
+        from hub.long_term_memory import is_manager
+        cfg=self.runtime.config()
+        workflow={'id':'completed-memory-project','project_id':self.project['id'],'manager':self.agent['id'],'status':'completed','grants':{self.runtime.provider:cfg['grant_id']}}
+        with self.h.tx():
+            self.h.db.execute('INSERT INTO workflows VALUES(?,?)',(workflow['id'],json.dumps(workflow)))
+            self.h.db.execute("UPDATE executions SET purpose='task',session_scope=? WHERE id=?",('project:'+workflow['id'],self.run['id']))
+            self.h.db.execute("UPDATE messages SET sender='user',body='Can you save a long-term preference?' WHERE id=?",(self.run['message_id'],))
+        run=dict(self.h.db.execute('SELECT * FROM executions WHERE id=?',(self.run['id'],)).fetchone())
+        self.assertTrue(is_manager(self.h,run))
+        self.assertIn('memory',[x['function']['name'] for x in definitions(self.runtime,run)])
+        state=self.manager(operation='read')
+        saved=self.manager(operation='add',target='user',content='Use concise explanations across projects.',expected_revision=state['revision'])
+        self.assertIn('concise explanations',saved['user'])
+        with self.h.tx():
+            self.h.db.execute('UPDATE settings SET value=? WHERE key=?',('replacement-manager','project_manager:'+self.project['id']))
+            self.h.db.execute('UPDATE agents SET enabled=0 WHERE id=?',(self.agent['id'],))
+        self.assertFalse(is_manager(self.h,run))
+        with self.assertRaises(HubError):self.manager(operation='read')
+
+    def test_unknown_followup_scope_and_members_do_not_gain_memory(self):
+        from hub.long_term_memory import is_manager
+        self.assertFalse(is_manager(self.h,{**self.run,'session_scope':'project:missing'}))
+        self.assertFalse(is_manager(self.h,{**self.run,'session_scope':'chat:missing'}))
+        self.assertTrue(is_manager(self.h,{**self.run,'session_scope':'chat:'+self.project['id']}))
+        self.assertFalse(is_manager(self.h,{**self.run,'agent':'other-member'}))
+
+    def test_followup_reply_and_legacy_receipt_keep_source_project(self):
+        from hub.projects import Projects
+        with self.h.tx():
+            self.h.db.execute('UPDATE messages SET project_id=? WHERE id=?',(self.project['id'],self.run['message_id']))
+        self.runtime.deliver_result(self.run,'completed','Normal manager reply after saving memory')
+        key='execution:'+self.run['id']+':user'
+        receipt=self.h.db.execute('SELECT * FROM messages WHERE sender=? AND request_key=?',(self.agent['id'],key)).fetchone()
+        self.assertEqual(receipt['project_id'],self.project['id'])
+        self.assertIn('Normal manager reply',receipt['body'])
+        unrelated=self.h.send('unrelated-agent','user','Unrelated receipt',request_key=key)[0]
+        with self.h.tx():
+            self.h.db.execute('UPDATE messages SET project_id=NULL WHERE id=?',(receipt['id'],))
+            self.h.db.execute('UPDATE tasks SET project_id=NULL WHERE id=?',(self.run['task_id'],))
+        self.h.projects.tag()
+        self.assertEqual(self.h.db.execute('SELECT project_id FROM messages WHERE id=?',(receipt['id'],)).fetchone()[0],self.project['id'])
+        self.assertEqual(self.h.db.execute('SELECT project_id FROM tasks WHERE id=?',(self.run['task_id'],)).fetchone()[0],self.project['id'])
+        self.assertIsNone(self.h.db.execute('SELECT project_id FROM messages WHERE id=?',(unrelated,)).fetchone()[0])

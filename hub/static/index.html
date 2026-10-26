@@ -461,6 +461,24 @@
         </div>
         </section>
         <section class="config-section-card" id="colorSettings"><h3>界面配色</h3><p class="settings-help">即时预览，自动保存在本机。可分别调整不同区域的颜色。</p><p id="colorModeLabel" class="settings-help"></p><div id="interfaceColors" class="interface-color-grid"></div><button id="resetInterfaceColors" type="button" class="secondary-btn">恢复默认配色</button></section>
+        <section class="config-section-card" id="renderSettings">
+          <h3>Agent 网页渲染</h3><p class="settings-help">选择用于 Agent 网页截图的 Chromium 内核浏览器。使用独立的临时浏览器配置，不读取个人浏览记录或登录信息。</p>
+          <form id="renderBrowserForm" autocomplete="off"><label for="renderBrowserChoice">渲染浏览器</label><select id="renderBrowserChoice"><option value="auto">自动选择</option></select>
+          <div id="renderCustomPath" hidden><label for="renderBrowserPath">Chromium 主程序</label><div class="settings-path-row"><input id="renderBrowserPath" type="text" placeholder="浏览器主程序的完整路径"><button id="renderBrowse" type="button" class="secondary-btn">浏览</button></div></div>
+          <div class="settings-actions"><button type="submit" class="primary-btn">保存渲染设置</button><button id="renderDetect" type="button" class="secondary-btn">重新检测</button><button id="renderTest" type="button" class="secondary-btn">测试渲染</button></div></form>
+          <p id="renderCurrent" class="settings-help" role="status"></p>
+          <h4>应用专用 Chromium</h4><p class="settings-help">从 Chromium 官方快照下载并安装到应用数据目录。不会替换系统浏览器，安装后可在上方选择使用。</p>
+          <div class="settings-actions"><button id="renderDownload" type="button" class="secondary-btn">下载并安装 Chromium</button><button id="renderCancel" type="button" class="secondary-btn" hidden>取消下载</button></div><progress id="renderDownloadProgress" max="100" hidden></progress><p id="renderDownloadStatus" class="settings-help" role="status"></p>
+        </section>
+        <section class="config-section-card" id="notificationSettings">
+          <h3>系统通知</h3><p class="settings-help">选择哪些事件发送系统通知，以及何时提醒。应用内的聊天和状态提示不受影响。</p>
+          <form id="notificationForm"><label class="settings-toggle-row"><input id="notificationsEnabled" type="checkbox" checked><span>启用系统通知</span></label>
+          <label for="notificationWhen">发送时机</label><select id="notificationWhen"><option value="always">始终通知</option><option value="background">仅应用在后台时通知</option></select>
+          <label class="settings-toggle-row"><input id="notifyDemo" type="checkbox" checked><span>产品演示完成，可供审阅</span></label>
+          <label class="settings-toggle-row"><input id="notifyProject" type="checkbox" checked><span>正式项目完成</span></label>
+          <label class="settings-toggle-row"><input id="notifyAttention" type="checkbox"><span>项目阻塞或需要处理</span></label>
+          <div class="settings-actions"><button type="submit" class="primary-btn">保存通知设置</button><button id="notificationTest" type="button" class="secondary-btn">发送测试通知</button></div><p id="notificationSaveStatus" class="settings-help" role="status"></p></form>
+        </section>
         <section class="config-section-card memory-settings" id="memorySettings">
           <h3>长期记忆</h3>
           <p class="settings-help">经理可主动保存用户偏好和经验，新项目会自动读取。锁定后经理只能读取，你仍可编辑。不要保存密码或 API 密钥。</p>
@@ -705,6 +723,7 @@
 <dialog id="artifactViewer" class="artifact-viewer" aria-labelledby="artifactViewerTitle"><header class="integrations-header"><h2 id="artifactViewerTitle">Agent 成果</h2><button id="closeArtifactViewer" type="button" class="dialog-close" aria-label="关闭" title="关闭">×</button></header><div id="artifactViewerContent" class="artifact-viewer-content"></div></dialog>
 <script src="/automation.js" defer></script>
 <script src="/live-ui.js" defer></script><script src="/vm-ui.js" defer></script><script src="/startup.js" defer></script>
+<script src="/render-notifications.js" defer></script>
 <script src="/colors.js" defer></script><script src="/memory.js" defer></script>
 </body>
 </html>

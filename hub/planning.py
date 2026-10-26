@@ -235,7 +235,12 @@ class Planning:
 
         if any(r.config()['permission']!=s.get('permissions',{}).get(r.provider) for r in self.workflows.runtimes if r.provider in s.get('permissions',{})):raise HubError('访问权限已变化，请先让 项目经理 更新计划')
         if getattr(self.hub,'designs',None) and s['options'].get('preview_mode','demo')!='skip' and not s.get('design_approved'):
-            return self.hub.designs.start('user',s['id'],revision,s.get('project_id'))
+            result=self.hub.designs.start('user',s['id'],revision,s.get('project_id'))
+            design=self.hub.designs.get(result['design_id'])
+            workflow=next(w for w in self.workflows.snapshot('user') if w['id']==design['workflow_id'])
+            from .memory_notices import notify
+            notify(self.hub,workflow,'plan','plan:'+s['id']+':'+str(revision))
+            return result
         if s.get('design_approved'):self.hub.designs.verify_baseline(s['design_approved'])
         key='plan:'+s['id']+':'+str(revision)+':'+s['digest']
         with self.hub.lock:old=self.hub.db.execute("SELECT body FROM workflows WHERE json_extract(body,'$.approval_key')=?",(key,)).fetchone()
@@ -272,6 +277,8 @@ class Planning:
 
         if s.get('design_approved'):
             w['design_baseline']=s['design_approved'];self.workflows.save(w)
+        from .memory_notices import notify
+        notify(self.hub,w,'plan','plan:'+s['id']+':'+str(revision))
         s['state']='executing';s['workflow_id']=w['id'];s['history'].append({'role':'user','text':'按计划执行','revision':revision,'created':time.time()});self.save(s)
         with self.hub.tx():self.hub.audit('user','plan.approved',{'session':s['id'],'revision':revision,'digest':s['digest'],'workflow':w['id']})
         return s

@@ -128,8 +128,13 @@ class Workflows:
 
     def save(self,w):
         with self.hub.tx():
+            prior=self.hub.db.execute('SELECT body FROM workflows WHERE id=?',(w['id'],)).fetchone()
+            previous=json.loads(prior[0]).get('status') if prior else None
+            if w.get('status') in ('blocked','needs_attention') and w.get('status')!=previous:
+                from .desktop_notifications import enqueue
+                enqueue(self.hub,'attention:'+w['id']+':'+uid(),'attention',w.get('project_id') or w['id'])
             self.hub.db.execute('INSERT OR REPLACE INTO workflows VALUES(?,?)',(w['id'],json.dumps(w,ensure_ascii=False)))
-            if w.get('status')=='completed':
+            if w.get('status')=='completed' and not w.get('design_review'):
                 from .desktop_notifications import enqueue
                 enqueue(self.hub,'project:'+w['id'],'project',w.get('project_id') or w['id'])
 
@@ -764,7 +769,12 @@ class Workflows:
             pending=w.get('completion_review',{})
             if not w.get('design_review') and (pending.get('run_id')!=run_id or not isinstance(confirmation,dict) or not all(isinstance(confirmation.get(k),str) and confirmation[k].strip() for k in ('comprehensive_tests','vm_ui_tests'))):
                 w['completion_review']={'run_id':run_id,'summary':summary,'evidence':evidence,'requested_at':time.time()};self.save(w)
-                return {'completed':False,'confirmation_required':True,'questions':['是否测试了本次交付构建？请给出交付文件哈希/版本、实际启动路径和PID，说明旧实例已终止、新构建冷启动结果及已测/未测范围。','是否在虚拟机交互桌面或真实浏览器中逐按钮、菜单、弹窗测试正反路径及状态变化？请给出操作清单与证据，HTTP测试、DOM桩及静态截图不能替代；说明失败项和未测原因。' if not w.get('design_review') else '本轮为静态演示，请说明全部页面、层次和版面的检查结果；不要求尚未实现的真实按钮逻辑。'],'next':'核对后再次调用project_complete，可更新summary/evidence说明测试限制，携带confirmation={comprehensive_tests:测试结果或未测原因,vm_ui_tests:虚拟机实测结果或未测原因}。由经理自行决定是否交付，平台不自动测试或判定测试通过。'}
+                from .memory_notices import notify
+                notifications=[]
+                key='memory-review:completed:'+w['id']
+                with self.hub.lock:already=self.hub.db.execute("SELECT 1 FROM messages WHERE sender='平台' AND recipient=? AND request_key=?",(actor,key)).fetchone()
+                if not already:notifications.append(notify(self.hub,w,'completed',run_id=run_id))
+                return {'completed':False,'confirmation_required':True,'notifications':notifications,'questions':['是否测试了本次交付构建？请给出交付文件哈希/版本、实际启动路径和PID，说明旧实例已终止、新构建冷启动结果及已测/未测范围。','是否在虚拟机交互桌面或真实浏览器中逐按钮、菜单、弹窗测试正反路径及状态变化？请给出操作清单与证据，HTTP测试、DOM桩及静态截图不能替代；说明失败项和未测原因。' if not w.get('design_review') else '本轮为静态演示，请说明全部页面、层次和版面的检查结果；不要求尚未实现的真实按钮逻辑。'],'next':'核对后再次调用project_complete，可更新summary/evidence说明测试限制，携带confirmation={comprehensive_tests:测试结果或未测原因,vm_ui_tests:虚拟机实测结果或未测原因}。由经理自行决定是否交付，平台不自动测试或判定测试通过。'}
             folder_link=self.completion_folder(w)
             self.ingest(w,self.steps(w['id']))
             # Serialize the check and queue retirement with worker startup.
@@ -805,6 +815,9 @@ class Workflows:
                 self.hub.db.execute("UPDATE wakeups SET status='held',note='用户新消息保留，等待独立处理' WHERE message IN (SELECT json_extract(body,'$.message_id') FROM workflow_events WHERE workflow=? AND status='pending')",(w['id'],))
                 self.hub.db.execute("UPDATE settings SET value=? WHERE key='project'",(json.dumps({'progress':100,'note':summary,'by':actor,'updated':time.time()},ensure_ascii=False),))
                 self.hub.audit(actor,'project.completed_mcp',{'project':w['id'],'run_id':run_id,'evidence':evidence})
+                from .desktop_notifications import enqueue
+                if not w.get('design_review'):enqueue(self.hub,'project:'+w['id'],'project',w.get('project_id') or w['id'])
+                elif review_ready:enqueue(self.hub,'demo:'+review['id']+':'+str(review['version']),'demo',w.get('project_id'))
             return {'completed':True,'project_id':w['id'],'design_review_ready':review_ready,'warnings':warnings,'stopped_tasks':settled}
 
     def set_patrol(self,actor,workflow_id,enabled):
