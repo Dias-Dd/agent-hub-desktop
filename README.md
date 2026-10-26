@@ -97,7 +97,7 @@ python -m venv .venv
 .\desktop\build_installer.ps1 -Python .\.venv\Scripts\python.exe -Compiler "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-输出：`desktop/installer-dist/AgentHub-Setup-0.2.3.exe`，包含主程序、独立配置程序、MCP 工具通道与诊断导出工具。脚本会检查 Inno Setup 编译器和微软 WebView2 引导安装器的数字签名。
+输出：`desktop/installer-dist/AgentHub-Setup-0.2.4.exe`，包含主程序、独立配置程序、MCP 工具通道与诊断导出工具。脚本会检查 Inno Setup 编译器和微软 WebView2 引导安装器的数字签名。
 
 ## 数据、权限与排错
 

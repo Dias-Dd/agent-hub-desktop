@@ -97,7 +97,7 @@ python -m venv .venv
 .\desktop\build_installer.ps1 -Python .\.venv\Scripts\python.exe -Compiler "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-Output: `desktop/installer-dist/AgentHub-Setup-0.2.3.exe`, including the main app, separate configuration program, MCP tool transport and diagnostic exporter. The script verifies the signatures of the Inno Setup compiler and Microsoft WebView2 bootstrapper.
+Output: `desktop/installer-dist/AgentHub-Setup-0.2.4.exe`, including the main app, separate configuration program, MCP tool transport and diagnostic exporter. The script verifies the signatures of the Inno Setup compiler and Microsoft WebView2 bootstrapper.
 
 ## Data, permissions and diagnostics
 

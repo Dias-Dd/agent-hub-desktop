@@ -376,3 +376,12 @@ body:has(#viewModeStatusRadio:checked) #emptyWorkspace{display:none}
 .settings-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
 #renderDownloadProgress{width:100%;height:6px;margin-top:14px;accent-color:var(--accent);}
 #renderSettings input[type=text],#renderCurrent{overflow-wrap:anywhere;min-width:0;}
+
+/* Cocoa uses larger outer corners; inset the inner contour by the same 4pt gap. */
+.native-macos{--mac-toolbar-height:48px;}
+.native-macos #nativeTitlebar{height:var(--mac-toolbar-height);padding-left:96px;}
+.native-macos #nativeTitlebar .titlebar-button svg{width:20px;height:20px;}
+.native-macos #btnViewStatus svg{width:22px;height:22px;}
+.native-macos .workspace-desktop{height:calc(100dvh - var(--mac-toolbar-height))!important;}
+.native-macos .workbench-content-surface{--surface-radius:12px;}
+@media(max-width:680px){.native-macos .workspace-desktop .workbench-center{height:calc(100dvh - 228px);}.native-macos.sidebar-collapsed .workspace-desktop .workbench-center{height:calc(100dvh - var(--mac-toolbar-height));}}

@@ -73,7 +73,7 @@ class Protocol:
         if msg.get('jsonrpc')!='2.0' or not isinstance(params,dict):return error(-32600,'invalid request')
         if method=='initialize':
             self.initialized=True
-            return result({'protocolVersion':params.get('protocolVersion') if params.get('protocolVersion') in ('2024-11-05','2025-03-26','2025-06-18','2025-11-25') else '2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'agent-message-hub','version':'0.2.3'},'instructions':'身份由 HUB_TOKEN 确定，不能用参数冒充；真实模型审批不通过 MCP 开放。'})
+            return result({'protocolVersion':params.get('protocolVersion') if params.get('protocolVersion') in ('2024-11-05','2025-03-26','2025-06-18','2025-11-25') else '2025-11-25','capabilities':{'tools':{}},'serverInfo':{'name':'agent-message-hub','version':'0.2.4'},'instructions':'身份由 HUB_TOKEN 确定，不能用参数冒充；真实模型审批不通过 MCP 开放。'})
         if method=='ping':return result({})
         if not self.ready:return error(-32000,'initialize and notifications/initialized required')
         allowed=json.loads(os.environ['HUB_TOOL_ALLOWLIST']) if os.environ.get('HUB_TOOL_ALLOWLIST') else None
