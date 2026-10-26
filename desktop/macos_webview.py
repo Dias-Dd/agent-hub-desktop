@@ -298,13 +298,27 @@ def run_native(url, profile, smoke=False, data_directory=None):
               const end=Date.now()+5000;
               while(root.ownerDocument===document&&Date.now()<end)await new Promise(r=>setTimeout(r,25));
               const popup=root.ownerDocument!==document;
+              root.querySelector('[aria-controls="vmSettings"]')?.click();
+              for(const [openId,dialogId] of [['tartEditHome','tartDirectoryDialog'],['tartOpenInstaller','tartInstallDialog'],['tartOpenAccessibility','tartAccessibilityDialog']]){
+                document.getElementById(openId).click();
+                const panel=document.getElementById(dialogId),until=Date.now()+5000;
+                while(panel.ownerDocument===document&&Date.now()<until)await new Promise(r=>setTimeout(r,25));
+                if(!panel.open||panel.ownerDocument===document||panel.ownerDocument===root.ownerDocument)
+                  throw Error('Tart independent dialog failed: '+dialogId);
+                const close=panel.querySelector('footer [data-close-tart]');
+                if(close.getBoundingClientRect().height<1)throw Error('Tart dialog close hidden');
+                close.click();
+                const returned=Date.now()+5000;
+                while(panel.ownerDocument!==document&&Date.now()<returned)await new Promise(r=>setTimeout(r,25));
+                if(panel.open||panel.ownerDocument!==document)throw Error('Tart dialog did not return');
+              }
               window.webkit.messageHandlers.hubNative.postMessage({smoke_close_popup:true});
               const closeEnd=Date.now()+5000;
               while(root.ownerDocument!==document&&Date.now()<closeEnd)await new Promise(r=>setTimeout(r,25));
               if(!popup||document.getElementById('configModal')!==root||editor.value!==draft)
                 throw Error('Independent window or draft preservation failed');
               editor.value=previous;
-              return JSON.stringify({popup:true,draft_preserved:true,native_chrome:true,sidebar_toggle:true,first_run_shown:firstRunShown,
+              return JSON.stringify({popup:true,tart_dialogs:true,draft_preserved:true,native_chrome:true,sidebar_toggle:true,first_run_shown:firstRunShown,
               loaded:!!H, authenticated:!!state,
               ready:!!window.HubDesktop?.view, title:document.title,
               width:innerWidth,height:innerHeight});})()"""

@@ -21,6 +21,7 @@ addEventListener('DOMContentLoaded',async()=>{
   const editor=document.getElementById('discussionReply');editor.value='keep draft';
   document.getElementById('setupNext').click();await wait(()=>document.getElementById('setupSkipVm')&&!document.getElementById('setupNext').disabled);
   if(!document.getElementById('setupBody').textContent.includes('Tart'))throw Error('wrong VM provider');
+  if(!document.getElementById('setupBody').textContent.includes('Peekaboo'))throw Error('control driver guide missing');
   document.getElementById('setupNext').click();await wait(()=>document.getElementById('setupError').textContent.includes('Tart')&&!document.getElementById('setupNext').disabled);
   const skip=document.getElementById('setupSkipVm');skip.checked=true;skip.dispatchEvent(new Event('change'));
   document.getElementById('setupNext').click();await wait(()=>document.getElementById('setupNext').textContent==='完成配置'&&!document.getElementById('setupNext').disabled);

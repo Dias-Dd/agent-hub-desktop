@@ -17,7 +17,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 DEFAULT_DATA = ((Path.home() / 'Library/Application Support') if sys.platform == 'darwin'
                 else Path(os.environ.get('LOCALAPPDATA', str(Path.home())))) / 'AgentMessageHubDesktop' / 'data'
-MAC_DESKTOP_BUILD='macos-main-sync-0.2.2-5'
+MAC_DESKTOP_BUILD='macos-peekaboo-controls-10'
 
 
 def detect_environment():

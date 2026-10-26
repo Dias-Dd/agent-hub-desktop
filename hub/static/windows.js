@@ -18,6 +18,9 @@
   newProjectDialog:{title:'项目设置',width:780,height:850,modal:true},
   projectCleanupDialog:{title:'清理项目文件',width:640,height:400,modal:true},
   deleteProjectDialog:{title:'删除项目',width:560,height:380,modal:true},
+  tartAccessibilityDialog:{title:'控件操作 · Peekaboo',width:760,height:600,modal:true},
+  tartDirectoryDialog:{title:'修改虚拟机目录',width:680,height:400,modal:true},
+  tartInstallDialog:{title:'自动安装或导入虚拟机',width:720,height:820,modal:true},
   vmForceDialog:{title:'强制关闭虚拟机',width:560,height:380,modal:true},
   connectionTestDialog:{title:'确认接入测试',width:620,height:310,modal:true}
  };

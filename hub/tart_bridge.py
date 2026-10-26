@@ -1,7 +1,6 @@
 """Tart backend behind the existing VM tool, without host elevation or passwords.
 
-Guest commands use Tart Guest Agent. Desktop automation is deliberately unavailable
-until a real guest desktop RPC has been implemented and tested.
+Guest commands use Tart Guest Agent; desktop uses a local experimental VNC console.
 """
 import base64
 import json
@@ -15,21 +14,28 @@ import subprocess
 import threading
 import time
 import uuid
+from .tart_management import TartManagement
+from .tart_desktop import TartDesktop
+from .tart_accessibility import TartAccessibility
 
 from .core import HubError
 
 
-class TartBridge:
+class TartBridge(TartManagement, TartDesktop, TartAccessibility):
     _lock = threading.RLock()
+    _desktop_lock = threading.RLock()
+    _job_context = threading.local()
     _processes = {}
     _connecting = {}
     _verified = {}
+    _desktop_verified = {}
     IMAGES = {'ubuntu': 'ghcr.io/cirruslabs/ubuntu:latest',
               'macos': 'ghcr.io/cirruslabs/macos-sequoia-base:latest'}
 
     def __init__(self, directory):
         self.root = Path(directory) / 'vm-bridge' / 'tart'
         self.root.mkdir(parents=True, exist_ok=True)
+        if platform.system()=='Darwin':os.chmod(self.root,0o700)
         self.requests = self.root / 'requests'
         self.results = self.root / 'results'
         self.requests.mkdir(exist_ok=True)
@@ -41,7 +47,10 @@ class TartBridge:
 
     def environment(self):
         # Each Hub data directory owns its VM inventory/cache; no user VM is adopted.
-        return {**os.environ, 'TART_HOME': str((self.root / 'machines').resolve()),
+        prefs=self.preferences()
+        legacy=self.root/'machines'
+        home=prefs.get('tart_home') or (str(legacy.resolve()) if legacy.exists() and any(legacy.iterdir()) else str(self.default_home()))
+        return {**os.environ, 'TART_HOME': home,
                 'TART_NO_AUTO_PRUNE': '1'}
 
     @staticmethod
@@ -68,7 +77,7 @@ class TartBridge:
         except OSError as error:
             raise HubError('Tart 无法启动：' + str(error)) from None
         if result.returncode:
-            raise HubError('Tart: ' + result.stderr.decode('utf-8', errors='replace')[-2000:])
+            raise HubError('Tart: ' + (result.stderr+result.stdout).decode('utf-8', errors='replace')[-2000:])
         return result.stdout
 
     def selected(self):
@@ -78,16 +87,15 @@ class TartBridge:
             return {}
 
     def guest_write(self, name, path, raw, timeout):
-        code = ('import base64,pathlib,sys; p=pathlib.Path(sys.argv[1]); '
-                'p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(base64.b64decode(sys.stdin.buffer.read(),validate=True))')
-        self.run('exec', '-i', name, 'python3', '-c', code, path,
+        code = "import base64,pathlib,sys,os; p=pathlib.Path(sys.argv[1]); p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(base64.b64decode(sys.stdin.buffer.read(),validate=True)); uid=int(os.environ.get('SUDO_UID','0')); gid=int(os.environ.get('SUDO_GID','0')); os.chown(p,uid,gid); [os.chown(q,uid,gid) for q in p.parents if str(q).startswith('/var/agent-hub/')]"
+        self.run('exec', '-i', name, 'sudo', '-n', 'python3', '-c', code, path,
                  timeout=timeout, input=base64.b64encode(raw))
 
     def guest_read(self, name, path, timeout):
         code = ('import base64,pathlib,sys; p=pathlib.Path(sys.argv[1]); '
                 'assert p.is_file() and p.stat().st_size<=8388608; '
                 'sys.stdout.buffer.write(base64.b64encode(p.read_bytes()))')
-        raw = base64.b64decode(self.run('exec', name, 'python3', '-c', code, path, timeout=timeout), validate=True)
+        raw = base64.b64decode(self.run('exec', name, 'sudo', '-n', 'python3', '-c', code, path, timeout=timeout), validate=True)
         if len(raw) > 8 * 1024 * 1024:raise HubError('访客文件超过 8 MiB')
         return raw
 
@@ -120,9 +128,13 @@ class TartBridge:
                 'homebrew_installed':bool(self.brew()),'transfer_verified':state.get('transfer_verified',False) if connected else False,
                 'install_command': 'brew install openai/tools/tart',
                 'capabilities': {'exec': 'guest-agent-required', 'push': 'guest-agent-required',
-                                 'pull': 'guest-agent-required', 'screenshot': False, 'desktop': False},
+                                 'pull': 'guest-agent-required', 'screenshot': bool(connected and self.desktop_status(state['vm'])['ready']), 'desktop': bool(connected and self.desktop_status(state['vm'])['ready']), 'ui_tree': bool(connected and self.ax_state(state['vm']).get('ready')), 'ui_invoke':bool(connected and self.ax_state(state['vm']).get('ready')), 'ui_set_value':bool(connected and self.ax_state(state['vm']).get('ready'))},
                 'operations': ['list', 'connect', 'disconnect', 'power_on', 'power_off', 'power_force'],
-                'desktop': {'ready': False, 'warning': 'Tart 桌面截图、键鼠和控件自动化尚未实现；请使用 Tart 原生窗口。'}}
+                'root_verified':state.get('root_verified',False) if connected else False,
+                'console_user':state.get('console_user') if connected else None,
+                'auto_login_user':state.get('auto_login_user') if connected else None,
+                'default_home':str(self.default_home()), 'max_cpu':os.cpu_count() or 1,
+                'desktop':self.desktop_status(state['vm']) if connected else {'ready':False,'warning':'尚未连接桌面'}}
 
     @staticmethod
     def name(value):
@@ -141,6 +153,7 @@ class TartBridge:
         self.write(self.requests / (ident + '.json'), job)
         self.write(self.results / (ident + '.json'), {'state': 'queued', 'request_id': ident})
         def execute():
+            self._job_context.ident=ident
             self.write(self.results / (ident + '.json'), {'state': 'running', 'request_id': ident})
             try:
                 result = {'state': 'completed', **work()}
@@ -165,11 +178,15 @@ class TartBridge:
             raise HubError('Tart 请求不存在或结果不可读') from None
 
     def control(self, action='status', request_id=None, vm_name='', username='', password='', remember=True, unattended=None,
-                auto_connect=None, image='ubuntu', confirmed=False):
+                auto_connect=None, image='macos', confirmed=False, **options):
+        if action in ('peekaboo_install','peekaboo_status','peekaboo_permissions'):
+            return self.ax_control(action,vm_name=vm_name,confirmed=confirmed)
+        if action in ('create','configure','delete','images','delete_image','set_home','browse_home'):
+            return self.management(action,vm_name=vm_name,image=image,confirmed=confirmed,**options)
         if action == 'status': return self.status()
         if action=='save_preferences':
             if type(auto_connect) is not bool:raise HubError('自动连接选项无效')
-            self.write(self.root/'preferences.json',{'auto_connect':auto_connect})
+            self.save_preferences(auto_connect=auto_connect)
             return {'state':'completed','auto_connect':auto_connect}
         if action=='auto_connect':
             if not self.preferences().get('auto_connect',True) or not self.selected().get('remember'):
@@ -187,16 +204,6 @@ class TartBridge:
                     raise HubError('Tart 安装未完成：'+result.stderr.decode('utf8',errors='replace')[-2000:])
                 return {'installed':True}
             return self.queue({'control':True,'action':action},install)
-        if action=='create':
-            if confirmed is not True:raise HubError('请确认下载虚拟机镜像（数 GB）')
-            name=self.name(vm_name)
-            if image not in self.IMAGES:raise HubError('请选择受支持的镜像模板')
-            def create():
-                if any(r['name']==name for r in self.inventory()):raise HubError('同名虚拟机已存在，未覆盖')
-                self.run('clone',self.IMAGES[image],name,timeout=3600)
-                if not any(r['name']==name for r in self.inventory()):raise HubError('创建后未发现虚拟机')
-                return {'vm':name,'created':True}
-            return self.queue({'control':True,'action':action,'vm':name},create)
         if action == 'result':
             job, result = self.record(request_id)
             if not job.get('control'): raise HubError('这不是用户控制请求')
@@ -211,15 +218,29 @@ class TartBridge:
             if not webbrowser.open('https://brew.sh/'):raise HubError('无法打开 Homebrew 官方安装指南')
             return {'state':'completed','opened':True}
         if action == 'thumbnail':
-            return self.queue({'control': True}, lambda: {'available': False, 'note': 'Tart 屏幕预览尚未实现'})
+            name=self.name(vm_name or self.selected().get('vm',''))
+            return self.queue({'control':True},lambda:self.desktop_work(name,'screenshot',{}))
         if action == 'forget':
             state=self.selected()
             if state:self.write(self.root/'connection.json',{**state,'remember':False})
             return {'state':'completed'}
         if action == 'disconnect':
             self._verified.pop(str(self.root.resolve()),None)
-            self.write(self.root/'preferences.json',{'auto_connect':False})
+            self.save_preferences(auto_connect=False)
             return {'state':'completed','disconnected':True}
+        if action == 'details':
+            name=self.name(vm_name)
+            return self.queue({'control':True},lambda:{'vm':name,'details':json.loads(self.run('get',name,'--format','json'))})
+        if action == 'open_console':
+            name=self.name(vm_name)
+            endpoint=self.endpoint(name)
+            if not endpoint:raise HubError('此虚拟机尚无桌面通道，请从 Hub 开机')
+            # Native Screen Sharing receives the local endpoint; no external service.
+            from AppKit import NSWorkspace
+            from Foundation import NSURL
+            if not NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(endpoint)):
+                raise HubError('无法打开系统屏幕共享窗口')
+            return {'state':'completed','opened':True}
         if action == 'list':
             def inventory():
                 return {'backend': 'tart', 'vms': self.inventory()}
@@ -232,7 +253,7 @@ class TartBridge:
         if action in ('connect','connect_saved'):
             if auto_connect is not None:
                 if type(auto_connect) is not bool:raise HubError('自动连接选项无效')
-                self.write(self.root/'preferences.json',{'auto_connect':auto_connect})
+                self.save_preferences(auto_connect=auto_connect)
             return self.connect(name,remember)
         def operation():
             if action == 'power_on':
@@ -240,9 +261,12 @@ class TartBridge:
                     key = (str(self.root.resolve()), name)
                     child = self._processes.get(key)
                     if child and child.poll() is None: raise HubError('此虚拟机已在启动或运行，请查询状态')
-                    log = open(self.root / (name + '.log'), 'ab')
+                    log_path=self.root/(name+'.log')
+                    fd=os.open(log_path,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
+                    os.chmod(log_path,0o600)
+                    log=os.fdopen(fd,'wb')
                     try:
-                        child = subprocess.Popen([self.executable(), 'run', name], env=self.environment(),
+                        child = subprocess.Popen([self.executable(), 'run', name, '--no-graphics', '--vnc-experimental'], env=self.environment(),
                             stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True)
                     finally: log.close()
                     self._processes[key] = child
@@ -255,6 +279,7 @@ class TartBridge:
                     time.sleep(.5)
                 raise HubError('Tart 未在期限内进入 Running；请检查实际 VM 状态，不要重复启动')
             if action.startswith('power_'):
+                self._desktop_verified.pop((str(self.root.resolve()),name),None)
                 self.run('stop', name, '--timeout', '0' if action == 'power_force' else '30', timeout=40)
                 return {'vm': name, 'power_state': 'Off'}
         return self.queue({'control': True, 'action': action, 'vm': name}, operation)
@@ -269,6 +294,7 @@ class TartBridge:
                 if result.get('state') in ('queued','running'):return {'state':result['state'],'request_id':pending}
             def work():
                 self._verified.pop(key,None)
+                self._desktop_verified.pop((key,name),None)
                 self.write(self.root/'connection.json',{'vm':name,'remember':bool(remember),'verified':False})
                 row=next((r for r in self.inventory() if r['name']==name),None)
                 if not row:raise HubError('此应用数据目录内没有所选虚拟机，请先创建或刷新列表')
@@ -295,13 +321,40 @@ class TartBridge:
                     transfer=True
                 except Exception as error:warning='文件传输不可用：'+str(error)
                 finally:
-                    try:self.run('exec',name,'/bin/rm','-f',probe,timeout=10)
+                    try:self.run('exec',name,'sudo','-n','/bin/rm','-f',probe,timeout=10)
                     except HubError:pass
-                self.write(self.root/'connection.json',{'vm':name,'verified':True,'remember':bool(remember),
+                root_verified=False;console_user=None;auto_login_user=None
+                try:root_verified=self.run('exec',name,'sudo','-n','id','-u',timeout=15).strip()==b'0'
+                except HubError:pass
+                try:console_user=self.run('exec',name,'stat','-f','%Su','/dev/console',timeout=15).decode().strip()
+                except HubError:pass
+                try:
+                    code="import subprocess; p=subprocess.run(['/usr/sbin/sysadminctl','-autologin','status'],capture_output=True,text=True); print(p.stdout+p.stderr)"
+                    login=self.run('exec',name,'sudo','-n','python3','-c',code,timeout=15).decode(errors='replace')
+                    match=re.search(r'Automatic login user:\s*(\S+)',login)
+                    if match:auto_login_user=match.group(1)
+                except HubError:pass
+                self.write(self.root/'connection.json',{'auto_login_user':auto_login_user,'root_verified':root_verified,'console_user':console_user,'vm':name,'verified':True,'remember':bool(remember),
                            'transfer_verified':transfer,'verified_at':time.time()})
                 self._verified[key]=name
-                return {'vm':name,'account':'Tart Guest Agent','command_verified':True,'transfer_verified':transfer,
-                        'credential_saved':False,'desktop_warning':warning or '桌面截图和自动化未实现'}
+                desktop_verified=False
+                if self.endpoint(name):
+                    # Guest Agent can become ready before WindowServer. Only
+                    # retry this read-only probe; never replay keyboard input.
+                    desktop_deadline=time.monotonic()+45
+                    while time.monotonic()<desktop_deadline:
+                        try:
+                            self.desktop_work(name,'screenshot',{});desktop_verified=True
+                            self._desktop_verified[(str(self.root.resolve()),name)]=True
+                            break
+                        except Exception as error:
+                            warning='桌面验证未通过：'+str(error)
+                            time.sleep(1)
+                if desktop_verified and warning.startswith('桌面验证未通过：'):warning=''
+                accessibility=self.ax_probe(name)
+                return {'accessibility':accessibility,'vm':name,'account':'Tart Guest Agent','command_verified':True,'transfer_verified':transfer,
+                        'desktop_verified':desktop_verified,'credential_saved':False,'root_verified':root_verified,'console_user':console_user,'auto_login_user':auto_login_user,
+                        'desktop_warning':warning or self.desktop_status(name)['warning']}
             request=self.queue({'control':True,'action':'connect','vm':name},work)
             self._connecting[key]=request['request_id']
             return request
@@ -316,21 +369,44 @@ class TartBridge:
                 raise HubError('只能查询自己在本项目的虚拟机操作')
             return result
         if action == 'status': return self.status()
-        if action not in ('exec', 'push', 'pull'):
-            raise HubError('Tart 尚不支持截图、桌面窗口、控件及键鼠操作')
+        ax_actions=('windows','ui_tree','ui_invoke','ui_set_value')
+        desktop_actions=('screenshot','key','mouse','text','drag','scroll')
+        if action=='desktop_status':
+            name=self.selected().get('vm','')
+            return {**self.desktop_status(name),**self.desktop_lease(project,agent,name,inspect=True)}
+        if action=='desktop_release':return self.desktop_lease(project,agent,self.selected().get('vm',''),release=True)
+        if action not in ('exec','push','pull','desktop_launch',*desktop_actions,*ax_actions):
+            raise HubError('此 Tart 接口尚未实现；控件树和控件调用需要独立的访客辅助功能通道，当前不会伪造支持')
         state = self.status()
         if not state.get('connected'): raise HubError('Tart Guest Agent 尚未连接，请在设置中验证命令连接')
         if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 3600:
             raise HubError('超时秒数应在 1–3600 之间')
         name = self.name(state['vm'])
-        guest = '/tmp/agent-hub/' + project + '/' + agent
+        guest = '/var/agent-hub/' + project + '/' + agent
+        if action in ax_actions:
+            self.desktop_lease(project,agent,name)
+            return self.queue({'project':project,'agent':agent,'action':action,'vm':name},lambda:self.ax_work(project,agent,name,action,unused))
+        if action in desktop_actions:
+            self.desktop_lease(project,agent,name)
+            return self.queue({'project':project,'agent':agent,'action':action,'vm':name},
+                              lambda:self.leased_desktop_work(project,agent,name,action,unused,cwd))
+        if action=='desktop_launch':
+            target=PurePosixPath(path)
+            if not path or target.is_absolute() or '..' in target.parts:raise HubError('启动路径必须位于访客项目目录内')
+            def launch():
+                self.desktop_lease(project,agent,name)
+                output=self.run('exec',name,'/usr/bin/open',guest+'/'+str(target),timeout=timeout_seconds)
+                return {'output':output.decode(errors='replace'),'note':'已请求打开；请截图核对。'}
+            self.desktop_lease(project,agent,name)
+            return self.queue({'project':project,'agent':agent,'action':action,'vm':name},launch)
         if action == 'exec':
             if shell != 'posix': raise HubError('Tart 的 exec 必须显式指定 shell="posix"；不会将 PowerShell script 当作 Shell 执行')
             if not isinstance(script, str) or not script.strip(): raise HubError('请输入 POSIX Shell 脚本')
             def work():
-                code = 'mkdir -p ' + shlex.quote(guest) + ' && cd ' + shlex.quote(guest) + ' && ' + script
-                output = self.run('exec', name, '/bin/sh', '-c', code, timeout=timeout_seconds)
-                return {'output': output.decode('utf-8', errors='replace'), 'guest_cwd': guest, 'shell': 'posix'}
+                code = 'umask 0002; mkdir -p ' + shlex.quote(guest) + ' && chown "$SUDO_UID:$SUDO_GID" '+shlex.quote(guest)+' && cd ' + shlex.quote(guest) + ' && ' + script
+                if not state.get('root_verified'):raise HubError('访客尚未通过 sudo -n root 验证；请在访客配置管理员权限后重新连接')
+                output = self.run('exec', name, 'sudo', '-n', '/bin/sh', '-c', code, timeout=timeout_seconds)
+                return {'output': output.decode('utf-8', errors='replace'), 'guest_cwd': guest, 'shell': 'posix', 'root':True}
         else:
             rel = PurePosixPath(path)
             if not path or rel.is_absolute() or '..' in rel.parts or '\\' in path or ':' in path:

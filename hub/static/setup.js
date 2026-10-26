@@ -16,7 +16,7 @@
  const error=message=>{$('setupError').textContent=message;};
  function vmSettings(){
   $('configModalToggle').checked=true;$('configModalToggle').dispatchEvent(new Event('change'));
-  document.querySelector('[aria-controls="vmSettings"]')?.click();
+  $('vmSettings').closest('#configModal').querySelector('[aria-controls="vmSettings"]')?.click();
   void H.connectSavedVm?.();
  }
  async function render(){
@@ -33,7 +33,9 @@
   }else if(step===1){
    body.append(H.node('p','Tart 是可选的独立执行环境，不影响普通项目使用。'));
    body.append(H.node('p','在虚拟机设置中检测或安装 Tart、下载镜像、保存连接，并开启自动连接。不会自动更改主机安全策略。'));
-   body.append(H.button('配置 Tart 虚拟机',vmSettings));
+   body.append(H.button('自动安装或手动指定 Tart 镜像',()=>{vmSettings();H.openTartInstaller();}));
+   body.append(H.button('安装或检查 Peekaboo 控件驱动',()=>{vmSettings();H.openTartAccessibility();}));
+   body.append(H.node('p','控件驱动可自动安装到所选 macOS 虚拟机；辅助功能和屏幕录制需在访客中手动授权。','settings-help'));
    const value=await H.client.postAction('vm_control',{action:'status'});
    body.append(H.node('p',value.connected?'Tart 命令连接已验证。':'当前未连接 Tart 虚拟机。','settings-help'));
    const label=H.node('label','','settings-toggle-row'),input=H.node('input');input.type='checkbox';input.id='setupSkipVm';input.checked=skipVm;

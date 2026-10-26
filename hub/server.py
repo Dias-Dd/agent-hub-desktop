@@ -43,7 +43,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length',str(len(raw)))
         self.send_header('Cache-Control','no-store')
         self.send_header('X-Content-Type-Options','nosniff')
-        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'")
+        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'")
         self.end_headers();self.write_body(raw)
 
     def write_body(self,raw):
