@@ -133,7 +133,7 @@
         const value=await refreshPower();
         if(value.backend!=='tart'||value.auto_connect===false||!value.saved_connections?.length||value.connected)return;
         status('正在自动开机并验证 Tart 连接…');
-        await wait(await call({action:'auto_connect'}));await refreshPower();
+        const result=await wait(await call({action:'auto_connect'}));if(result.skipped)status('本次不再自动开机；如需使用，请点击连接。');await refreshPower();
       }catch(error){status(error.message);}finally{automatic=null;}
     })();return automatic;
   };

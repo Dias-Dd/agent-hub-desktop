@@ -29,6 +29,7 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
     _connecting = {}
     _verified = {}
     _desktop_verified = {}
+    _automatic_attempts = set()
     IMAGES = {'ubuntu': 'ghcr.io/cirruslabs/ubuntu:latest',
               'macos': 'ghcr.io/cirruslabs/macos-sequoia-base:latest'}
 
@@ -187,11 +188,22 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
         if action=='save_preferences':
             if type(auto_connect) is not bool:raise HubError('自动连接选项无效')
             self.save_preferences(auto_connect=auto_connect)
+            if auto_connect:
+                with self._lock:self._automatic_attempts.discard((str(self.root.resolve()),self.selected().get('vm')))
             return {'state':'completed','auto_connect':auto_connect}
         if action=='auto_connect':
             if not self.preferences().get('auto_connect',True) or not self.selected().get('remember'):
                 return {'state':'completed','skipped':True}
-            return self.connect(self.selected()['vm'],True)
+            name=self.selected()['vm'];key=(str(self.root.resolve()),name)
+            with self._lock:
+                if key in self._automatic_attempts:
+                    pending=self._connecting.get(key[0])
+                    if pending:
+                        _,result=self.record(pending)
+                        if result.get('state') in ('queued','running'):return {'state':result['state'],'request_id':pending}
+                    return {'state':'completed','skipped':True,'reason':'already_attempted'}
+                self._automatic_attempts.add(key)
+                return self.connect(name,True,automatic=True)
         if action=='install':
             if confirmed is not True:raise HubError('请确认安装 Tart')
             if self.executable():return {'state':'completed','installed':True}
@@ -255,9 +267,14 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
                 if type(auto_connect) is not bool:raise HubError('自动连接选项无效')
                 self.save_preferences(auto_connect=auto_connect)
             return self.connect(name,remember)
+        if action in ('power_off','power_force'):
+            # Persist user intent BEFORE queueing stop, including slow/failed shutdowns.
+            self.save_preferences(auto_connect=False)
+            self._automatic_attempts.add((str(self.root.resolve()),name))
         def operation():
             if action == 'power_on':
                 with self._lock:
+                    if options.get('automatic') and not self.preferences().get('auto_connect',True):raise HubError('用户已关闭自动连接，未启动虚拟机')
                     key = (str(self.root.resolve()), name)
                     child = self._processes.get(key)
                     if child and child.poll() is None: raise HubError('此虚拟机已在启动或运行，请查询状态')
@@ -284,10 +301,11 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
                 return {'vm': name, 'power_state': 'Off'}
         return self.queue({'control': True, 'action': action, 'vm': name}, operation)
 
-    def connect(self,name,remember):
+    def connect(self,name,remember,automatic=False):
         """One connection attempt per data directory, including power-on and probes."""
         name=self.name(name);key=str(self.root.resolve())
         with self._lock:
+            self._automatic_attempts.add((key,name))
             pending=self._connecting.get(key)
             if pending:
                 _,result=self.record(pending)
@@ -299,7 +317,8 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
                 row=next((r for r in self.inventory() if r['name']==name),None)
                 if not row:raise HubError('此应用数据目录内没有所选虚拟机，请先创建或刷新列表')
                 if str(row['state']).lower()!='running':
-                    request=self.control('power_on',vm_name=name)
+                    if automatic and not self.preferences().get('auto_connect',True):raise HubError('用户已关闭自动连接，未启动虚拟机')
+                    request=self.control('power_on',vm_name=name,automatic=automatic)
                     while True:
                         _,result=self.record(request['request_id'])
                         if result['state']=='completed':break

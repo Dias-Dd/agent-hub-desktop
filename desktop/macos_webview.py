@@ -308,6 +308,11 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
               if(!H?.client.hasToken())return '{}';
               if(!H.firstRunChecked)return '{}';
               const state=await H.client.getState();
+              const paletteValues=[...document.getElementById('interfaceColors').querySelectorAll('input[data-token]')].map(f=>({mode:f.dataset.mode,value:f.value}));
+              for(const mode of ['light','dark']){
+                const values=paletteValues.filter(f=>f.mode===mode).map(f=>f.value);
+                if(values.length!==7||new Set(values).size<4)throw Error('Default palette collapsed: '+mode+' '+JSON.stringify(values));
+              }
               H.store.stopPolling();
               const firstRun=document.getElementById('setupWizard');
               let firstRunShown=!firstRun.hidden;
@@ -383,7 +388,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
               }
               return JSON.stringify({popup:true,tart_dialogs:true,draft_preserved:true,native_chrome:true,sidebar_toggle:true,first_run_shown:firstRunShown,
               notification_delivery:notificationDelivery,
-              browser_rendering:browserRendering,toolbar_center:bar.getBoundingClientRect().height/2,
+              palette_values:paletteValues,browser_rendering:browserRendering,toolbar_center:bar.getBoundingClientRect().height/2,
               loaded:!!H, authenticated:!!state,
               ready:!!window.HubDesktop?.view, title:document.title,
               width:innerWidth,height:innerHeight});})()"""
@@ -488,5 +493,5 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
             window.close()
         _host = None
     if smoke and not result.get('authenticated'):
-        raise RuntimeError(result.get('error', 'WKWebView smoke failed'))
+        raise RuntimeError(result.get('error', 'WKWebView smoke failed')+' '+result.get('last_error',''))
     return result
