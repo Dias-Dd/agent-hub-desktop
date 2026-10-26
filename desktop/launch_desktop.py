@@ -17,7 +17,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 DEFAULT_DATA = ((Path.home() / 'Library/Application Support') if sys.platform == 'darwin'
                 else Path(os.environ.get('LOCALAPPDATA', str(Path.home())))) / 'AgentMessageHubDesktop' / 'data'
-MAC_DESKTOP_BUILD='macos-chrome-alignment-12'
+MAC_DESKTOP_BUILD='macos-vm-shutdown-colors-13'
 
 
 def detect_environment():

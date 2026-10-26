@@ -9,10 +9,22 @@
  function apply(){for(const [token] of fields){if(valid(saved()[token]))root.style.setProperty(token,saved()[token]);else root.style.removeProperty(token);}}
  apply();
  const grid=document.getElementById('interfaceColors');if(!grid)return;
- function defaultHex(token){const probe=document.createElement('span');probe.style.color=getComputedStyle(root).getPropertyValue(token);document.body.append(probe);const rgb=getComputedStyle(probe).color.match(/\d+/g);probe.remove();return rgb&&rgb.length>=3?'#'+rgb.slice(0,3).map(n=>Number(n).toString(16).padStart(2,'0')).join(''):'#ffffff';}
- const defaults={light:{},dark:{}},originalTheme=root.getAttribute('data-theme');
- for(const theme of ['light','dark']){for(const [token] of fields)root.style.removeProperty(token);root.dataset.theme=theme;for(const [token] of fields)defaults[theme][token]=defaultHex(token);}
- if(originalTheme===null)root.removeAttribute('data-theme');else root.dataset.theme=originalTheme;apply();
+ function defaultHex(token){
+  const raw=getComputedStyle(root).getPropertyValue(token).trim();
+  if(/^#[0-9a-f]{6}$/i.test(raw))return raw.toLowerCase();
+  if(/^#[0-9a-f]{3}$/i.test(raw))return '#'+[...raw.slice(1)].map(c=>c+c).join('').toLowerCase();
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+  const probe=document.createElement('span');probe.style.color=getComputedStyle(root).getPropertyValue(token);document.body.append(probe);
+  const context=canvas.getContext('2d');context.fillStyle=getComputedStyle(probe).color;probe.remove();context.fillRect(0,0,1,1);
+  return '#'+Array.from(context.getImageData(0,0,1,1).data).slice(0,3).map(n=>n.toString(16).padStart(2,'0')).join('');
+ }
+ const defaults={light:{},dark:{}};
+ function captureDefaults(){
+  const originalTheme=root.getAttribute('data-theme');
+  for(const theme of ['light','dark']){for(const [token] of fields)root.style.removeProperty(token);root.dataset.theme=theme;for(const [token] of fields)defaults[theme][token]=defaultHex(token);}
+  if(originalTheme===null)root.removeAttribute('data-theme');else root.dataset.theme=originalTheme;apply();
+ }
+ captureDefaults();
  const make=(tag,cls='',text='')=>{const n=document.createElement(tag);n.className=cls;n.textContent=text;return n;};
  const picker=make('div','hub-color-picker');picker.id='interfaceColorPicker';picker.setAttribute('popover','auto');picker.setAttribute('aria-label','选择界面颜色');grid.after(picker);
  const heading=make('strong','','选择颜色'),square=make('div','color-saturation'),marker=make('span','color-marker');square.append(marker);square.tabIndex=0;square.setAttribute('role','slider');square.setAttribute('aria-label','饱和度与亮度，左右调整饱和度，上下调整亮度');
@@ -34,5 +46,8 @@
  for(const theme of ['light','dark']){const section=make('section','interface-color-theme'),title=make('h4','',theme==='light'?'浅色模式':'深色模式');section.dataset.palette=theme;section.append(title);grid.append(section);for(const [token,name] of fields){const label=make('div','interface-color-row'),input=make('input'),text=make('span','',name),code=make('span','interface-color-value'),button=make('button','interface-color-button'),swatch=make('span','interface-color-swatch');input.type='hidden';input.dataset.token=token;input.dataset.mode=theme;button.type='button';button.setAttribute('aria-label',name+'颜色');button.append(swatch);input.addEventListener('input',()=>{saved(theme)[token]=input.value;apply();try{localStorage.setItem(key,JSON.stringify(palettes));}catch{}refresh();});button.addEventListener('click',()=>{chosen=input;heading.textContent=name;fromHex(input.value);paint();picker.showPopover();const box=button.getBoundingClientRect(),win=button.ownerDocument.defaultView;picker.style.left=Math.max(8,Math.min(box.right-248,win.innerWidth-260))+'px';picker.style.top=Math.max(8,Math.min(box.bottom+8,win.innerHeight-330))+'px';});label.append(text,code,button,input);section.append(label);}}
  document.getElementById('resetInterfaceColors').addEventListener('click',()=>{palettes={light:{},dark:{}};apply();localStorage.setItem(key,JSON.stringify(palettes));refresh();});
  function themeChanged(){picker.hidePopover();chosen=null;apply();refresh();const label=document.getElementById('colorModeLabel');if(label)label.textContent='浅色与深色配色独立保存；当前主题即时预览。';}
+ const loadedDefaults=()=>{captureDefaults();themeChanged();};
+ if(document.readyState==='complete')setTimeout(loadedDefaults,0);else window.addEventListener('load',loadedDefaults,{once:true});
+ window.addEventListener('hub-settings-section',()=>{if(!document.getElementById('colorSettings').classList.contains('settings-section-inactive'))loadedDefaults();});
  new MutationObserver(themeChanged).observe(root,{attributes:true,attributeFilter:['data-theme']});system.addEventListener('change',themeChanged);themeChanged();
 })();

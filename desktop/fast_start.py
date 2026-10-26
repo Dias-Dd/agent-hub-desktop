@@ -115,6 +115,8 @@ class FastHub:
             mac=__import__('sys').platform=='darwin'
             self.stage('vm','loading','启动并验证 Tart Guest Agent' if mac else '启动并连接虚拟机（可能需要 Windows 授权）')
             request=bridge.control('auto_connect' if mac else 'connect_saved',vm_name=preferred)
+            if request.get('skipped'):
+                self.stage('vm','skipped','本次不自动启动虚拟机，可在设置中手动连接');return
             end=time.monotonic()+600
             while not self.closing and time.monotonic()<end:
                 result=bridge.control('result',request_id=request['request_id'])

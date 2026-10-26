@@ -12,9 +12,14 @@ def run(argv,**kwargs):
   proc=spawn_browser(args,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
   try:
    port_file=Path(folder)/'DevToolsActivePort';deadline=time.monotonic()+12
-   while not port_file.exists() and time.monotonic()<deadline:time.sleep(.05)
-   if not port_file.exists():raise RuntimeError('test browser did not open DevTools')
-   lines=port_file.read_text().splitlines();port=lines[0]
+   lines=[]
+   while time.monotonic()<deadline:
+    try:lines=port_file.read_text().splitlines()
+    except OSError:lines=[]
+    if len(lines)>=2 and lines[0].isdigit():break
+    time.sleep(.05)
+   if len(lines)<2 or not lines[0].isdigit():raise RuntimeError('test browser did not open DevTools')
+   port=lines[0]
    opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
    browser=WebSocket('ws://127.0.0.1:'+port+lines[1])
    targets=json.load(opener.open('http://127.0.0.1:'+port+'/json/list'))
