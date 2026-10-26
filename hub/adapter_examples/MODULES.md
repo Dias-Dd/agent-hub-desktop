@@ -13,12 +13,15 @@ adapters/
 
 ## 最省事的兼容 API 接入
 
-1. 将 builtin/openrouter-api 整目录复制到 custom/my-api（保留 runtime.py、compatible.py 等文件）。
-2. 在 adapter.json 修改 id、name；修改 api.base_url 与 api.key_environment。id 必须保持唯一，不要修改 provider 字段。
-3. 在环境变量中配置密钥。若服务没有 `/models`，在 models 声明模型，并删除 adapter.py 的 probe 函数，改用声明目录。
-4. 添加 Agent 时刷新自定义接入；首次使用目录刷新会执行 probe，但不发送模型推理。明确启用后才执行模型任务。
+普通 API 无需编写脚本：在主程序“添加 Agent”中选择“自定义 API 与内置执行器（Pi）”，设置协议、地址、密钥和模型。安装版自带 Node；仅执行 API 任务时启动 Pi。旧 API Agent 保留历史与原连接，但执行已经切换为 Pi。
 
-无需重写 API 工具循环、上下文保存和续接处理。其他内置 CLI/Harness 模块同样可以完整复制到 custom，修改 id/name 和 settings（如 executable 或 harness_install）。模块内的相对导入按新目录加载，修改实现文件会在下一轮重新加载，不会继续使用旧字节码。
+需要独立名称和预设时，将 builtin/pi-api 整目录复制到 custom/my-api，修改 id、name 与 configuration 中的默认值。保留配套 Python 文件，共用应用提供的 Pi 桥与运行时，不必复制 node_modules 或 Node 二进制。其它 CLI 模块也可以完整复制并修改，仍使用相同的加载器与 SDK。
+
+## 声明字段，自动生成表单
+
+在 adapter.json 添加 `configuration: {"version":1,"fields":[...]}`。支持 text、secret、url、select、string_list、integer、boolean；每个字段声明 name、type、label 及可选默认值、约束。主程序“添加 Agent”自动生成表单；服务端拒绝未声明字段及无效输入。字段名必须以小写字母开头，仅含小写字母、数字和下划线。
+
+没有 configure 回调时，平台保存普通字段，并将密钥保存到 Windows DPAPI / macOS Keychain；密钥不回显，留空保留原值。Python 模块用 `context.user_configuration()` 读取配置。高级模块可以提供 `configure(registry, connection, config=None)` 自行管理配置；这时也应自行在执行中读取，不能将密钥明文返回界面。84 个 OpenCode 供应商已采用声明表单，原有隔离配置和会话保持兼容。
 
 ## 从头编写模块
 
@@ -53,3 +56,6 @@ Python 模块以当前应用用户身份执行，没有额外的操作系统沙�
 旧 `hub-jsonl-v1` 接入继续支持，格式与独立进程传输不变；它是兼容传输方式，不是内置模块专属或低权限 SDK。旧 harness-adapters 自动迁移到 adapters/custom，连接、Agent、授权与会话不改 ID。同名文件保留，重复模块 ID 报错；配置中旧绝对启动路径会迁移并保留原配置备份，脚本内部硬编码旧路径需自行调整。
 
 升级只更新未被用户修改的内置文件，用户编辑过的内容会保留；请留意新旧接口版本的兼容性。目录扫描不会运行脚本，不代表实际登录、模型或费用已验证。
+
+
+完整格式、示例和源码构建步骤见 [模块配置说明](https://github.com/Dias-Dd/agent-hub-desktop/blob/main/docs/MODULE_CONFIGURATION.md)。

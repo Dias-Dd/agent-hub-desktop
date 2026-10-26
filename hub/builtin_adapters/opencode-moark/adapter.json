@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "id": "opencode-moark",
+  "name": "OpenCode【模力方舟】",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "provider": "opencode",
+  "efforts": [
+    "default"
+  ],
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "quota_supported": false,
+  "configuration": {
+    "version": 1,
+    "id": "opencode-provider-v1",
+    "title": "供应商配置",
+    "fields": [
+      {
+        "name": "variant",
+        "type": "select",
+        "label": "地区 / 套餐",
+        "default": "v1",
+        "options": [
+          {
+            "value": "v1",
+            "label": "模力方舟",
+            "defaults": {
+              "base_url": "https://api.moark.com/v1",
+              "models": []
+            }
+          }
+        ]
+      },
+      {
+        "name": "base_url",
+        "type": "url",
+        "label": "服务地址",
+        "default": "https://api.moark.com/v1"
+      },
+      {
+        "name": "api_key",
+        "type": "secret",
+        "label": "API Key",
+        "placeholder": "留空保留已保存密钥"
+      },
+      {
+        "name": "key_env",
+        "type": "text",
+        "label": "或使用密钥环境变量"
+      },
+      {
+        "name": "models",
+        "type": "string_list",
+        "label": "模型 ID（可选，逗号分隔；留空使用预设）"
+      }
+    ]
+  },
+  "setup": {
+    "website": "https://opencode.ai/",
+    "note": "独立 OpenCode 供应商配置；在主程序添加 Agent 界面填写本供应商凭据，不复用原版账号。首次引导可先跳过。"
+  },
+  "settings": {
+    "opencode_preset": {
+      "id": "opencode-moark",
+      "name": "模力方舟",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "模力方舟",
+          "website": "https://moark.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "模力方舟",
+            "options": {
+              "baseURL": "https://api.moark.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "deepseek-v4.1-flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 384000
+                }
+              },
+              "GLM-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                }
+              },
+              "GLM-5.3-Flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                }
+              },
+              "kimi-k3.1-pro": {
+                "name": "Kimi K3.1 Pro",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                }
+              },
+              "qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 65536
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    }
+  },
+  "source": {
+    "repository": "https://github.com/farion1231/cc-switch",
+    "commit": "88c878ac9da1d89ec1b512f87b52f3641dd30e3c",
+    "license": "MIT"
+  }
+}

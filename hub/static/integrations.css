@@ -107,3 +107,5 @@
 #agents,#agents.few-agents,#agents.six-agents,#agents.mid-agents,#agents.dynamic-agents{grid-auto-rows:minmax(148px,max-content)}
 #agents .agent-box,#agents.dynamic-agents .agent-box{height:auto;min-height:148px;overflow:visible;justify-content:flex-start}
 #agents .agent-card-test-actions{margin-top:auto;min-height:26px}
+
+#moduleConfiguration[hidden]{display:none}.opencode-provider-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.opencode-provider-fields label{display:flex;flex-direction:column;gap:5px;min-width:0}.opencode-model-filter{grid-column:1/-1}#moduleConfiguration{border:1px solid var(--border-default,#ccc);border-radius:12px;padding:12px;min-width:0}#moduleConfiguration input{min-width:0}#moduleConfigurationStatus{overflow-wrap:anywhere}@media(max-width:700px){.opencode-provider-fields{grid-template-columns:minmax(0,1fr)}}

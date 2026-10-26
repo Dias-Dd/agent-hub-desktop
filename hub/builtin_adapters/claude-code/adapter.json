@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "id": "claude-code",
+  "name": "Claude Code",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "provider": "claude-code",
+  "efforts": ["default"],
+  "capabilities": {"tools": true, "resume": true, "streaming": true},
+  "setup": {
+    "website": "https://code.claude.com/docs/en/setup",
+    "login_args": ["auth", "login"],
+    "terminal": true,
+    "note": "使用本机 Claude Code 的现有账号或服务商配置；未安装时请先通过官网安装。"
+  },
+  "quota_supported": false
+}

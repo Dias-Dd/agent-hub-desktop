@@ -16,13 +16,13 @@ Built-in and custom Python modules share the loader, SDK and hooks. Their locati
 
 ## 2. Install and add an adapter
 
-Installed data defaults to `%LOCALAPPDATA%\AgentMessageHubDesktop\data`. With `--data .\local-data`, use the repository's `local-data` directory instead.
+Installed data defaults to `%LOCALAPPDATA%\AgentMessageHubDesktop\data` on Windows and `~/Library/Application Support/AgentMessageHubDesktop/data` on macOS. With `--data .\local-data`, use the repository's `local-data` directory instead.
 
 ```text
 <data-directory>/adapters/
 ├─ builtin/
 │  ├─ deepseek-harness/
-│  ├─ openrouter-api/
+│  ├─ pi-api/
 │  └─ ...
 └─ custom/
    └─ my-chat-api/
@@ -40,18 +40,15 @@ Ordinary discovery reads JSON without executing user scripts. Explicit login che
 
 Use a unique `id`: lowercase letters, digits and hyphens, beginning with a letter or digit, up to 48 characters. Duplicate custom IDs disable all matching entries instead of choosing one arbitrarily.
 
-## 3. Easiest option: reuse a built-in module
+## 3. Use the built-in API executor or copy a module
 
-For a Chat Completions compatible service:
+For a supported API protocol, no custom script is required: select **Custom API with built-in executor (Pi)** in Add Agent, choose a preset or enter the protocol and service URL, then enter a key or key environment variable. Save, read models or enter model IDs manually, and add an agent. If the separate first-run guide cannot configure a module, skip agent setup and configure it in the main app.
 
-1. Copy the **entire** `builtin/openrouter-api` directory to `custom/my-api`, including its supporting files.
-2. Change `id`, `name`, `api.base_url` and `api.key_environment` in `adapter.json`. Never put a real key in JSON.
-3. Keep `protocol`, `entrypoint` and the existing `provider`. Update `setup.website`, `setup.login_url`, `setup.key_env` and explanatory text to match your service.
-4. Reuse the catalog probe if the service supports `/models`. Otherwise remove the entrypoint's `probe` function and declare real model IDs and efforts in `models`.
-5. The copied `quota` hook uses OpenRouter endpoints. Remove or replace it if your service does not implement those endpoints; do not show another provider's balance as your service's balance.
-6. Set the credential environment variable, fully quit and reopen the app, and refresh custom integrations.
+Pi agent-core handles streaming model/tool loops. Hub retains project authorization, tool dispatch, stop controls and durable history. Node runs only for API tasks and exits afterward; other harnesses do not start it. The installer includes the runtime. Source users prepare it with `python tools/prepare_pi.py` using Node.js 22.19+ and npm. This integration does not load Pi CLI extensions or automatically compact history: context overflow is reported explicitly. Supported protocols do not imply every provider has been tested with a real account.
 
-Templates are in [built-in modules](../hub/builtin_adapters/). Matching URLs alone is insufficient: verify request formats, model IDs, tool results, reasoning efforts and streaming events.
+To create a separately named module, copy the **entire** `builtin/pi-api` folder into `custom/my-api`, change the manifest `id` and `name`, and update the declaration's preset/default values as appropriate. Keep the entrypoint and supporting Python files. The installed app supplies the shared Pi bridge and Node runtime; there is no need to copy `node_modules` or the Node binary. Validate your endpoint, model IDs and tools before using it for a project.
+
+Existing `deepseek-api`, `openrouter-api` and `gemini-api` entries remain for compatibility with old agents. Their execution now delegates to Pi; they are not the recommended templates for new API integrations. [Field declarations and runtime details](MODULE_CONFIGURATION.md).
 
 ## 4. Write a Python module: basic API example
 
@@ -70,9 +67,13 @@ Replace `provider-model-id` with a model the service actually supports.
   "entrypoint": "adapter.py",
   "models": [{"id": "provider-model-id", "efforts": ["default"]}],
   "capabilities": {"tools": false, "resume": false, "streaming": false},
-  "environment": {
-    "CHAT_API_URL": "MY_CHAT_API_URL",
-    "CHAT_API_KEY": "MY_CHAT_API_KEY"
+  "configuration": {
+    "version": 1,
+    "title": "My API settings",
+    "fields": [
+      {"name": "endpoint", "type": "url", "label": "Full Chat Completions URL", "required": true, "default": "https://example.com/v1/chat/completions"},
+      {"name": "api_key", "type": "secret", "label": "API Key", "required": true}
+    ]
   }
 }
 ```
@@ -88,15 +89,16 @@ import urllib.request
 def execute(context, run):
     context.guard(run)
     request = context.request(run)
+    config = context.user_configuration()
     messages = [{"role": "system", "content": request["system"]}]
     messages.extend(request["history"])
     messages.append({"role": "user", "content": request["prompt"]})
     payload = {"model": request["model"], "messages": messages, "stream": False}
     http_request = urllib.request.Request(
-        context.environment["CHAT_API_URL"],
+        config["endpoint"],
         data=json.dumps(payload).encode("utf-8"),
         headers={
-            "Authorization": "Bearer " + context.environment["CHAT_API_KEY"],
+            "Authorization": "Bearer " + config["api_key"],
             "Content-Type": "application/json",
         },
     )
@@ -113,7 +115,7 @@ def execute(context, run):
     return {"status": "completed", "text": reply}
 ```
 
-Set Windows user environment variables `MY_CHAT_API_URL` (the full endpoint, such as your service's `/v1/chat/completions` URL) and `MY_CHAT_API_KEY`, then restart the app. The mapping direction is **module variable → existing host variable**. Python modules read the resolved values through `context.environment`. Never commit keys or include tokens in replies or errors.
+The declaration generates inputs in Add Agent. Enter the service's complete Chat Completions endpoint and your key, save, and add the agent. Without a custom `configure` hook, ordinary fields are persisted and secrets use Windows DPAPI or macOS Keychain. Empty secret inputs retain saved values; secrets are not returned to the browser. The example is intended for those desktop platforms. An `environment` mapping remains available for modules that prefer references to existing host environment variables; `.env` files are not loaded automatically.
 
 `resume: false` does not mean there is no history. The SDK saves successful exchanges and provides them as `history` on the next turn. This example forwards that history; it is not a provider-native session and does not contain complete tool traces.
 
@@ -143,7 +145,10 @@ A tool loop converts the current definitions to the provider format, passes mode
 
 After successful native resumption, do not replay the same history again. Report resume failures explicitly instead of silently replacing session IDs and losing context. A native session's original directory may differ from the current authorized directory; consult the built-in harness implementation.
 
-### Optional hooks
+### Declarative fields and optional hooks
+
+See [module configuration](MODULE_CONFIGURATION.md) for text, secret, URL, dropdown, list, integer and boolean fields; option defaults; server validation; and `context.user_configuration()`. Forms currently target Python `hub-module-v1` modules in the main Add Agent screen. JSONL integrations continue to manage their external program's configuration.
+
 
 | Function | Return value and purpose |
 | --- | --- |
@@ -151,6 +156,7 @@ After successful native resumption, do not replay the same history again. Report
 | `probe_model(registry, connection, model)` | Actual efforts, such as `{"id": model, "efforts": ["default"]}` |
 | `setup_status(registry, connection)` | A `state` of `ready`, `login`, `missing` or `unknown`, with a readable `message` |
 | `setup_login(registry, connection)` | Open the platform's real login UI, interactive CLI or official page |
+| `configure(registry, connection, config=None)` | Optional custom read/save hook after field validation; return `config` without plaintext secrets. Without a hook, Hub stores declared fields automatically |
 | `quota(registry, connection)` | Official observations such as `official_balance`, `official_windows` and `quota_observed_at` |
 
 A balance observation can use `official_balance: [{"name":"Account balance","amount":"12.34","currency":"CNY"}]`. Window observations can include `remaining` (remaining percent), `resets_at` (Unix seconds) and `name`. On failure, report an error and retain the previous observation rather than inventing zero or unlimited quota. One-click refresh availability also depends on the integration's UI support.

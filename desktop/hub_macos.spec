@@ -4,9 +4,10 @@ import tomllib
 
 root = Path(SPECPATH).parent
 version = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-adapter_data = [(str(p), str(p.parent.relative_to(root)))
-                for p in (root / 'hub/builtin_adapters').rglob('*')
-                if p.is_file() and p.suffix in ('.py', '.json')]
+import sys
+sys.path.insert(0,str(root))
+from desktop.adapter_assets import collect
+adapter_data=collect(root)
 # Enumerate sources explicitly: the spec executes before Analysis applies pathex,
 # so collect_submodules('hub') can silently miss modules with this CLI layout.
 hub_modules = ['hub'] + sorted('.'.join(p.relative_to(root).with_suffix('').parts)

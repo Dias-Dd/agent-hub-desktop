@@ -15,3 +15,8 @@ desktop/installer-tools/inno/
 
 # Application-owned Tart VM disks and OCI cache
 TartVMs/
+
+node_modules/
+hub/builtin_adapters/pi-api/engine/bridge.bundle.mjs
+hub/builtin_adapters/pi-api/engine/node.exe
+hub/builtin_adapters/pi-api/engine/node

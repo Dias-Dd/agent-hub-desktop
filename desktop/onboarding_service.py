@@ -112,8 +112,9 @@ class SetupService:
         for c in self.registry.rows('integration_connections'):
             # Use a normal modular connection instead of the old dedicated DS UI.
             if c.get('legacy'): continue
+            if c['kind'] in ('deepseek-api','openrouter-api','gemini-api') and not c.get('enabled'):continue
             spec = self.manifest(c).get('setup', {})
-            installed = bool(c.get('adapter_available')) if c.get('adapter') else c['kind'] in BASES or bool(locate(c['kind'], c.get('executable', '')))
+            installed = bool(c.get('adapter_available')) if c.get('adapter') else c['kind'] in BASES or c['kind']=='pi-api' or bool(locate(c['kind'], c.get('executable', '')))
             entries.append({**c, 'installed': installed, 'setup': spec})
         if not any(c['kind'] == 'deepseek-harness' for c in entries):
             c = self.registry.save_connection('user', {'id': 'deepseek-harness-local', 'kind': 'deepseek-harness', 'name': 'DeepSeek Harness', 'permission': 'full', 'enabled': False})

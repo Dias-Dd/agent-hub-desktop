@@ -82,7 +82,7 @@ def patch_text(agent,role,dialogue=False,policy="",workspace_root=None,sandbox_m
 
 class ACP:
     def __init__(self,argv,cwd,env,on_update=None,permission=False,factory=subprocess.Popen):
-        self.on_update=on_update or (lambda _u:None);self.permission=permission;self.queue=queue.Queue();self.lock=threading.Lock();self.serial=0;self.responses={};self.errors=[];self.redactions=[env.get('DEEPSEEK_API_KEY',''),env.get('HUB_TOKEN','')]
+        self.on_update=on_update or (lambda _u:None);self.permission=permission;self.queue=queue.Queue();self.lock=threading.Lock();self.serial=0;self.responses={};self.errors=[];self.redactions=[v for k,v in env.items() if isinstance(v,str) and len(v)>5 and any(word in k.upper() for word in ('KEY','TOKEN','SECRET','PASSWORD'))]
         self.proc=factory(argv,cwd=cwd,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',start_new_session=os.name!='nt',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         try:self.job=ProcessJob(self.proc)
         except Exception:self.proc.kill();self.proc.wait();raise
@@ -154,6 +154,9 @@ class ACP:
             except OSError:pass
             self.proc.wait(timeout=4)
         self.job.close();self.reader.join(timeout=1);self.drainer.join(timeout=1)
+        for pipe in (self.proc.stdout,self.proc.stderr):
+            close=getattr(pipe,'close',None)
+            if close:close()
 
 
 def execute(runtime,run):

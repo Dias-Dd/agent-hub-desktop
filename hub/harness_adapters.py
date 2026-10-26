@@ -57,6 +57,8 @@ def builtin_catalog():
                 or data.get('id') != path.parent.name or data.get('entrypoint') != 'adapter.py'
                 or not data.get('name') or not data.get('efforts')):
             raise HubError('内置适配器配置无效：' + path.parent.name)
+        from .module_config import schema
+        schema(data)
         result[data['id']] = data
     if not result:
         raise HubError('内置适配器资源缺失，请重新安装应用')

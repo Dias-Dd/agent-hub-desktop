@@ -85,6 +85,9 @@ def execute(host,run,folder):
             if not hasattr(context,name):
                 setattr(context,name,lambda *args,_name=name:getattr(module_tools,_name)(context,*args))
         context.request=lambda current=run:request(context,current)
+        if isinstance(manifest.get('configuration'),dict):
+            from .module_config import resolved
+            context.user_configuration=lambda:resolved(host.registry,host.connection(),manifest)
         result=module.execute(context,dict(run))
         with host.hub.lock:row=host.hub.db.execute('SELECT status FROM executions WHERE id=?',(run['id'],)).fetchone()
         if row and row[0] not in ('running','interrupting','queued'):return result

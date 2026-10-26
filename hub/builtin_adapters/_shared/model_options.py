@@ -1,7 +1,7 @@
 import os
 from hub.core import HubError
 from hub.integrations import locate,command
-def probe_model(self,c,model):
+def probe_model(self,c,model,environment_override=None):
  c=dict(c)
  if c['kind'] not in ('opencode','ori'):raise HubError('此连接请通过模型目录选择档位')
  exe=locate(c['kind'],c.get('executable',''))
@@ -10,7 +10,7 @@ def probe_model(self,c,model):
  from hub.proxy_env import inherit_system_proxy
  argv=[exe,'acp'] if c['kind']=='opencode' else [exe,'opencode','--model',model,'--','acp']
  selected=model if c['kind']=='opencode' or model.startswith('openrouter/') else 'openrouter/'+model
- client=ACP(command(argv),c['cwd'],inherit_system_proxy(dict(os.environ)))
+ client=ACP(command(argv),c['cwd'],environment_override if environment_override is not None else inherit_system_proxy(dict(os.environ)))
  try:
   client.request('initialize',{'protocolVersion':1,'clientCapabilities':{}},timeout=25)
   view=client.request('session/new',{'cwd':c['cwd'],'mcpServers':[]},timeout=25);session=view['sessionId']

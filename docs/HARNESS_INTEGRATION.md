@@ -16,13 +16,13 @@
 
 ## 2. 放在哪里，如何添加
 
-安装版默认数据目录是 `%LOCALAPPDATA%\AgentMessageHubDesktop\data`。使用 `--data .\local-data` 启动源码时，则使用仓库下的 `local-data`。
+Windows 安装版默认数据目录是 `%LOCALAPPDATA%\AgentMessageHubDesktop\data`，macOS 是 `~/Library/Application Support/AgentMessageHubDesktop/data`。使用 `--data .\local-data` 启动源码时，则使用仓库下的 `local-data`。
 
 ```text
 <数据目录>/adapters/
 ├─ builtin/                  应用提供的模块
 │  ├─ deepseek-harness/
-│  ├─ openrouter-api/
+│  ├─ pi-api/
 │  └─ ...
 └─ custom/
    └─ my-chat-api/
@@ -40,18 +40,15 @@
 
 `id` 必须唯一，格式为小写英文/数字/短横线，首位为英文或数字，最长 48 字符。发现重复自定义 ID 时，同 ID 接入会停用，不会任意选择一份。
 
-## 3. 最省事：复用内置模块
+## 3. 直接使用内置 API 执行器，或复制模块
 
-例如，接入一个与 Chat Completions 兼容的服务：
+对于已支持的 API 协议，通常不必写脚本：在“添加 Agent”中选择 **自定义 API 与内置执行器（Pi）**，选择预设或填写协议与服务地址，输入密钥或密钥环境变量名称，保存后读取目录或手动填写模型 ID，再添加 Agent。独立首次引导无法配置某个模块时，可先跳过 Agent 配置，进入主程序后完成。
 
-1. 将 `builtin/openrouter-api` **整个目录**复制到 `custom/my-api`，不要只复制 `adapter.py`。
-2. 修改 `adapter.json` 的 `id`、`name`、`api.base_url` 和 `api.key_environment`。不要把真实密钥写入 JSON。
-3. 保留 `protocol`、`entrypoint` 及原有 `provider`。同步修改 `setup.website`、`setup.login_url`、`setup.key_env` 和说明，避免继续打开原提供商页面。
-4. 如果服务支持 `/models`，可以复用目录探测；否则删除入口中的 `probe` 函数，并在 JSON 的 `models` 中声明实际模型与档位。
-5. 原模块的 `quota` 实现使用 OpenRouter 接口。服务没有兼容额度接口时，应删除或替换它，不要将原提供商的余额当作新服务余额。
-6. 配置密钥环境变量，完全退出并重新打开应用，再刷新自定义接入。
+Pi agent-core 负责流式模型请求与工具循环；Hub 保留项目授权、工具执行、停止控制与持久历史。Node 只在 API 任务执行时启动，结束后回收，其它 Harness 不启动它。安装包自带运行环境；源码开发先安装 Node.js 22.19+ 与 npm，再运行 `python tools/prepare_pi.py`。这里没有加载 Pi CLI 扩展，也没有自动压缩历史：超过上下文上限会明确报错。协议受支持不代表所有供应商均已通过真实账号测试。
 
-源码模板在 [内置模块目录](../hub/builtin_adapters/)。兼容不只是 URL 相同：应验证请求格式、模型名、工具返回、推理档位和流式事件。
+需要一个独立名称的模块时，将 `builtin/pi-api` **整个目录**复制到 `custom/my-api`，修改清单 `id`、`name`，并按需修改声明中的预设与默认值。保留入口及配套 Python 文件。安装版提供共享 Pi 桥和 Node 运行时，不必复制 `node_modules` 或 Node 二进制。用于项目之前，应验证自己的服务地址、模型 ID 和工具调用。
+
+原 `deepseek-api`、`openrouter-api`、`gemini-api` 仅保留旧 Agent 兼容，执行已委托给 Pi，不再作为新 API 接入的推荐模板。详见[字段声明与运行说明](MODULE_CONFIGURATION.md)。
 
 ## 4. 从头写 Python 模块：一个基础 API 示例
 
@@ -70,9 +67,13 @@
   "entrypoint": "adapter.py",
   "models": [{"id": "provider-model-id", "efforts": ["default"]}],
   "capabilities": {"tools": false, "resume": false, "streaming": false},
-  "environment": {
-    "CHAT_API_URL": "MY_CHAT_API_URL",
-    "CHAT_API_KEY": "MY_CHAT_API_KEY"
+  "configuration": {
+    "version": 1,
+    "title": "我的 API 配置",
+    "fields": [
+      {"name": "endpoint", "type": "url", "label": "完整 Chat Completions 地址", "required": true, "default": "https://example.com/v1/chat/completions"},
+      {"name": "api_key", "type": "secret", "label": "API Key", "required": true}
+    ]
   }
 }
 ```
@@ -88,15 +89,16 @@ import urllib.request
 def execute(context, run):
     context.guard(run)
     request = context.request(run)
+    config = context.user_configuration()
     messages = [{"role": "system", "content": request["system"]}]
     messages.extend(request["history"])
     messages.append({"role": "user", "content": request["prompt"]})
     payload = {"model": request["model"], "messages": messages, "stream": False}
     http_request = urllib.request.Request(
-        context.environment["CHAT_API_URL"],
+        config["endpoint"],
         data=json.dumps(payload).encode("utf-8"),
         headers={
-            "Authorization": "Bearer " + context.environment["CHAT_API_KEY"],
+            "Authorization": "Bearer " + config["api_key"],
             "Content-Type": "application/json",
         },
     )
@@ -113,7 +115,7 @@ def execute(context, run):
     return {"status": "completed", "text": reply}
 ```
 
-在 Windows 中设置用户环境变量 `MY_CHAT_API_URL`（完整接口地址，例如服务提供的 `/v1/chat/completions` 地址）与 `MY_CHAT_API_KEY`，再重启应用。`environment` 的方向是 **模块变量名 → 宿主已有变量名**；Python 模块通过 `context.environment` 读取。不要提交真实密钥，也不要把令牌写到回复或错误中。
+上述声明会在“添加 Agent”中生成输入框。填写服务商提供的完整 Chat Completions 地址和密钥，保存后添加 Agent。没有自定义 `configure` 回调时，平台保存普通字段，密钥使用 Windows DPAPI / macOS Keychain；密钥留空保留原值，不会回传给浏览器。本例面向这两个桌面平台。希望引用已有宿主环境变量的模块仍可声明 `environment` 映射；应用不会自动读取 `.env` 文件。
 
 声明 `resume: false` 不代表“没有历史”：SDK 会保存成功问答，下一轮在 `history` 中提供。本例转发这份历史，但它不是提供商的原生会话，也不包含完整工具轨迹。
 
@@ -143,7 +145,10 @@ def execute(context, run):
 
 若原生会话恢复成功，不要再次重放同一份历史。恢复失败应明确报告，不能静默换 ID 丢弃上下文。修改工作目录时，原生会话目录与本轮授权目录可能不同，参考内置 Harness 的处理。
 
-### 可选钩子
+### 声明字段与可选钩子
+
+[模块配置说明](MODULE_CONFIGURATION.md)包含文本、密钥、URL、下拉框、列表、整数和布尔字段、联动默认值、服务端校验及 `context.user_configuration()` 的完整用法。表单当前用于主程序添加 Agent 界面的 Python `hub-module-v1` 模块；JSONL 接入仍自行配置外部程序。
+
 
 | 函数 | 返回与用途 |
 | --- | --- |
@@ -151,6 +156,7 @@ def execute(context, run):
 | `probe_model(registry, connection, model)` | `{"id": model, "efforts": ["default"]}` 等实际档位 |
 | `setup_status(registry, connection)` | `state` 为 `ready` / `login` / `missing` / `unknown`，并提供可读 `message` |
 | `setup_login(registry, connection)` | 打开该平台真实的登录窗口、交互 CLI 或官方页面 |
+| `configure(registry, connection, config=None)` | 可选的配置读写回调；平台先校验字段，返回 `config` 且不能含密钥明文。不提供时自动保存声明字段 |
 | `quota(registry, connection)` | 官方余额/额度观察，如 `official_balance`、`official_windows`、`quota_observed_at` |
 
 `quota` 示例字段为 `official_balance: [{"name":"账户余额","amount":"12.34","currency":"CNY"}]`；窗口观察可使用 `remaining`（剩余百分比）、`resets_at`（Unix 秒）和 `name`。读取失败应报告错误、保留旧观察，不返回虚假的零或无限。面板能否一键刷新，还取决于该接入对应的 UI 支持。

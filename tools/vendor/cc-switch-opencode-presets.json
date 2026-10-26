@@ -1,0 +1,5956 @@
+{
+  "source": "https://github.com/farion1231/cc-switch",
+  "commit": "88c878ac9da1d89ec1b512f87b52f3641dd30e3c",
+  "file": "src/config/opencodeProviderPresets.ts",
+  "license": "MIT",
+  "groups": [
+    {
+      "id": "opencode-kimi",
+      "name": "Kimi",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Kimi",
+          "website": "https://platform.kimi.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Kimi",
+            "options": {
+              "baseURL": "https://api.moonshot.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "kimi-k2.7-code": {
+                "name": "Kimi K2.7 Code",
+                "reasoning": true
+              },
+              "kimi-k3": {
+                "name": "Kimi K3",
+                "reasoning": true
+              },
+              "kimi-k2.7-code-highspeed": {
+                "name": "Kimi K2.7 Code HighSpeed",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 262144
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 262144
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "Kimi Global",
+          "website": "https://platform.kimi.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Kimi",
+            "options": {
+              "baseURL": "https://api.moonshot.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "kimi-k2.7-code": {
+                "name": "Kimi K2.7 Code",
+                "reasoning": true
+              },
+              "kimi-k3": {
+                "name": "Kimi K3",
+                "reasoning": true
+              },
+              "kimi-k2.7-code-highspeed": {
+                "name": "Kimi K2.7 Code HighSpeed",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 262144
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 262144
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v3",
+          "name": "Kimi For Coding",
+          "website": "https://www.kimi.com/code/",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Kimi For Coding",
+            "options": {
+              "baseURL": "https://api.kimi.com/coding/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "kimi-for-coding": {
+                "name": "Kimi For Coding",
+                "reasoning": true
+              }
+            }
+          }
+        },
+        {
+          "id": "v4",
+          "name": "Kimi For Coding Global",
+          "website": "https://www.kimi.ai/code",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Kimi For Coding",
+            "options": {
+              "baseURL": "https://api.kimi.ai/coding/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "kimi-for-coding": {
+                "name": "Kimi For Coding",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-packycode",
+      "name": "PackyCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "PackyCode",
+          "website": "https://www.packyapi.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "PackyCode",
+            "options": {
+              "baseURL": "https://www.packyapi.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-apinebula",
+      "name": "APINebula",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "APINebula",
+          "website": "https://apinebula.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "APINebula",
+            "options": {
+              "baseURL": "https://apinebula.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-aicodemirror",
+      "name": "AICodeMirror",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AICodeMirror",
+          "website": "https://www.aicodemirror.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "AICodeMirror",
+            "options": {
+              "baseURL": "https://api.aicodemirror.ai/api/claudecode",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-hao-ai",
+      "name": "hao.ai",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "hao.ai",
+          "website": "https://hao.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "hao.ai",
+            "options": {
+              "baseURL": "https://api.hao.ai/anthropic/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "anthropic/claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "anthropic/claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-fennoai",
+      "name": "FennoAI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "FennoAI",
+          "website": "https://api.fenno.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "FennoAI",
+            "options": {
+              "baseURL": "https://api.fenno.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-runapi",
+      "name": "RunAPI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "RunAPI",
+          "website": "https://runapi.host",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "RunAPI",
+            "options": {
+              "baseURL": "https://runapi.host",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-openmodel",
+      "name": "OpenModel",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "OpenModel",
+          "website": "https://www.openmodel.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "OpenModel",
+            "options": {
+              "baseURL": "https://api.openmodel.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-grooroute-pro",
+      "name": "GrooRoute Pro",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "GrooRoute Pro",
+          "website": "https://grooroute.pro",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "GrooRoute Pro",
+            "options": {
+              "baseURL": "https://grooroute.pro/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-dit-ai",
+      "name": "DIT.ai",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "DIT.ai",
+          "website": "https://dit.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "DIT.ai",
+            "options": {
+              "baseURL": "https://api.dit.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-buytoken",
+      "name": "BuyToken",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "BuyToken",
+          "website": "https://buytoken.work",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "BuyToken",
+            "options": {
+              "baseURL": "https://api.buytoken.work/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-v-api",
+      "name": "V-API",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "V-API",
+          "website": "https://gpt.ge",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "V-API",
+            "options": {
+              "baseURL": "https://api.gpt.ge/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-tokenfactory",
+      "name": "TokenFactory",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "TokenFactory",
+          "website": "https://tokenfactory.cn",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "TokenFactory",
+            "options": {
+              "baseURL": "https://api.tokenfactory.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "kimi-k3": {
+                "name": "Kimi K3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "deepseek-v4.1-flash-1017": {
+                "name": "DeepSeek V4.1 Flash 1017",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 384000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "deepseek-v4.1-flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 384000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "glm-5.3-flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.8-flash": {
+                "name": "Qwen3.8 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-fluxa-token-plan",
+      "name": "FluxA Token Plan",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "FluxA Token Plan",
+          "website": "https://agentmarket.fluxapay.xyz/",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "FluxA Token Plan",
+            "options": {
+              "baseURL": "https://api.baiduqianfan.ai/v2/tokenplan/team",
+              "apiKey": ""
+            },
+            "models": {
+              "deepseek-v4-flash-0731": {
+                "name": "DeepSeek V4 Flash 0731",
+                "reasoning": true
+              },
+              "deepseek-v4-flash": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true
+              },
+              "deepseek-v3.2": {
+                "name": "DeepSeek V3.2"
+              },
+              "glm-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              },
+              "glm-5.1": {
+                "name": "GLM-5.1",
+                "reasoning": true
+              },
+              "glm-5": {
+                "name": "GLM-5",
+                "reasoning": true
+              },
+              "kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-aigocode",
+      "name": "AIGoCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AIGoCode",
+          "website": "https://aigocode.net",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "AIGoCode",
+            "options": {
+              "baseURL": "https://api.aigocode.dev",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-qiniu",
+      "name": "Qiniu",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Qiniu",
+          "website": "https://s.qiniu.com/nMvAvy",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Qiniu",
+            "options": {
+              "baseURL": "https://api.qnaigc.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "moonshotai/kimi-k3": {
+                "name": "Kimi K3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "z-ai/glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "z-ai/glm-5.3-flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-aicoding",
+      "name": "AICoding",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AICoding",
+          "website": "https://aicoding.inc",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "AICoding",
+            "options": {
+              "baseURL": "https://api.aicoding.inc",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-subrouter",
+      "name": "SubRouter",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "SubRouter",
+          "website": "https://subrouter.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "SubRouter",
+            "options": {
+              "baseURL": "https://subrouter.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-shengsuanyun",
+      "name": "Shengsuanyun",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Shengsuanyun",
+          "website": "https://www.shengsuanyun.com/",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Shengsuanyun",
+            "options": {
+              "baseURL": "https://router.shengsuanyun.com/api/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "anthropic/claude-sonnet-5.5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "anthropic/claude-opus-5.5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "anthropic/claude-fable-5.1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-88api",
+      "name": "88API",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "88API",
+          "website": "https://88api.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "88API",
+            "options": {
+              "baseURL": "https://api.88api.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-apikey-fun",
+      "name": "APIKEY.FUN",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "APIKEY.FUN",
+          "website": "https://apikey.fan",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "APIKEY.FUN",
+            "options": {
+              "baseURL": "https://api.apikey.fan/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-9527code",
+      "name": "9527CODE",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "9527CODE",
+          "website": "https://9527.codes",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "9527CODE",
+            "options": {
+              "baseURL": "https://9527.codes/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-code0",
+      "name": "Code0",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Code0",
+          "website": "https://code0.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Code0",
+            "options": {
+              "baseURL": "https://code0.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-teamorouter",
+      "name": "TeamoRouter",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "TeamoRouter",
+          "website": "https://teamorouter.cn",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "TeamoRouter",
+            "options": {
+              "baseURL": "https://api.teamorouter.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-5.6-sol": {
+                "name": "GPT-5.6 Sol",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-ppio",
+      "name": "PPIO",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "PPIO",
+          "website": "https://ppio.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "PPIO",
+            "options": {
+              "baseURL": "https://api.ppio.com/openai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "deepseek/deepseek-v4.1-flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true
+              },
+              "moonshotai/kimi-k3.1-pro": {
+                "name": "Kimi K3.1 Pro",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "zai-org/glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-claudecn",
+      "name": "ClaudeCN",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "ClaudeCN",
+          "website": "https://claudecn.top",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "ClaudeCN",
+            "options": {
+              "baseURL": "https://claudecn.top",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-volcengine",
+      "name": "火山引擎",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "火山 Agent Plan",
+          "website": "https://www.volcengine.com/activity/agentplan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "火山 Agent Plan",
+            "options": {
+              "baseURL": "https://ark.cn-beijing.volces.com/api/plan/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "ark-code-latest": {
+                "name": "Ark Code Latest"
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "火山 Coding Plan",
+          "website": "https://www.volcengine.com/activity/codingplan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "火山 Coding Plan",
+            "options": {
+              "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "ark-code-latest": {
+                "name": "Ark Code Latest"
+              }
+            }
+          }
+        },
+        {
+          "id": "v3",
+          "name": "Volcengine Doubao",
+          "website": "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Volcengine Doubao",
+            "options": {
+              "baseURL": "https://ark.cn-beijing.volces.com/api/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "doubao-seed-2-1-pro-260915": {
+                "name": "Doubao Seed 2.1 Pro",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-byteplus",
+      "name": "BytePlus",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "BytePlus",
+          "website": "https://www.byteplus.com/en/product/modelark",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "BytePlus",
+            "options": {
+              "baseURL": "https://ark.ap-southeast.bytepluses.com/api/coding/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "ark-code-latest": {
+                "name": "Ark Code Latest"
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-a6api",
+      "name": "A6API",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "A6API",
+          "website": "https://www.a6api.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "A6API",
+            "options": {
+              "baseURL": "https://api.a6api.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-ccsub",
+      "name": "CCSub",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "CCSub",
+          "website": "https://www.ccsub.net",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "CCSub",
+            "options": {
+              "baseURL": "https://www.ccsub.net/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-sssaicode",
+      "name": "SSSAiCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "SSSAiCode",
+          "website": "https://sssaicodeapi.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "SSSAiCode",
+            "options": {
+              "baseURL": "https://node-hk.sssaicodeapi.com/api/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-soleapi",
+      "name": "SoleAPI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "SoleAPI",
+          "website": "https://soleapi.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "SoleAPI",
+            "options": {
+              "baseURL": "https://soleapi.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-micu",
+      "name": "Micu",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Micu",
+          "website": "https://www.micuapi.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Micu",
+            "options": {
+              "baseURL": "https://www.micuapi.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-rightcode",
+      "name": "RightCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "RightCode",
+          "website": "https://www.rightapi.ai",
+          "npm": "@ai-sdk/openai",
+          "config": {
+            "npm": "@ai-sdk/openai",
+            "name": "RightCode",
+            "options": {
+              "baseURL": "https://www.rightapi.ai/codex/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-cubence",
+      "name": "Cubence",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Cubence",
+          "website": "https://cubence.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Cubence",
+            "options": {
+              "baseURL": "https://api.cubence.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-crazyrouter",
+      "name": "CrazyRouter",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "CrazyRouter",
+          "website": "https://www.crazyrouter.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "CrazyRouter",
+            "options": {
+              "baseURL": "https://cn.crazyrouter.com",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-dmxapi",
+      "name": "DMXAPI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "DMXAPI",
+          "website": "https://www.dmxapi.cn",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "DMXAPI",
+            "options": {
+              "baseURL": "https://www.dmxapi.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-sudocode",
+      "name": "SudoCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "SudoCode.chat",
+          "website": "https://sudocode.chat",
+          "npm": "@ai-sdk/openai",
+          "config": {
+            "npm": "@ai-sdk/openai",
+            "name": "SudoCode.chat",
+            "options": {
+              "baseURL": "https://api.sudocode.chat/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-sol": {
+                "name": "GPT-6 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-luna": {
+                "name": "GPT-6 Luna",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "SudoCode.us",
+          "website": "https://sudocode.us",
+          "npm": "@ai-sdk/openai",
+          "config": {
+            "npm": "@ai-sdk/openai",
+            "name": "SudoCode.us",
+            "options": {
+              "baseURL": "https://sudocode.us/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-sol": {
+                "name": "GPT-6 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-xycai",
+      "name": "XycAi",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "XycAi",
+          "website": "https://xycai.us",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "XycAi",
+            "options": {
+              "baseURL": "https://apicdn.xycai.us/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-modelflare",
+      "name": "Modelflare",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Modelflare",
+          "website": "https://modelflare.dev",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Modelflare",
+            "options": {
+              "baseURL": "https://modelflare.dev/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-alltokens",
+      "name": "AllTokens",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AllTokens",
+          "website": "https://alltokens.cc",
+          "npm": "@ai-sdk/openai",
+          "config": {
+            "npm": "@ai-sdk/openai",
+            "name": "AllTokens",
+            "options": {
+              "baseURL": "https://alltokens.cc/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-luna": {
+                "name": "GPT-6 Luna",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-alltokens-si",
+      "name": "AllTokens SI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AllTokens SI",
+          "website": "https://alltokens.si",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "AllTokens SI",
+            "options": {
+              "baseURL": "https://alltokens.si/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-tu-zi",
+      "name": "Tu-zi",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Tu-zi",
+          "website": "https://api.tu-zi.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Tu-zi",
+            "options": {
+              "baseURL": "https://api.tu-zi.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-amux",
+      "name": "Amux",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Amux",
+          "website": "https://amux.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Amux",
+            "options": {
+              "baseURL": "https://api.amux.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-atlascloud",
+      "name": "AtlasCloud",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AtlasCloud",
+          "website": "https://www.atlascloud.ai/console/coding-plan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "AtlasCloud",
+            "options": {
+              "baseURL": "https://api.atlascloud.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "zai-org/glm-5.3": {
+                "name": "GLM 5.3",
+                "reasoning": true
+              },
+              "zai-org/glm-5.3-flash": {
+                "name": "GLM 5.3 Flash",
+                "reasoning": true
+              },
+              "moonshotai/kimi-k3": {
+                "name": "Kimi K3",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-soshow",
+      "name": "Soshow",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Soshow",
+          "website": "https://aimarket.so-show.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "Soshow",
+            "options": {
+              "baseURL": "https://maas.so-show.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5": {
+                "name": "Claude Sonnet 5",
+                "reasoning": true
+              },
+              "claude-opus-5": {
+                "name": "Claude Opus 5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-deepseek",
+      "name": "DeepSeek",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "DeepSeek",
+          "website": "https://platform.deepseek.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "options": {
+              "baseURL": "https://api.deepseek.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "deepseek-flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 384000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-zhipu",
+      "name": "智谱 GLM",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Zhipu GLM",
+          "website": "https://open.bigmodel.cn",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Zhipu GLM",
+            "options": {
+              "baseURL": "https://open.bigmodel.cn/api/coding/paas/v4",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true
+              },
+              "glm-5.3-flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "Zhipu GLM en",
+          "website": "https://z.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Zhipu GLM en",
+            "options": {
+              "baseURL": "https://api.z.ai/api/coding/paas/v4",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true
+              },
+              "glm-5.3-flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-tencent",
+      "name": "腾讯云",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Tencent Token Plan",
+          "website": "https://cloud.tencent.com/product/tokenhub",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Tencent Token Plan",
+            "options": {
+              "baseURL": "https://api.lkeap.cloud.tencent.com/plan/v3",
+              "apiKey": ""
+            },
+            "models": {
+              "tc-code-latest": {
+                "name": "Auto"
+              },
+              "deepseek-v4-flash-202605": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true
+              },
+              "minimax-m2.7": {
+                "name": "MiniMax M2.7",
+                "reasoning": true
+              },
+              "glm-5": {
+                "name": "GLM-5",
+                "reasoning": true
+              },
+              "glm-5.1": {
+                "name": "GLM-5.1",
+                "reasoning": true
+              },
+              "glm-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              },
+              "hy3": {
+                "name": "Hy3",
+                "reasoning": true
+              },
+              "hy3-preview": {
+                "name": "Hy3 Preview",
+                "reasoning": true
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "Tencent Token Plan (Intl)",
+          "website": "https://www.tencentcloud.com/products/tokenhub",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Tencent Token Plan (Intl)",
+            "options": {
+              "baseURL": "https://tokenhub-intl.tencentcloudmaas.com/plan/v3",
+              "apiKey": ""
+            },
+            "models": {
+              "auto": {
+                "name": "Auto"
+              },
+              "glm-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              },
+              "kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true
+              },
+              "deepseek-v4-flash-202605": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true
+              },
+              "minimax-m3": {
+                "name": "MiniMax M3",
+                "reasoning": true
+              }
+            }
+          }
+        },
+        {
+          "id": "v3",
+          "name": "Tencent Token Plan Enterprise Pro",
+          "website": "https://cloud.tencent.com/product/tokenhub",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Tencent Token Plan Enterprise Pro",
+            "options": {
+              "baseURL": "https://tokenhub.tencentmaas.com/plan/v3",
+              "apiKey": ""
+            },
+            "models": {
+              "auto": {
+                "name": "Auto"
+              },
+              "glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true
+              },
+              "glm-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              },
+              "glm-5": {
+                "name": "GLM-5",
+                "reasoning": true
+              },
+              "glm-5.1": {
+                "name": "GLM-5.1",
+                "reasoning": true
+              },
+              "glm-5-turbo": {
+                "name": "GLM-5 Turbo",
+                "reasoning": true
+              },
+              "kimi-k2.7-code": {
+                "name": "Kimi K2.7 Code",
+                "reasoning": true
+              },
+              "kimi-k2.7-code-highspeed": {
+                "name": "Kimi K2.7 Code HighSpeed",
+                "reasoning": true
+              },
+              "kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true
+              },
+              "minimax-m3": {
+                "name": "MiniMax M3",
+                "reasoning": true
+              },
+              "deepseek-v4-flash": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true
+              },
+              "deepseek-v4-flash-0731": {
+                "name": "DeepSeek V4 Flash 0731 GA",
+                "reasoning": true
+              },
+              "deepseek-v4-flash-202605": {
+                "name": "DeepSeek V4 Flash Official",
+                "reasoning": true
+              }
+            }
+          }
+        },
+        {
+          "id": "v4",
+          "name": "Tencent Token Plan Enterprise Pro (Intl)",
+          "website": "https://www.tencentcloud.com/products/tokenhub",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Tencent Token Plan Enterprise Pro (Intl)",
+            "options": {
+              "baseURL": "https://tokenhub-intl.tencentcloudmaas.com/plan/v3",
+              "apiKey": ""
+            },
+            "models": {
+              "auto": {
+                "name": "Auto"
+              },
+              "glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true
+              },
+              "glm-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              },
+              "minimax-m3": {
+                "name": "MiniMax M3",
+                "reasoning": true
+              },
+              "kimi-k2.7-code": {
+                "name": "Kimi K2.7 Code",
+                "reasoning": true
+              },
+              "kimi-k2.7-code-highspeed": {
+                "name": "Kimi K2.7 Code HighSpeed",
+                "reasoning": true
+              },
+              "deepseek-v4-flash": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true
+              },
+              "deepseek-v4-flash-0731": {
+                "name": "DeepSeek V4 Flash 0731 GA",
+                "reasoning": true
+              },
+              "deepseek-v4-flash-202605": {
+                "name": "DeepSeek V4 Flash Official",
+                "reasoning": true
+              }
+            }
+          }
+        },
+        {
+          "id": "v5",
+          "name": "Tencent Token Plan Enterprise Lite",
+          "website": "https://cloud.tencent.com/product/tokenhub",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Tencent Token Plan Enterprise Lite",
+            "options": {
+              "baseURL": "https://tokenhub.tencentmaas.com/plan/v3",
+              "apiKey": ""
+            },
+            "models": {
+              "auto": {
+                "name": "Auto"
+              }
+            }
+          }
+        },
+        {
+          "id": "v6",
+          "name": "Tencent Token Plan Enterprise Lite (Intl)",
+          "website": "https://www.tencentcloud.com/products/tokenhub",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Tencent Token Plan Enterprise Lite (Intl)",
+            "options": {
+              "baseURL": "https://tokenhub-intl.tencentcloudmaas.com/plan/v3",
+              "apiKey": ""
+            },
+            "models": {
+              "auto": {
+                "name": "Auto"
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-baidu-qianfan-token-plan",
+      "name": "Baidu Qianfan Token Plan",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Baidu Qianfan Token Plan",
+          "website": "https://cloud.baidu.com/product/codingplan.html",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Baidu Qianfan Token Plan",
+            "options": {
+              "baseURL": "https://qianfan.baidubce.com/v2/tokenplan/personal",
+              "apiKey": ""
+            },
+            "models": {
+              "deepseek-v4-flash": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true
+              },
+              "deepseek-v4-flash-0731": {
+                "name": "DeepSeek V4 Flash 0731",
+                "reasoning": true
+              },
+              "glm-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              },
+              "glm-5.1": {
+                "name": "GLM-5.1",
+                "reasoning": true
+              },
+              "kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-qianwen",
+      "name": "千问AI平台",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "千问AI平台",
+          "website": "https://platform.qianwenai.com/",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "千问AI平台",
+            "options": {
+              "baseURL": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.8-flash": {
+                "name": "Qwen3.8 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "千问AI平台 Token Plan",
+          "website": "https://platform.qianwenai.com/pricing/token-plan",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "千问AI平台 Token Plan",
+            "options": {
+              "baseURL": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.8-flash": {
+                "name": "Qwen3.8 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-qwencloud",
+      "name": "QwenCloud",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "QwenCloud",
+          "website": "https://home.qwencloud.com/",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "QwenCloud",
+            "options": {
+              "baseURL": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.8-flash": {
+                "name": "Qwen3.8 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.7-max": {
+                "name": "Qwen3.7 Max",
+                "reasoning": true
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "QwenCloud For Coding",
+          "website": "https://www.qwencloud.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "QwenCloud For Coding",
+            "options": {
+              "baseURL": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "qwen3.7-plus": {
+                "name": "Qwen3.7 Plus",
+                "reasoning": true
+              },
+              "qwen3.6-plus": {
+                "name": "Qwen3.6 Plus",
+                "reasoning": true
+              },
+              "qwen3-coder-plus": {
+                "name": "Qwen3 Coder Plus"
+              }
+            }
+          }
+        },
+        {
+          "id": "v3",
+          "name": "QwenCloud Token Plan",
+          "website": "https://www.qwencloud.com/pricing/token-plan",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "QwenCloud Token Plan",
+            "options": {
+              "baseURL": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.8-flash": {
+                "name": "Qwen3.8 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 983616,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image",
+                    "video"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "qwen3.7-max": {
+                "name": "Qwen3.7 Max",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-stepfun",
+      "name": "StepFun",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "StepFun",
+          "website": "https://platform.stepfun.com/step-plan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "StepFun",
+            "options": {
+              "baseURL": "https://api.stepfun.com/step_plan/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "step-3.5-flash-2603": {
+                "name": "Step 3.5 Flash 2603",
+                "reasoning": true
+              },
+              "step-3.5-flash": {
+                "name": "Step 3.5 Flash",
+                "reasoning": true
+              },
+              "step-3.7-flash": {
+                "name": "Step 3.7 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 256000,
+                  "output": 256000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "step-5-preview": {
+                "name": "Step 5 Preview",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 64000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "StepFun en",
+          "website": "https://platform.stepfun.ai/step-plan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "StepFun en",
+            "options": {
+              "baseURL": "https://api.stepfun.ai/step_plan/v1",
+              "apiKey": ""
+            },
+            "models": {
+              "step-3.5-flash-2603": {
+                "name": "Step 3.5 Flash 2603",
+                "reasoning": true
+              },
+              "step-3.5-flash": {
+                "name": "Step 3.5 Flash",
+                "reasoning": true
+              },
+              "step-3.7-flash": {
+                "name": "Step 3.7 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 256000,
+                  "output": 256000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "step-5-preview": {
+                "name": "Step 5 Preview",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 64000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-stepfun-step-plan",
+      "name": "StepFun Step Plan",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "StepFun Step Plan",
+          "website": "https://platform.stepfun.com/docs/zh/step-plan/overview",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "StepFun Step Plan",
+            "options": {
+              "baseURL": "https://api.stepfun.com/step_plan/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "step-3.5-flash": {
+                "name": "Step 3.5 Flash",
+                "reasoning": true
+              },
+              "step-3.7-flash": {
+                "name": "Step 3.7 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 256000,
+                  "output": 256000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "step-5-preview": {
+                "name": "Step 5 Preview",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 64000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-modelscope",
+      "name": "ModelScope",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "ModelScope",
+          "website": "https://modelscope.cn",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "ModelScope",
+            "options": {
+              "baseURL": "https://api-inference.modelscope.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "ZhipuAI/GLM-5.2": {
+                "name": "GLM-5.2",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-streamlake",
+      "name": "StreamLake",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "StreamLake",
+          "website": "https://www.streamlake.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "StreamLake",
+            "options": {
+              "baseURL": "https://wanqing.streamlakeapi.com/api/gateway/v1/endpoints",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "kat-coder-pro-v2.5": {
+                "name": "KAT-Coder Pro V2.5",
+                "limit": {
+                  "context": 256000,
+                  "output": 80000
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "StreamLake en",
+          "website": "https://console.streamlake.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "StreamLake en",
+            "options": {
+              "baseURL": "https://vanchin.streamlake.ai/api/gateway/v1/endpoints",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "kat-coder-pro-v2.5": {
+                "name": "KAT-Coder Pro V2.5",
+                "limit": {
+                  "context": 256000,
+                  "output": 80000
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-longcat",
+      "name": "Longcat",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Longcat",
+          "website": "https://longcat.chat/platform",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Longcat",
+            "options": {
+              "baseURL": "https://api.longcat.chat/openai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "LongCat-2.0": {
+                "name": "LongCat 2.0",
+                "options": {
+                  "thinking": {
+                    "type": "disabled"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-minimax",
+      "name": "MiniMax",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "MiniMax",
+          "website": "https://platform.minimax.cn",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "MiniMax",
+            "options": {
+              "baseURL": "https://api.minimax.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "MiniMax-M3.1-Flash": {
+                "name": "MiniMax M3.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                },
+                "variants": {
+                  "none": {
+                    "disabled": true
+                  },
+                  "low": {
+                    "reasoningEffort": "low"
+                  },
+                  "medium": {
+                    "reasoningEffort": "medium"
+                  },
+                  "high": {
+                    "reasoningEffort": "high"
+                  },
+                  "xhigh": {
+                    "reasoningEffort": "xhigh"
+                  },
+                  "max": {
+                    "reasoningEffort": "max"
+                  }
+                }
+              },
+              "MiniMax-M3": {
+                "name": "MiniMax M3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "MiniMax en",
+          "website": "https://platform.minimax.io",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "MiniMax en",
+            "options": {
+              "baseURL": "https://api.minimax.io/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "MiniMax-M3.1-Flash": {
+                "name": "MiniMax M3.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                },
+                "variants": {
+                  "none": {
+                    "disabled": true
+                  },
+                  "low": {
+                    "reasoningEffort": "low"
+                  },
+                  "medium": {
+                    "reasoningEffort": "medium"
+                  },
+                  "high": {
+                    "reasoningEffort": "high"
+                  },
+                  "xhigh": {
+                    "reasoningEffort": "xhigh"
+                  },
+                  "max": {
+                    "reasoningEffort": "max"
+                  }
+                }
+              },
+              "MiniMax-M3": {
+                "name": "MiniMax M3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-bailing",
+      "name": "BaiLing",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "BaiLing",
+          "website": "https://developer.ant-ling.com/zh-CN/docs/",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "BaiLing",
+            "options": {
+              "baseURL": "https://api.ant-ling.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "Ling-2.6-1T": {
+                "name": "Ling 2.6-1T"
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-xiaomi-mimo",
+      "name": "Xiaomi MiMo",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Xiaomi MiMo",
+          "website": "https://platform.xiaomimimo.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Xiaomi MiMo",
+            "options": {
+              "baseURL": "https://api.xiaomimimo.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "mimo-v2.6-pro": {
+                "name": "MiMo V2.6 Pro",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "mimo-v2.6-flash": {
+                "name": "MiMo V2.6 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "mimo-v2.6-pro-ultraspeed": {
+                "name": "MiMo V2.6 Pro UltraSpeed",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "Xiaomi MiMo Token Plan (China)",
+          "website": "https://platform.xiaomimimo.com/",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Xiaomi MiMo Token Plan (China)",
+            "options": {
+              "baseURL": "https://token-plan-cn.xiaomimimo.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "mimo-v2.6-pro": {
+                "name": "MiMo V2.6 Pro",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "mimo-v2.6-flash": {
+                "name": "MiMo V2.6 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    },
+    {
+      "id": "opencode-opencode-go",
+      "name": "OpenCode Go",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "OpenCode Go",
+          "website": "https://opencode.ai/go",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "OpenCode Go",
+            "options": {
+              "baseURL": "https://opencode.ai/zen/go/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "glm-5.3": {
+                "name": "GLM 5.3",
+                "reasoning": true
+              },
+              "glm-5.3-flash": {
+                "name": "GLM 5.3 Flash",
+                "reasoning": true
+              },
+              "kimi-k3.1-pro": {
+                "name": "Kimi K3.1 Pro",
+                "reasoning": true
+              },
+              "deepseek-v4.1-flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true
+              },
+              "mimo-v2.6-pro": {
+                "name": "MiMo V2.6 Pro",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-siliconflow",
+      "name": "SiliconFlow",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "SiliconFlow",
+          "website": "https://siliconflow.cn",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "SiliconFlow",
+            "options": {
+              "baseURL": "https://api.siliconflow.cn/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "deepseek-ai/DeepSeek-V4-Flash": {
+                "name": "DeepSeek V4 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 384000
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "SiliconFlow en",
+          "website": "https://siliconflow.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "SiliconFlow en",
+            "options": {
+              "baseURL": "https://api.siliconflow.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "moonshotai/Kimi-K3": {
+                "name": "Kimi K3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "zai-org/GLM-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "zai-org/GLM-5.3-Flash": {
+                "name": "GLM-5.3 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "MiniMaxAI/MiniMax-M3": {
+                "name": "MiniMax M3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "deepseek-ai/DeepSeek-V4.1-Flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 384000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-aihubmix",
+      "name": "AiHubMix",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AiHubMix",
+          "website": "https://aihubmix.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "AiHubMix",
+            "options": {
+              "baseURL": "https://aihubmix.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-cherryin",
+      "name": "CherryIN",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "CherryIN",
+          "website": "https://open.cherryin.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "CherryIN",
+            "options": {
+              "baseURL": "https://open.cherryin.net/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "anthropic/claude-sonnet-5.5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "anthropic/claude-opus-5.5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true
+              },
+              "anthropic/claude-fable-5.1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-openrouter",
+      "name": "OpenRouter",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "OpenRouter",
+          "website": "https://openrouter.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "OpenRouter",
+            "options": {
+              "baseURL": "https://openrouter.ai/api/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "anthropic/claude-sonnet-5.5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "anthropic/claude-haiku-5.5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "anthropic/claude-opus-5.5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "anthropic/claude-fable-5.1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-therouter",
+      "name": "TheRouter",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "TheRouter",
+          "website": "https://therouter.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "TheRouter",
+            "options": {
+              "baseURL": "https://api.therouter.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "anthropic/claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "anthropic/claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true
+              },
+              "openai/gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true
+              },
+              "openai/gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true
+              },
+              "google/gemini-4-argon": {
+                "name": "Gemini 4 Argon",
+                "reasoning": true
+              },
+              "google/gemini-3.8-flash": {
+                "name": "Gemini 3.8 Flash",
+                "reasoning": true
+              },
+              "qwen/qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-novita-ai",
+      "name": "Novita AI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Novita AI",
+          "website": "https://novita.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Novita AI",
+            "options": {
+              "baseURL": "https://api.novita.ai/openai",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "zai-org/glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "zai-org/glm-5.3-flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "moonshotai/kimi-k3.1-pro": {
+                "name": "Kimi K3.1 Pro",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-nvidia",
+      "name": "Nvidia",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Nvidia",
+          "website": "https://build.nvidia.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Nvidia",
+            "options": {
+              "baseURL": "https://integrate.api.nvidia.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "moonshotai/kimi-k2.6": {
+                "name": "Kimi K2.6",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 262144
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "z-ai/glm-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "z-ai/glm-5.3-flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-pipellm",
+      "name": "PIPELLM",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "PIPELLM",
+          "website": "https://code.pipellm.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "PIPELLM",
+            "options": {
+              "baseURL": "https://cc-api.pipellm.ai",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "claude-opus-5-5",
+                "reasoning": true
+              },
+              "claude-sonnet-5-5": {
+                "name": "claude-sonnet-5-5",
+                "reasoning": true
+              },
+              "claude-haiku-5-5": {
+                "name": "claude-haiku-5-5",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-e-flowcode",
+      "name": "E-FlowCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "E-FlowCode",
+          "website": "https://e-flowcode.cc",
+          "npm": "@ai-sdk/openai",
+          "config": {
+            "npm": "@ai-sdk/openai",
+            "options": {
+              "apiKey": "",
+              "baseURL": "https://e-flowcode.cc/v1"
+            },
+            "models": {
+              "gpt-6.1-sol": {
+                "name": "GPT-6.1 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-sol": {
+                "name": "GPT-6 Sol",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-6-astra": {
+                "name": "GPT-6 Astra",
+                "reasoning": true,
+                "limit": {
+                  "context": 272000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "third_party"
+    },
+    {
+      "id": "opencode-aws-bedrock",
+      "name": "AWS Bedrock",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AWS Bedrock",
+          "website": "https://aws.amazon.com/bedrock/",
+          "npm": "@ai-sdk/amazon-bedrock",
+          "config": {
+            "npm": "@ai-sdk/amazon-bedrock",
+            "name": "AWS Bedrock",
+            "options": {
+              "region": "${region}",
+              "accessKeyId": "${accessKeyId}",
+              "secretAccessKey": "${secretAccessKey}",
+              "setCacheKey": true
+            },
+            "models": {
+              "global.anthropic.claude-opus-5": {
+                "name": "Claude Opus 5",
+                "reasoning": true
+              },
+              "global.anthropic.claude-sonnet-5": {
+                "name": "Claude Sonnet 5",
+                "reasoning": true
+              },
+              "global.anthropic.claude-haiku-4-5-20251001-v1:0": {
+                "name": "Claude Haiku 4.5",
+                "reasoning": true
+              },
+              "us.amazon.nova-pro-v1:0": {
+                "name": "Amazon Nova Pro"
+              },
+              "us.meta.llama4-maverick-17b-instruct-v1:0": {
+                "name": "Meta Llama 4 Maverick"
+              },
+              "us.deepseek.r1-v1:0": {
+                "name": "DeepSeek R1",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "cloud_provider",
+      "skip": "AWS 云身份、区域和签名认证需单独验证"
+    },
+    {
+      "id": "opencode-ollama",
+      "name": "Ollama",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Ollama",
+          "website": "https://ollama.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Ollama",
+            "options": {
+              "baseURL": "http://localhost:11434/v1",
+              "apiKey": "ollama",
+              "setCacheKey": true
+            },
+            "models": {
+              "qwen3.5": {
+                "name": "Qwen3.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 32768
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "gpt-oss:20b": {
+                "name": "GPT-OSS 20B",
+                "reasoning": true,
+                "limit": {
+                  "context": 131072,
+                  "output": 65536
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "local"
+    },
+    {
+      "id": "opencode-llama-cpp",
+      "name": "llama.cpp",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "llama.cpp",
+          "website": "https://github.com/ggml-org/llama.cpp",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "llama.cpp",
+            "options": {
+              "baseURL": "http://127.0.0.1:9931/v1",
+              "apiKey": "no-key",
+              "setCacheKey": true
+            },
+            "models": {
+              "ggml-org/Qwen3-Coder-30B-A3B-Instruct-Q8_0-GGUF": {
+                "name": "Qwen3-Coder 30B A3B",
+                "limit": {
+                  "context": 262144,
+                  "output": 65536
+                },
+                "modalities": {
+                  "input": [
+                    "text"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "local"
+    },
+    {
+      "id": "opencode-vllm",
+      "name": "vLLM",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "vLLM",
+          "website": "https://vllm.ai",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "vLLM",
+            "options": {
+              "baseURL": "http://localhost:8000/v1",
+              "apiKey": "dummy",
+              "setCacheKey": true
+            },
+            "models": {
+              "Qwen/Qwen3.6-27B": {
+                "name": "Qwen3.6 27B",
+                "reasoning": true,
+                "limit": {
+                  "context": 262144,
+                  "output": 32768
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "local"
+    },
+    {
+      "id": "opencode-oh-my-opencode",
+      "name": "Oh My OpenCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Oh My OpenCode",
+          "website": "https://github.com/code-yeongyu/oh-my-openagent",
+          "npm": "",
+          "config": {
+            "npm": "",
+            "options": {},
+            "models": {}
+          }
+        }
+      ],
+      "category": "omo",
+      "skip": "插件预设，不是独立模型供应商"
+    },
+    {
+      "id": "opencode-oh-my-opencode-slim",
+      "name": "Oh My OpenCode Slim",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Oh My OpenCode Slim",
+          "website": "https://github.com/alvinunreal/oh-my-opencode-slim",
+          "npm": "",
+          "config": {
+            "npm": "",
+            "options": {},
+            "models": {}
+          }
+        }
+      ],
+      "category": "omo-slim",
+      "skip": "插件预设，不是独立模型供应商"
+    },
+    {
+      "id": "opencode-jiekou-ai",
+      "name": "JieKou AI",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "JieKou AI",
+          "website": "https://jiekou.ai/",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "JieKou AI",
+            "options": {
+              "baseURL": "https://api.jiekou.ai/openai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-aicodewith",
+      "name": "AICodeWith",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AICodeWith",
+          "website": "https://aicodewith.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "AICodeWith",
+            "options": {
+              "baseURL": "https://api.aicodewith.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-moark",
+      "name": "模力方舟",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "模力方舟",
+          "website": "https://moark.com",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "模力方舟",
+            "options": {
+              "baseURL": "https://api.moark.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "deepseek-v4.1-flash": {
+                "name": "DeepSeek V4.1 Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 384000
+                }
+              },
+              "GLM-5.3": {
+                "name": "GLM-5.3",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                }
+              },
+              "GLM-5.3-Flash": {
+                "name": "GLM-5.3-Flash",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                }
+              },
+              "kimi-k3.1-pro": {
+                "name": "Kimi K3.1 Pro",
+                "reasoning": true,
+                "limit": {
+                  "context": 1048576,
+                  "output": 131072
+                }
+              },
+              "qwen3.8-max": {
+                "name": "Qwen3.8 Max",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 65536
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-soruxgpt",
+      "name": "SoruxGPT",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "SoruxGPT",
+          "website": "https://ai.soruxgpt.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "SoruxGPT",
+            "options": {
+              "baseURL": "https://ai.soruxgpt.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-ikuncode",
+      "name": "IKunCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "IKunCode",
+          "website": "https://api.ikuncode.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "IKunCode",
+            "options": {
+              "baseURL": "https://api.ikuncode.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-runtoken",
+      "name": "RunToken",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "RunToken",
+          "website": "https://www.runtoken.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "RunToken",
+            "options": {
+              "baseURL": "https://www.runtoken.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-botcf",
+      "name": "BotCF",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "BotCF",
+          "website": "https://botcf.com",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "BotCF",
+            "options": {
+              "baseURL": "https://botcf.com/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-yylx",
+      "name": "YYLX",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "YYLX",
+          "website": "https://yylx.io",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "YYLX",
+            "options": {
+              "baseURL": "https://app.yylx.io/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-tokenflux",
+      "name": "TokenFlux",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "TokenFlux",
+          "website": "https://tokenflux.dev",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "TokenFlux",
+            "options": {
+              "baseURL": "https://tokenflux.dev/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-nekocode",
+      "name": "NekoCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "NekoCode",
+          "website": "https://nekoapi.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "NekoCode",
+            "options": {
+              "baseURL": "https://nekoapi.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true,
+              "headers": {
+                "User-Agent": "claude-cli/2.1.161 (external, cli)"
+              }
+            },
+            "models": {
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    },
+    {
+      "id": "opencode-aicoming",
+      "name": "AIComing",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "AIComing",
+          "website": "https://aicoming.top",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "AIComing",
+            "options": {
+              "baseURL": "https://api.aicoming.top/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    }
+  ],
+  "license_text": "MIT License\n\nCopyright (c) 2025 Jason Young\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE."
+}

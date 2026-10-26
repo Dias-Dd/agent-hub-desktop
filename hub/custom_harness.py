@@ -43,6 +43,8 @@ def discover(directory):
     exe=which(argv[0]) or str((path.parent/argv[0]).resolve())
     if not Path(exe).is_file():raise ValueError('找不到启动程序：'+argv[0])
     argv[0]=exe
+   from .module_config import schema
+   schema(data)
    models=data.get('models',[]);caps=data.get('capabilities',{})
    if not isinstance(caps,dict) or any(k not in ('tools','resume','streaming') or type(v)!=bool for k,v in caps.items()):raise ValueError('capabilities 仅支持 tools/resume/streaming 布尔值')
    if not isinstance(models,list) or (not models and protocol=='hub-jsonl-v1'):raise ValueError('至少声明一个模型，Python 模块也可通过 probe 返回目录')

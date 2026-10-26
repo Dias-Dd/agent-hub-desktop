@@ -29,7 +29,7 @@ def execute(self,run):
     if kind=='tool_call':
      parts.clear();self.public_reply(run,'',replace=True,phase='正在使用工具：'+str(value.get('title') or '项目工具'))
     self.record(run['id'],'integration.tool',{k:value[k] for k in ('toolCallId','title','status') if k in value})
-  env=inherit_system_proxy(dict(os.environ));env.update(self.run_environment(run))
+  env=self.provider_environment() if callable(getattr(self,'provider_environment',None)) else inherit_system_proxy(dict(os.environ));env.update(self.run_environment(run))
   client=ACP(command(argv),session_cwd,env,update,not readonly);self.track_client(run,client)
   self_guard=lambda:self.guard(run)
   info=client.request('initialize',{'protocolVersion':1,'clientCapabilities':{},'clientInfo':{'name':'agent-message-hub','version':'0.3'}},self_guard)

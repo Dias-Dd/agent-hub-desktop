@@ -63,7 +63,12 @@ class UnifiedModules(unittest.TestCase):
     payload=json.loads(self.rfile.read(int(self.headers['Content-Length'])));calls.append(payload)
     if len(calls)==1:message={'role':'assistant','content':None,'tool_calls':[{'id':'read-1','type':'function','function':{'name':'read_file','arguments':json.dumps({'path':'probe.txt'})}}]}
     else:message={'role':'assistant','content':'LOCAL MODULE OK'}
-    self.send({'choices':[{'message':message}],'usage':{'total_tokens':1}})
+    self.send_response(200);self.send_header('Content-Type','text/event-stream');self.send_header('Connection','close');self.end_headers()
+    delta={'role':'assistant','content':message.get('content')}
+    if message.get('tool_calls'):delta['tool_calls']=[{**t,'index':i} for i,t in enumerate(message['tool_calls'])]
+    chunks=[{'id':'fixture','choices':[{'index':0,'delta':delta,'finish_reason':None}]},{'id':'fixture','choices':[{'index':0,'delta':{},'finish_reason':'tool_calls' if message.get('tool_calls') else 'stop'}]}]
+    for chunk in chunks:self.wfile.write(('data: '+json.dumps(chunk)+'\n\n').encode())
+    self.wfile.write(b'data: [DONE]\n\n')
   server=ThreadingHTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
   try:
    source=self.h.directory/'adapters/builtin/openrouter-api';folder=self.h.directory/'adapters/custom/copied-api';shutil.copytree(source,folder)
@@ -75,7 +80,7 @@ class UnifiedModules(unittest.TestCase):
     self.assertTrue(any(m.get('role')=='tool' and 'TOOL RESULT FROM HOST' in m.get('content','') for m in calls[1]['messages']))
     two=self.turn(rt,a,'second request');self.assertEqual(two['status'],'completed',two['result'])
     self.assertTrue(any(m.get('content')=='LOCAL MODULE OK' for m in calls[-1]['messages']))
-    self.assertEqual(calls[-1]['messages'][-1]['content'],'second request')
+    self.assertIn('second request',str(calls[-1]['messages'][-1]['content']))
     self.assertTrue(Path(load(folder)[0].__file__).resolve().is_relative_to(folder.resolve()))
   finally:server.shutdown();server.server_close();thread.join()
  def test_old_application_files_have_no_provider_implementation(self):

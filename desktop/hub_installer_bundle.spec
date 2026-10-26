@@ -7,7 +7,8 @@ sys.path.insert(0,str(root))
 from desktop.native_webview import find_loader
 loader=find_loader()
 if not loader:raise RuntimeError('WebView2Loader.dll missing')
-modules=[(str(p),str(p.parent.relative_to(root))) for p in (root/'hub/builtin_adapters').rglob('*') if p.is_file() and p.suffix in ('.py','.json')]
+from desktop.adapter_assets import collect
+modules=collect(root)
 assets=modules+[(str(root/'hub/adapter_examples'),'hub/adapter_examples'),(str(root/'hub/static'),'hub/static'),(str(root/'hub/mcp.py'),'hub'),(str(root/'desktop/app.ico'),'desktop')]
 assets += [(str(root/'tools'/name),'tools') for name in ('HubDesktopAgent.ps1','Configure-HubVmUnattended.ps1','Start-HubVmBridge.ps1')]
 a=Analysis([str(root/'desktop/launch_installed.py')],pathex=[str(root)],binaries=[(loader,'desktop')],datas=assets,hiddenimports=collect_submodules('hub')+collect_submodules('desktop'),excludes=['tests','PySide6','PyQt5','webview'])

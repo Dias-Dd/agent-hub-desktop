@@ -231,13 +231,17 @@ class Integrations:
 
  def snapshot(self):
   self.scan_adapters()
-  connections=[]
+  connections=[];executables={}
   for c in self.rows('integration_connections'):
    if c['kind'] not in KINDS:continue
+   if c['kind'] in ('deepseek-api','openrouter-api','gemini-api') and not c.get('enabled') and not any(a['connection_id']==c['id'] for a in self.rows('agent_profiles')):continue
    if c.get('legacy') and not getattr(self.hub,'seed_defaults',True) and not any(a['enabled'] and a['connection_id']==c['id'] for a in self.rows('agent_profiles')):continue
    if c.get('legacy'):c['enabled']=self.server.deepseek.config()['enabled']
-   api=c['kind'] in BASES;exe=locate(c['kind'],c.get('executable',''))
-   connections.append({**c,'installed':True if api else bool(exe),'resolved_executable':exe,'key_present':bool(os.environ.get(c.get('key_env') or BASES.get(c['kind'],('',''))[1])) if api else None,'verification':c.get('verification','未验证真实模型调用'),'effort_options':KINDS[c['kind']][1]})
+   manifest=_BUILTINS.get(c['kind'],{}) if not c.get('adapter') else c['adapter'].get('manifest_data',{})
+   api=c['kind'] in BASES;launcher=(manifest.get('provider',c['kind']),c.get('executable',''))
+   if launcher not in executables:executables[launcher]=locate(c['kind'],c.get('executable',''))
+   exe=executables[launcher]
+   connections.append({**c,'module_configuration':manifest.get('configuration'),'installed':True if api or c['kind']=='pi-api' else bool(exe),'resolved_executable':exe,'key_present':bool(os.environ.get(c.get('key_env') or BASES.get(c['kind'],('',''))[1])) if api else None,'verification':c.get('verification','未验证真实模型调用'),'effort_options':KINDS[c['kind']][1]})
   profiles=self.rows('agent_profiles');by_connection={c['id']:c for c in connections}
   from .quota_state import status as quota_status
   from .model_availability import status as model_status
@@ -341,7 +345,7 @@ class Integrations:
    if not Path(cwd).is_absolute() or not Path(cwd).is_dir():raise HubError('请选择已存在的绝对工作目录')
    permission=connection.get('permission','workspace')
    if permission not in ('workspace','full'):raise HubError('权限无效')
-   if enabled and kind in ('antigravity','opencode','ori','workbuddy','custom-harness') and permission!='full':raise HubError('此适配器尚未验证工作区沙箱；启用执行需要明确选择完全访问')
+   if enabled and (kind in ('antigravity','opencode','ori','workbuddy','custom-harness','claude-code') or _BUILTINS.get(kind,{}).get('provider')=='opencode') and permission!='full':raise HubError('此适配器尚未验证工作区沙箱；启用执行需要明确选择完全访问')
    env=connection.get('key_env') or BASES.get(kind,('',''))[1]
    if env and not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*',env):raise HubError('请输入密钥的环境变量名，不是密钥本身')
    limit=0 if kind in ('deepseek-harness','deepseek-api') else connection.get('call_limit',1000)
@@ -456,7 +460,7 @@ class Integrations:
    if confirmed and c.get('legacy') and not self.server.deepseek.config()['enabled']:raise HubError('请先在配置中心完成DeepSeek 接入，也可不勾选启用，先添加离线 Agent')
    if confirmed and not c.get('enabled'):
     if c.get('legacy'):raise HubError('请先在配置中心完成DeepSeek 接入')
-    if c['kind'] not in BASES and not locate(c['kind'],c.get('executable','')):raise HubError('工具尚未安装，可以不勾选启用，先添加离线 Agent')
+    if c['kind'] not in BASES and c['kind']!='pi-api' and not locate(c['kind'],c.get('executable','')):raise HubError('工具尚未安装，可以不勾选启用，先添加离线 Agent')
     proof={k:c[k] for k in ('probed_at','verification','probe_detail','official_windows') if k in c}
     c=self.save_connection(actor,{**c,'enabled':True},True);c.update(proof)
     with self.hub.tx():self.put('integration_connections',c)
@@ -488,6 +492,33 @@ class Integrations:
  def probe_model(self,actor,connection_id,model):
   from .harness_adapters import model_options_module
   return model_options_module(self,actor,connection_id,model)
+ def connection_setup(self,actor,connection_id,operation='status'):
+  self.hub.require(actor,{'user'})
+  from .harness_adapters import _module_folder
+  from .module_loader import load
+  connection=self.get('integration_connections',connection_id)
+  module,manifest=load(_module_folder(self,connection))
+  if operation=='website':
+   from urllib.parse import urlsplit
+   import webbrowser
+   url=manifest.get('setup',{}).get('website','');parsed=urlsplit(url)
+   if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password:raise HubError('模块未提供有效的 HTTPS 官网链接')
+   webbrowser.open(url);return {'opened':True}
+  if operation not in ('status','login'):raise HubError('未知接入配置操作')
+  hook=getattr(module,'setup_status' if operation=='status' else 'setup_login',None)
+  if not callable(hook):raise HubError('此模块没有提供对应的登录配置接口')
+  value=hook(self,dict(connection))
+  if operation=='login':return {'opened':True}
+  if not isinstance(value,dict) or value.get('state') not in ('ready','login','unknown','missing'):raise HubError('模块未返回有效登录状态')
+  return value
+ def module_configure(self,actor,connection_id,config=None):
+  self.hub.require(actor,{'user'})
+  from .harness_adapters import _module_folder
+  from .module_loader import load
+  connection=self.get('integration_connections',connection_id)
+  module,manifest=load(_module_folder(self,connection));hook=getattr(module,'configure',None)
+  from .module_config import configure
+  return configure(self,dict(connection),manifest,hook,config)
  def test_all(self,actor,confirmed=False,agent_id=None):return self.connection_tests.start(actor,confirmed,agent_id)
  def start(self):
   self.running=True

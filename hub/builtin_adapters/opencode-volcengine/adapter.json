@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "id": "opencode-volcengine",
+  "name": "OpenCode【火山引擎】",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "provider": "opencode",
+  "efforts": [
+    "default"
+  ],
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "quota_supported": false,
+  "configuration": {
+    "version": 1,
+    "id": "opencode-provider-v1",
+    "title": "供应商配置",
+    "fields": [
+      {
+        "name": "variant",
+        "type": "select",
+        "label": "地区 / 套餐",
+        "default": "v1",
+        "options": [
+          {
+            "value": "v1",
+            "label": "火山 Agent Plan",
+            "defaults": {
+              "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+              "models": []
+            }
+          },
+          {
+            "value": "v2",
+            "label": "火山 Coding Plan",
+            "defaults": {
+              "base_url": "https://ark.cn-beijing.volces.com/api/coding/v3",
+              "models": []
+            }
+          },
+          {
+            "value": "v3",
+            "label": "Volcengine Doubao",
+            "defaults": {
+              "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+              "models": []
+            }
+          }
+        ]
+      },
+      {
+        "name": "base_url",
+        "type": "url",
+        "label": "服务地址",
+        "default": "https://ark.cn-beijing.volces.com/api/plan/v3"
+      },
+      {
+        "name": "api_key",
+        "type": "secret",
+        "label": "API Key",
+        "placeholder": "留空保留已保存密钥"
+      },
+      {
+        "name": "key_env",
+        "type": "text",
+        "label": "或使用密钥环境变量"
+      },
+      {
+        "name": "models",
+        "type": "string_list",
+        "label": "模型 ID（可选，逗号分隔；留空使用预设）"
+      }
+    ]
+  },
+  "setup": {
+    "website": "https://opencode.ai/",
+    "note": "独立 OpenCode 供应商配置；在主程序添加 Agent 界面填写本供应商凭据，不复用原版账号。首次引导可先跳过。"
+  },
+  "settings": {
+    "opencode_preset": {
+      "id": "opencode-volcengine",
+      "name": "火山引擎",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "火山 Agent Plan",
+          "website": "https://www.volcengine.com/activity/agentplan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "火山 Agent Plan",
+            "options": {
+              "baseURL": "https://ark.cn-beijing.volces.com/api/plan/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "ark-code-latest": {
+                "name": "Ark Code Latest"
+              }
+            }
+          }
+        },
+        {
+          "id": "v2",
+          "name": "火山 Coding Plan",
+          "website": "https://www.volcengine.com/activity/codingplan",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "火山 Coding Plan",
+            "options": {
+              "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "ark-code-latest": {
+                "name": "Ark Code Latest"
+              }
+            }
+          }
+        },
+        {
+          "id": "v3",
+          "name": "Volcengine Doubao",
+          "website": "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
+          "npm": "@ai-sdk/openai-compatible",
+          "config": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Volcengine Doubao",
+            "options": {
+              "baseURL": "https://ark.cn-beijing.volces.com/api/v3",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "doubao-seed-2-1-pro-260915": {
+                "name": "Doubao Seed 2.1 Pro",
+                "reasoning": true
+              }
+            }
+          }
+        }
+      ],
+      "category": "cn_official"
+    }
+  },
+  "source": {
+    "repository": "https://github.com/farion1231/cc-switch",
+    "commit": "88c878ac9da1d89ec1b512f87b52f3641dd30e3c",
+    "license": "MIT"
+  }
+}

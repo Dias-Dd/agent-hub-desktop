@@ -8,7 +8,8 @@ from desktop.native_webview import find_loader
 loader = find_loader()
 if not loader:
     raise RuntimeError('A local WebView2Loader.dll is required for the native desktop build')
-adapter_data=[(str(p),str(p.parent.relative_to(root))) for p in (root/'hub/builtin_adapters').rglob('*') if p.is_file() and p.suffix in ('.py','.json')]
+from desktop.adapter_assets import collect
+adapter_data=collect(root)
 a = Analysis([str(root / 'desktop' / 'launch_desktop.py')], pathex=[str(root)],
              binaries=[(loader, 'desktop')],
              datas=adapter_data + [(str(root / 'hub' / 'adapter_examples'), 'hub/adapter_examples'), (str(root / 'tools' / 'HubDesktopAgent.ps1'), 'tools'), (str(root / 'tools' / 'Configure-HubVmUnattended.ps1'), 'tools'), (str(root / 'tools' / 'Start-HubVmBridge.ps1'), 'tools'), (str(root / 'desktop' / 'app.ico'), 'desktop'), (str(root / 'hub' / 'static'), 'hub/static'), (str(root / 'hub' / 'mcp.py'), 'hub')],

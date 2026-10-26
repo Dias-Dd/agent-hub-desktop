@@ -1,0 +1,616 @@
+{
+  "source_commit": "88c878ac9da1d89ec1b512f87b52f3641dd30e3c",
+  "total": 87,
+  "generated": 84,
+  "providers": [
+    {
+      "id": "opencode-kimi",
+      "name": "Kimi",
+      "variants": 4,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-packycode",
+      "name": "PackyCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-apinebula",
+      "name": "APINebula",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aicodemirror",
+      "name": "AICodeMirror",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-hao-ai",
+      "name": "hao.ai",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-fennoai",
+      "name": "FennoAI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-runapi",
+      "name": "RunAPI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-openmodel",
+      "name": "OpenModel",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-grooroute-pro",
+      "name": "GrooRoute Pro",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-dit-ai",
+      "name": "DIT.ai",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-buytoken",
+      "name": "BuyToken",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-v-api",
+      "name": "V-API",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-tokenfactory",
+      "name": "TokenFactory",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-fluxa-token-plan",
+      "name": "FluxA Token Plan",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aigocode",
+      "name": "AIGoCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-qiniu",
+      "name": "Qiniu",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aicoding",
+      "name": "AICoding",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-subrouter",
+      "name": "SubRouter",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-shengsuanyun",
+      "name": "Shengsuanyun",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-88api",
+      "name": "88API",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-apikey-fun",
+      "name": "APIKEY.FUN",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-9527code",
+      "name": "9527CODE",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-code0",
+      "name": "Code0",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-teamorouter",
+      "name": "TeamoRouter",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-ppio",
+      "name": "PPIO",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-claudecn",
+      "name": "ClaudeCN",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-volcengine",
+      "name": "火山引擎",
+      "variants": 3,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-byteplus",
+      "name": "BytePlus",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-a6api",
+      "name": "A6API",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-ccsub",
+      "name": "CCSub",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-sssaicode",
+      "name": "SSSAiCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-soleapi",
+      "name": "SoleAPI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-micu",
+      "name": "Micu",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-rightcode",
+      "name": "RightCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-cubence",
+      "name": "Cubence",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-crazyrouter",
+      "name": "CrazyRouter",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-dmxapi",
+      "name": "DMXAPI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-sudocode",
+      "name": "SudoCode",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-xycai",
+      "name": "XycAi",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-modelflare",
+      "name": "Modelflare",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-alltokens",
+      "name": "AllTokens",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-alltokens-si",
+      "name": "AllTokens SI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-tu-zi",
+      "name": "Tu-zi",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-amux",
+      "name": "Amux",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-atlascloud",
+      "name": "AtlasCloud",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-soshow",
+      "name": "Soshow",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-deepseek",
+      "name": "DeepSeek",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-zhipu",
+      "name": "智谱 GLM",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-tencent",
+      "name": "腾讯云",
+      "variants": 6,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-baidu-qianfan-token-plan",
+      "name": "Baidu Qianfan Token Plan",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-qianwen",
+      "name": "千问AI平台",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-qwencloud",
+      "name": "QwenCloud",
+      "variants": 3,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-stepfun",
+      "name": "StepFun",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-stepfun-step-plan",
+      "name": "StepFun Step Plan",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-modelscope",
+      "name": "ModelScope",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-streamlake",
+      "name": "StreamLake",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-longcat",
+      "name": "Longcat",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-minimax",
+      "name": "MiniMax",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-bailing",
+      "name": "BaiLing",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-xiaomi-mimo",
+      "name": "Xiaomi MiMo",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-opencode-go",
+      "name": "OpenCode Go",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-siliconflow",
+      "name": "SiliconFlow",
+      "variants": 2,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aihubmix",
+      "name": "AiHubMix",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-cherryin",
+      "name": "CherryIN",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-openrouter",
+      "name": "OpenRouter",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-therouter",
+      "name": "TheRouter",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-novita-ai",
+      "name": "Novita AI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-nvidia",
+      "name": "Nvidia",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-pipellm",
+      "name": "PIPELLM",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-e-flowcode",
+      "name": "E-FlowCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aws-bedrock",
+      "name": "AWS Bedrock",
+      "variants": 1,
+      "status": "skipped",
+      "reason": "AWS 云身份、区域和签名认证需单独验证"
+    },
+    {
+      "id": "opencode-ollama",
+      "name": "Ollama",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-llama-cpp",
+      "name": "llama.cpp",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-vllm",
+      "name": "vLLM",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-oh-my-opencode",
+      "name": "Oh My OpenCode",
+      "variants": 1,
+      "status": "skipped",
+      "reason": "插件预设，不是独立模型供应商"
+    },
+    {
+      "id": "opencode-oh-my-opencode-slim",
+      "name": "Oh My OpenCode Slim",
+      "variants": 1,
+      "status": "skipped",
+      "reason": "插件预设，不是独立模型供应商"
+    },
+    {
+      "id": "opencode-jiekou-ai",
+      "name": "JieKou AI",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aicodewith",
+      "name": "AICodeWith",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-moark",
+      "name": "模力方舟",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-soruxgpt",
+      "name": "SoruxGPT",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-ikuncode",
+      "name": "IKunCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-runtoken",
+      "name": "RunToken",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-botcf",
+      "name": "BotCF",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-yylx",
+      "name": "YYLX",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-tokenflux",
+      "name": "TokenFlux",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-nekocode",
+      "name": "NekoCode",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    },
+    {
+      "id": "opencode-aicoming",
+      "name": "AIComing",
+      "variants": 1,
+      "status": "generated",
+      "reason": ""
+    }
+  ]
+}

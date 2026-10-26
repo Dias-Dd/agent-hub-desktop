@@ -3,6 +3,10 @@ from hub.cli_paths import which
 from pathlib import Path
 from hub.core import HubError
 def locate(kind,supplied=''):
+ if kind.startswith('opencode-'):kind='opencode'
+ if kind=='claude-code':
+  from importlib import import_module
+  return import_module('hub.builtin_adapters.claude-code.config').executable(supplied)
  from hub.codex_runtime import codex_executable
  from hub.antigravity import executable as agy_executable
  if kind=='deepseek-harness':

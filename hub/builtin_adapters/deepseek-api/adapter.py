@@ -1,11 +1,6 @@
-from hub.module_sdk import runtime_view
-from .runtime import DeepSeekRuntime
-from .compatible import CompatibleAPI
-
 def execute(host, run):
-    runtime=runtime_view(host,DeepSeekRuntime,provider='deepseek-api')
-    if hasattr(runtime,'connection'):runtime.api=CompatibleAPI(runtime.connection())
-    return runtime._execute_native(run)
+    from importlib import import_module
+    return import_module('hub.builtin_adapters.pi-api.runtime').execute(host,run)
 
 
 def probe(registry, connection):

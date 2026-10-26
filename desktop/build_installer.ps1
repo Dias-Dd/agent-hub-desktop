@@ -15,6 +15,8 @@ if ($compilerSignature.Status -ne 'Valid' -or $compilerSignature.SignerCertifica
 }
 Push-Location $taskRoot
 try {
+    & $Python tools/prepare_pi.py
+    if ($LASTEXITCODE -ne 0) { throw 'Pi runtime preparation failed.' }
     & $Python -m PyInstaller --noconfirm --distpath desktop/installer-bundle-dist --workpath desktop/installer-bundle-build desktop/hub_installer_bundle.spec
     if ($LASTEXITCODE -ne 0) { throw 'Application build failed.' }
     $payload = Join-Path $PSScriptRoot 'installer-bundle-dist/AgentHub'

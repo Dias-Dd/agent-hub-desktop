@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "id": "opencode-ikuncode",
+  "name": "OpenCode【IKunCode】",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "provider": "opencode",
+  "efforts": [
+    "default"
+  ],
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "quota_supported": false,
+  "configuration": {
+    "version": 1,
+    "id": "opencode-provider-v1",
+    "title": "供应商配置",
+    "fields": [
+      {
+        "name": "variant",
+        "type": "select",
+        "label": "地区 / 套餐",
+        "default": "v1",
+        "options": [
+          {
+            "value": "v1",
+            "label": "IKunCode",
+            "defaults": {
+              "base_url": "https://api.ikuncode.ai/v1",
+              "models": []
+            }
+          }
+        ]
+      },
+      {
+        "name": "base_url",
+        "type": "url",
+        "label": "服务地址",
+        "default": "https://api.ikuncode.ai/v1"
+      },
+      {
+        "name": "api_key",
+        "type": "secret",
+        "label": "API Key",
+        "placeholder": "留空保留已保存密钥"
+      },
+      {
+        "name": "key_env",
+        "type": "text",
+        "label": "或使用密钥环境变量"
+      },
+      {
+        "name": "models",
+        "type": "string_list",
+        "label": "模型 ID（可选，逗号分隔；留空使用预设）"
+      }
+    ]
+  },
+  "setup": {
+    "website": "https://opencode.ai/",
+    "note": "独立 OpenCode 供应商配置；在主程序添加 Agent 界面填写本供应商凭据，不复用原版账号。首次引导可先跳过。"
+  },
+  "settings": {
+    "opencode_preset": {
+      "id": "opencode-ikuncode",
+      "name": "IKunCode",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "IKunCode",
+          "website": "https://api.ikuncode.ai",
+          "npm": "@ai-sdk/anthropic",
+          "config": {
+            "npm": "@ai-sdk/anthropic",
+            "name": "IKunCode",
+            "options": {
+              "baseURL": "https://api.ikuncode.ai/v1",
+              "apiKey": "",
+              "setCacheKey": true
+            },
+            "models": {
+              "claude-fable-5-1": {
+                "name": "Claude Fable 5.1",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-opus-5-5": {
+                "name": "Claude Opus 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-sonnet-5-5": {
+                "name": "Claude Sonnet 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              },
+              "claude-haiku-5-5": {
+                "name": "Claude Haiku 5.5",
+                "reasoning": true,
+                "limit": {
+                  "context": 1000000,
+                  "output": 128000
+                },
+                "modalities": {
+                  "input": [
+                    "text",
+                    "image"
+                  ],
+                  "output": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "category": "aggregator"
+    }
+  },
+  "source": {
+    "repository": "https://github.com/farion1231/cc-switch",
+    "commit": "88c878ac9da1d89ec1b512f87b52f3641dd30e3c",
+    "license": "MIT"
+  }
+}

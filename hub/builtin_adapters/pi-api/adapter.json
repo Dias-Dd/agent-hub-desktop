@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "id": "pi-api",
+  "name": "自定义 API 与内置执行器（Pi）",
+  "protocol": "hub-module-v1",
+  "entrypoint": "adapter.py",
+  "provider": "pi-api",
+  "efforts": [
+    "default"
+  ],
+  "capabilities": {
+    "tools": true,
+    "resume": true,
+    "streaming": true
+  },
+  "quota_supported": false,
+  "configuration": {
+    "version": 1,
+    "title": "API 与 Pi 执行器",
+    "fields": [
+      {
+        "name": "preset",
+        "type": "select",
+        "label": "服务商预设",
+        "default": "custom",
+        "options": [
+          {
+            "value": "custom",
+            "label": "自定义 API",
+            "defaults": {
+              "protocol": "openai-completions",
+              "base_url": "https://api.example.com/v1",
+              "models": [],
+              "key_env": ""
+            }
+          },
+          {
+            "value": "deepseek",
+            "label": "DeepSeek",
+            "defaults": {
+              "protocol": "openai-completions",
+              "base_url": "https://api.deepseek.com/v1",
+              "models": [
+                "deepseek-flash",
+                "deepseek-pro"
+              ],
+              "key_env": ""
+            }
+          },
+          {
+            "value": "openrouter",
+            "label": "OpenRouter",
+            "defaults": {
+              "protocol": "openai-completions",
+              "base_url": "https://openrouter.ai/api/v1",
+              "models": [],
+              "key_env": ""
+            }
+          },
+          {
+            "value": "gemini",
+            "label": "Google Gemini",
+            "defaults": {
+              "protocol": "google-generative-ai",
+              "base_url": "https://generativelanguage.googleapis.com/v1beta",
+              "models": [
+                "gemini-2.5-flash",
+                "gemini-2.5-pro"
+              ],
+              "key_env": ""
+            }
+          }
+        ]
+      },
+      {
+        "name": "protocol",
+        "type": "select",
+        "label": "API 协议",
+        "default": "openai-completions",
+        "options": [
+          {
+            "value": "openai-completions",
+            "label": "OpenAI Chat Completions 兼容"
+          },
+          {
+            "value": "openai-responses",
+            "label": "OpenAI Responses"
+          },
+          {
+            "value": "anthropic-messages",
+            "label": "Anthropic Messages"
+          },
+          {
+            "value": "google-generative-ai",
+            "label": "Google Gemini"
+          }
+        ]
+      },
+      {
+        "name": "base_url",
+        "type": "url",
+        "label": "服务地址",
+        "required": true,
+        "default": "https://api.example.com/v1"
+      },
+      {
+        "name": "api_key",
+        "type": "secret",
+        "label": "API Key",
+        "placeholder": "留空保留已保存密钥"
+      },
+      {
+        "name": "key_env",
+        "type": "text",
+        "label": "或使用密钥环境变量"
+      },
+      {
+        "name": "models",
+        "type": "string_list",
+        "label": "模型 ID（逗号分隔，留空尝试读取目录）"
+      },
+      {
+        "name": "context_window",
+        "type": "integer",
+        "label": "上下文窗口（token）",
+        "default": 128000,
+        "min": 1024,
+        "max": 2000000
+      },
+      {
+        "name": "max_tokens",
+        "type": "integer",
+        "label": "单次最大输出（token）",
+        "default": 8192,
+        "min": 32,
+        "max": 200000
+      }
+    ]
+  },
+  "setup": {
+    "website": "https://github.com/earendil-works/pi",
+    "note": "API 使用内置 Pi；只在执行任务时启动，不影响其它 Harness。"
+  }
+}
