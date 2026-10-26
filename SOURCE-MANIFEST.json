@@ -35,7 +35,7 @@
     "desktop/hub_installer_bundle.spec": "9b4a82535e62467e49654b724904d521f7e936661bbdbef05c9e852625eb4c54",
     "desktop/hub_macos.spec": "ac4619550efdb99e75fb951446cd63f897b3a371f9f27afa460d653361aa5e53",
     "desktop/installer-tools/MicrosoftEdgeWebview2Setup.exe": "f414de01c4680f0bb0694d1ea7803c6968f3a81bf6bad01b89bfc65dce14c2a2",
-    "desktop/launch_desktop.py": "79edb4b5d4c26f0bd7b545b560a00d618f207f3915225c263f8d19498f1cf34e",
+    "desktop/launch_desktop.py": "cc391431b0950d24119ba2782f163f82a5946d66b9d2cd8c75677845eacad393",
     "desktop/launch_installed.py": "0cca84d0b27ff1a07b4319c39ce96818db9221a82fa3371a64446c4304c3cd15",
     "desktop/localization.py": "0d15dd06e2cec6f02d1b67db11c4fdd4ca1d752fec416552f5bbe4519fe37cea",
     "desktop/macos_notifications.py": "89304a50daefa0ecc2aa6498fceb0effe76d993a1d2383df03d9cbe4d3fbb25c",

@@ -196,7 +196,7 @@ def check_static_assets(port):
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     paths = ('/i18n.js','/i18n.json','/popup.html','/popup.js','/windows.js','/windows.css','/', '/style.css', '/api-client.js', '/state-store.js', '/app.js',
              '/workflow.js', '/deepseek.js', '/codex.js', '/antigravity.js', '/setup.js', '/vm-ui.js','/startup.js')
-    expected = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+    expected = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
     for path in paths:
         with opener.open(f'http://127.0.0.1:{port}{path}', timeout=3) as response:
             if response.status != 200 or response.headers.get('Content-Security-Policy') != expected or not response.read():
