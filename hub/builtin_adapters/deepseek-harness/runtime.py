@@ -61,10 +61,10 @@ def installation(config=None):
     if not exe.is_file() or not (root/'resources/runtime/cli/bin/dsh.cmd').is_file():raise HubError('未找到已安装的官方 DeepSeek Harness；不会回退到简化 API 执行器')
     return exe,cli
 
-def patch_text(agent,role,dialogue=False,policy="",workspace_root=None,sandbox_mode="read-only",permission_plugin=None,permission_record=None,manager=None,model="deepseek-flash",provider="deepseek-official",credentials_path=None):
+def patch_text(agent,role,dialogue=False,policy="",workspace_root=None,sandbox_mode="read-only",permission_plugin=None,permission_record=None,manager=None,model="deepseek-flash",provider="deepseek-official",credentials_path=None,neutral=False):
     from hub.module_sdk import persona_prefix
     persona=persona_prefix(agent,role,manager,model)
-    rows=[{'id':'acp','config':{'provider':provider,'model':model}}, {'id':'system-prompt','config':{'personaPrefix':persona+'\n'+policy}}, {'id':'skill-filesystem','config':{'includeDefaultRoots':False}}]
+    rows=[{'id':'acp','config':{'provider':provider,'model':model}}, {'id':'system-prompt','config':{'personaPrefix':policy if neutral else persona+'\n'+policy}}, {'id':'skill-filesystem','config':{'includeDefaultRoots':False}}]
     if sandbox_mode not in ('read-only','workspace-write','danger-full-access'):raise HubError('Harness 文件权限模式无效')
     sandbox={'mode':sandbox_mode}
     if workspace_root:sandbox['workspaceRoot']=workspace_root
@@ -195,7 +195,7 @@ def execute(runtime,run):
         home=runtime.hub.directory/'harness'/run['agent'];home.mkdir(parents=True,exist_ok=True)
         permission_plugin=home/'permission-sync.cjs';permission_plugin.write_text(PERMISSION_PLUGIN,encoding='utf-8')
         permission_record=home/('permission-'+run['id']+'.json')
-        patch=home/'hub.patch.yml';patch.write_text(patch_text(run['agent'],role,dialogue,policy,workspace_root=target_cwd,sandbox_mode=mode,permission_plugin=str(permission_plugin.resolve()),permission_record=str(permission_record.resolve()),manager=person['manager'],model=run['model'],provider=provider,credentials_path=credential_path),encoding='utf8')
+        patch=home/'hub.patch.yml';patch.write_text(patch_text(run['agent'],role,dialogue,policy,workspace_root=target_cwd,sandbox_mode=mode,permission_plugin=str(permission_plugin.resolve()),permission_record=str(permission_record.resolve()),manager=person['manager'],model=run['model'],provider=provider,credentials_path=credential_path,neutral=run.get('purpose')=='alignment'),encoding='utf8')
         env=inherit_system_proxy(dict(os.environ));env.update(ELECTRON_RUN_AS_NODE='1',DSH_HOME=str(home.resolve()),DSH_PERMISSION_MODE=mode);env.pop('DEEPSEEK_API_KEY',None);env.update(authentication)
         # ACP mounts a fresh, run-bound MCP bridge on both new and resumed sessions.
         bridge={'name':'agent-message-hub','command':sys.executable,'args':[str(host_resource('mcp.py').resolve())],'env':[]}

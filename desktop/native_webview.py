@@ -284,7 +284,18 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
         if popup_test and data:
             popups=state.get('popups');enabled=bool(user.IsWindowEnabled(hwnd))
             user.GetWindowLongW.argtypes=[W.HWND,C.c_int];user.GetWindowLongW.restype=C.c_long
-            if popups and any(user.GetWindowLongW(child,-16)&0x30000 for child in popups.windows):raise RuntimeError('Popup has minimize/maximize buttons')
+            if popups:
+                for child,item in list(popups.windows.items()):
+                    controls=user.GetWindowLongW(child,-16)&0x30000
+                    expected=0x30000 if item['id']=='designReviewDialog' else 0
+                    if controls!=expected:raise RuntimeError('Popup caption controls mismatch: '+item['id'])
+                    if expected and not state.get('review_caption_verified'):
+                        user.ShowWindow(child,3)
+                        if not user.IsZoomed(child):raise RuntimeError('Review cannot maximize')
+                        user.ShowWindow(child,9);user.ShowWindow(child,6)
+                        if not user.IsIconic(child):raise RuntimeError('Review cannot minimize')
+                        user.ShowWindow(child,9)
+                        state['review_caption_verified']=True
             if data.get('phase')=='modal' and not enabled and not state.get('popup_modal_verified'):
                 state['popup_modal_verified']=True
                 user.PostMessageW(next(iter(popups.windows)),0x10,0,0)
@@ -704,7 +715,7 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
         if state['error']:raise RuntimeError(state['error'])
         if recovery_test and not state.get('recovery_pass'):raise RuntimeError('Native recovery probe did not pass')
         if smoke and not state['smoke_pass']:raise RuntimeError('Native window closed before verification')
-        return {'backdrop':state.get('backdrop'),'mica':bool(state.get('mica')),'webview_transparent':state.get('webview_transparent'),'caption_right_gap':state.get('caption_right_gap'),'snap_probe_interrupted':state.get('snap_probe_interrupted'),'snap_flyout_visible':state.get('snap_flyout_visible'),'native_close_hit':state.get('native_close_hit'),'native_snap_hit':state.get('native_snap_hit'),'rounded_corner_preference':state.get('rounded_corner_preference'),'custom_chrome':state.get('custom_chrome'),'popup_modal_verified':state.get('popup_modal_verified'),'popup_modeless_verified':state.get('popup_modeless_verified'),'popup_counts':state.get('popup_counts'),'recovery_pass':state.get('recovery_pass',False),'ui_recoveries':len(recovery.attempts),'engine':'win32-webview2','native_window':True,'window_visible_after_show':state['window_visible_after_show'],'window_class':name,'browser_features':state.get('browser_features'),'dpi_awareness':dpi_awareness,'system_dpi':state['system_dpi'],'initial_geometry':state['initial_geometry'],'dpi_changes':state['dpi_changes'],'zoom_percent':state['zoom_percent'],'actual_zoom_factor':state.get('actual_zoom_factor'),'synthetic_dpi_rect_applied':state.get('synthetic_dpi_rect_applied'),'window_dpi':state.get('window_dpi'),'immersive_dark_mode':state.get('immersive_dark_mode'),'smoke':state['smoke_pass'],'verification':state.get('verification')}
+        return {'backdrop':state.get('backdrop'),'mica':bool(state.get('mica')),'webview_transparent':state.get('webview_transparent'),'caption_right_gap':state.get('caption_right_gap'),'snap_probe_interrupted':state.get('snap_probe_interrupted'),'snap_flyout_visible':state.get('snap_flyout_visible'),'native_close_hit':state.get('native_close_hit'),'native_snap_hit':state.get('native_snap_hit'),'rounded_corner_preference':state.get('rounded_corner_preference'),'custom_chrome':state.get('custom_chrome'),'popup_modal_verified':state.get('popup_modal_verified'),'popup_modeless_verified':state.get('popup_modeless_verified'),'popup_counts':state.get('popup_counts'),'review_caption_verified':state.get('review_caption_verified'),'recovery_pass':state.get('recovery_pass',False),'ui_recoveries':len(recovery.attempts),'engine':'win32-webview2','native_window':True,'window_visible_after_show':state['window_visible_after_show'],'window_class':name,'browser_features':state.get('browser_features'),'dpi_awareness':dpi_awareness,'system_dpi':state['system_dpi'],'initial_geometry':state['initial_geometry'],'dpi_changes':state['dpi_changes'],'zoom_percent':state['zoom_percent'],'actual_zoom_factor':state.get('actual_zoom_factor'),'synthetic_dpi_rect_applied':state.get('synthetic_dpi_rect_applied'),'window_dpi':state.get('window_dpi'),'immersive_dark_mode':state.get('immersive_dark_mode'),'smoke':state['smoke_pass'],'verification':state.get('verification')}
     finally:
         if state.get('popups'):state['popups'].dispose()
         if state.get('tray'):state['tray'].close()

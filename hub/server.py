@@ -132,8 +132,9 @@ class Handler(BaseHTTPRequestHandler):
                     state['deepseek'].update(self.server.deepseek.snapshot(actor))
                     state['quota_alerts']=[]
                     state=self.server.projects.state(state,self.headers.get('X-Hub-Project'))
-                    from .long_term_memory import updates as memory_updates
+                    from .long_term_memory import updates as memory_updates,current as memory_current
                     state['memory_updates']=memory_updates(self.server.hub,state.get('selected_project'))
+                    state['memory_revision']=memory_current(self.server.hub)['revision']
                     state['designs']=self.server.designs.snapshot(state.get('selected_project'))
                     state['timers']=self.server.automation.timers(state.get('selected_project'),include_finished=False)
                     state['pending_notifications']=self.server.automation.notifications(state.get('selected_project'))
@@ -166,6 +167,10 @@ class Handler(BaseHTTPRequestHandler):
             if self.path!='/api/action':raise HubError('unknown endpoint')
             action=data.get('action');args=data.get('args',{})
             if not isinstance(args,dict):raise HubError('arguments must be object')
+            if actor!='user':
+                with self.server.hub.lock:
+                    aligning=self.server.hub.db.execute("SELECT 1 FROM executions WHERE agent=? AND purpose='alignment' AND status IN ('queued','running','interrupting','waiting_quota') LIMIT 1",(actor,)).fetchone()
+                if aligning and action!='project_vm':raise HubError('需求对齐阶段平台工具尚未启用，请由用户点击开始计划')
             selected=self.headers.get('X-Hub-Project')
             if actor=='user' and selected and action in ('send','plan_chat','workflow_start','prepare'):
                 self.server.projects.get(selected);args={**args,'project_id':selected}

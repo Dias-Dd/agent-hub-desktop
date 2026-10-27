@@ -95,9 +95,17 @@
     });
     H.notice(`已成功切换项目经理为 ${target}（已继承上下文）`, 'status');
   });
-  const onNewDiscussion = () => {
-    fresh = true; $('workflowConfirm').checked = false;
-    $('workflowRequirement').value = ''; text('workflowRequirementCount','0 / 20,000 字符'); render(H.view);
+  const onNewDiscussion = async () => {
+    const p=session(),newRound=!!p && p.mode!=='alignment';
+    if(p?.pending)throw Error('请等待经理本轮回复后开始计划');
+    const draft=p ? value('discussionReply').trim() : value('workflowRequirement').trim();
+    const body=draft || (newRound ? '请根据当前项目的已有上下文制定新一轮计划，等待我审阅批准后再启动新一轮执行。' : p ? '请根据我们刚才对齐的需求制定计划。' : '');
+    if(!body){$('workflowRequirement').focus();H.notice('填写需求后点击开始计划，即可直接制定计划','status');return;}
+    const selected=H.view.rawSnapshot?.projects?.find(x=>x.id===H.client.getSelectedProjectId());
+    if(!selected)throw Error('请先创建项目');
+    await store.sendPlanChat({body,sessionId:newRound ? null : p?.sessionId,options:(!newRound && p?.options) || H.projectDiscussionOptions(selected),confirmed:true,startPlanning:true});
+    if(p)$('discussionReply').value='';
+    fresh=false;render(H.view);
   };
   bind('newDiscussion','click', onNewDiscussion);
   if ($('newDiscussionInline')) bind('newDiscussionInline','click', onNewDiscussion);
@@ -107,6 +115,7 @@
     const discussion=(raw.planning||[]).find(x=>x.id===p?.sessionId);
     const w=(raw.workflows||[]).find(x=>x.id===discussion?.workflow_id)||(raw.workflows||[])[0]||v.managerStream.workflow;
     const design=(raw.designs||[]).find(x=>x.id===discussion?.design_id)||(raw.designs||[])[0];
+    if(p?.mode==='alignment')return '需求对齐';
     if(p?.state==='error')return '讨论需处理';
     if(p?.state==='thinking'||p?.state==='draft')return '需求讨论';
     if(p?.state==='awaiting_approval'&&!discussion?.design_approved)return '计划待确认';
@@ -131,6 +140,8 @@
   $('workflowAgents').addEventListener('change',()=>H.updateReviewerOptions());
   let rosterSignature='';
   function render(v) {
+    const current=session();
+    for(const id of ['newDiscussion','newDiscussionInline']){const b=$(id);if(b){b.textContent=(!current || current.mode==='alignment')?'开始计划':'新建讨论';b.disabled=!!current?.pending;b.classList.toggle('primary-btn',!current || current.mode==='alignment');b.classList.toggle('secondary-btn',!!current && current.mode!=='alignment');}}
     const roster=JSON.stringify([v.managerStream.manager,v.agents.map(a=>[a.id,a.name,a.model])]);
     if(roster!==rosterSignature){rosterSignature=roster;const chosen=new Set([...$('workflowAgents').querySelectorAll('input:checked')].map(c=>c.value));list('workflowAgents',v.agents.filter(a=>a.id!==v.managerStream.manager).map(a=>{const label=node('label',a.name+' · '+a.model,'setupConsent'),c=node('input');c.type='checkbox';c.value=a.id;c.checked=chosen.has(a.id);label.prepend(c);return label;}));H.updateReviewerOptions();}
 
@@ -154,9 +165,9 @@
     $('workflowForm').hidden = !!p;
     $('discussionReplyForm').hidden = !p;
     if ($('discussionReplyLabel')) {
-      text('discussionReplyLabel', p?.state === 'executing' ? '向当前项目经理发送工作沟通消息：' : '回复经理，或按当前流程批准计划：');
+      text('discussionReplyLabel', p?.mode === 'alignment' ? '与经理对齐需求，准备好后点击开始计划：' : p?.state === 'executing' ? '向当前项目经理发送工作沟通消息：' : '回复经理，或按当前流程批准计划：');
     }
-    $('discussionReply').placeholder = p?.state === 'executing' ? '向当前项目经理发送工作沟通消息...' : '输入补充要求、反馈，或输入“按计划执行”...';
+    $('discussionReply').placeholder = p?.mode === 'alignment' ? '先聊聊你的想法、需求和限制...' : p?.state === 'executing' ? '向当前项目经理发送工作沟通消息...' : '输入补充要求、反馈，或输入“按计划执行”...';
     updateSendButton();
     if ($('toggleDiscussionView')) {
       $('toggleDiscussionView').hidden = !fresh || !v.managerStream?.planning;
@@ -185,7 +196,7 @@
       const open=H.button('审阅产品演示',()=>H.$('openDesignReview').click());open.className='design-review-launch';open.setAttribute('aria-label','打开产品演示，逐页审阅与批注');open.disabled=!design.versions?.length;row.querySelector('.chat-message-body').append(open);return row;
     }});
     list('discussionHistory',timeline.sort((a,b)=>a.time-b.time||String(a.id).localeCompare(String(b.id))).map(item=>item.render()));
-    $('recoverPlanResult').hidden = !(p?.state==='error'||(p?.state==='draft'&&discussion?.last_run&&discussion?.notice&&!discussion.pending&&!discussion.plan));
+    $('recoverPlanResult').hidden = p?.mode==='alignment' || !(p?.state==='error'||(p?.state==='draft'&&discussion?.last_run&&discussion?.notice&&!discussion.pending&&!discussion.plan));
     $('workflowResumeBtn').hidden = !['paused','stopped'].includes(w?.status);
     $('workflowWakeBtn').hidden = !w || !['active','needs_attention','blocked'].includes(w.status);
     $('workflowPatrolBtn').hidden=!w;

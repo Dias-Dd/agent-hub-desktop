@@ -495,7 +495,9 @@ class HubStateStore {
         sessionId: currentDiscussion.id,
         revision: currentRevision,
         state: currentDiscussion.state,
+        mode: currentDiscussion.mode || 'planning',
         stateLabel: {
+          chatting: '与经理对齐需求，准备好后点击开始计划',
           designing: '产品演示阶段，确认最终设计后才正式制作',
           thinking: `${currentManager} 正在分析讨论需求`,
           draft: '待完善需求，尚未形成可执行计划',
@@ -636,11 +638,12 @@ class HubStateStore {
   /**
    * 与项目经理进行计划讨论 (plan_chat)
    */
-  async sendPlanChat({ body, options, sessionId = null, confirmed = false }) {
+  async sendPlanChat({ body, options, sessionId = null, confirmed = false, startPlanning = false }) {
 
     const args = {
       body: body?.trim(),
-      confirmed: Boolean(confirmed)
+      confirmed: Boolean(confirmed),
+      start_planning: Boolean(startPlanning)
     };
 
     if (sessionId) {

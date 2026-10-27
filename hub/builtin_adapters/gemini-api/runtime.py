@@ -214,7 +214,7 @@ class DeepSeekRuntime(CodexRuntime):
         if agent not in self.models:raise HubError('该身份不属于 '+self.title+' 真实执行器')
         from hub.core import text
         text(instruction,60000)
-        if purpose not in ('task','discussion','question'):raise HubError('任务目的无效')
+        if purpose not in ('task','discussion','question','alignment'):raise HubError('任务目的无效')
         with self.hub.tx():
             if getattr(self.hub,'coordination',None) and self.hub.coordination.is_stopped(agent):raise HubError('Agent 已被紧急停止，只能由用户解除启动锁')
             cfg=self.config()

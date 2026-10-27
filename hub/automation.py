@@ -264,7 +264,17 @@ class Automation:
             from .user_followup import direct,context
             with self.hub.lock:row=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(run_id,)).fetchone()
             candidate=dict(row) if row else {}
-            if candidate.get('agent')==actor and candidate.get('status')=='running' and direct(self.hub,candidate):
+            if candidate.get('agent')==actor and candidate.get('status')=='running' and candidate.get('purpose')=='alignment':
+                from .long_term_memory import project,is_manager
+                from .project_activity import require_available
+                ident=project(self.hub,candidate)
+                if not ident or not is_manager(self.hub,candidate):raise HubError('需求对齐虚拟机工具仅供当前项目经理使用')
+                require_available(self.hub,ident)
+                self.server.projects.get(ident)
+                rt=self.server.workflows.runtime(actor)
+                rt.guard(candidate)
+                w,run={'id':ident,'project_id':ident},candidate
+            elif candidate.get('agent')==actor and candidate.get('status')=='running' and direct(self.hub,candidate):
                 rt=self.server.workflows.runtime(actor)
                 rt.check_latch(candidate)
                 if hasattr(rt,'guard'):rt.guard(candidate)

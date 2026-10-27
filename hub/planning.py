@@ -18,13 +18,13 @@ class Planning:
     def save(self,s):
         with self.hub.tx():self.hub.db.execute('INSERT OR REPLACE INTO planning_sessions VALUES(?,?)',(s['id'],json.dumps(s,ensure_ascii=False)))
 
-    def submit_discussion(self,runtime,manager,prompt,scope,cwd):
+    def submit_discussion(self,runtime,manager,prompt,scope,cwd,purpose="discussion"):
         from .module_sdk import working_directory
         cwd=working_directory(cwd,'项目工作目录')
         # Hold the Hub lock until the queued execution has its own directory.
         # A previous workflow may have changed the shared runtime's default.
         with self.hub.lock:
-            job=runtime.submit('user',manager,prompt,True,purpose='discussion',session_scope=scope)
+            job=runtime.submit('user',manager,prompt,True,purpose=purpose,session_scope=scope)
             with self.hub.tx():self.hub.db.execute('UPDATE executions SET cwd=? WHERE id=?',(cwd,job['id']))
         return job
 
@@ -56,8 +56,9 @@ class Planning:
         if any(type(value[k])!=bool for k in ('auto_wake','delegate_stop')):raise HubError('协作开关无效')
         return dict(value)
 
-    def message(self,actor,body,options=None,session_id=None,revision=None,confirmed=False,project_id=None):
+    def message(self,actor,body,options=None,session_id=None,revision=None,confirmed=False,project_id=None,mode=None,start_planning=False):
         self.hub.require(actor,{'user'});text(body,20000)
+        if mode not in (None,'alignment','planning') or type(start_planning)!=bool:raise HubError('讨论模式无效')
         with self.lock:
             s=self.get(session_id) if session_id else None
             if s and s.get('state')=='archived':
@@ -67,7 +68,7 @@ class Planning:
             files_recreated=False
             if project_id and getattr(self.hub,'projects',None):files_recreated=self.hub.projects.ensure_ready(project_id)
             if s and project_id and s.get('project_id')!=project_id:raise HubError('讨论不属于当前项目')
-            if body.strip()=='按计划执行' and not (s and s.get('design_id') and s['state']=='designing'):
+            if body.strip()=='按计划执行' and not (s and s.get('mode')=='alignment') and not (s and s.get('design_id') and s['state']=='designing'):
                 if not s:raise HubError('请先与项目经理讨论并等待计划')
                 return self.approve(s,revision,options)
             if s and s.get('design_id') and s['state']=='designing':
@@ -86,8 +87,9 @@ class Planning:
                 manager_row=self.hub.db.execute('SELECT value FROM settings WHERE key=?',('project_manager:'+str(project_id),)).fetchone()
                 manager=project_manager(self.hub,project_id)
                 project_options=self.hub.projects.get(project_id)['options'] if project_id and getattr(self.hub,'projects',None) else {}
-                s={'manager':manager,'id':uid(),'project_id':project_id,'created':time.time(),'expires':time.time()+86400,'state':'draft','revision':0,'turns':0,'history':[],'plan':None,'pending':None,'workflow_id':None,'options':self.options({**project_options,**(options or {})},manager)}
+                s={'mode':mode or 'alignment','manager':manager,'id':uid(),'project_id':project_id,'created':time.time(),'expires':time.time()+86400,'state':'draft','revision':0,'turns':0,'history':[],'plan':None,'pending':None,'workflow_id':None,'options':self.options({**project_options,**(options or {})},manager)}
             elif options is not None:s['options']=self.options(options,project_manager(self.hub,record=s))
+            if start_planning:s['mode']='planning'
             mgr=project_manager(self.hub,record=s)
             s['options']['agents']=[a for a in s['options']['agents'] if a!=mgr]
             s['options']['reviewer']=independent_reviewer(mgr,s['options']['agents'],s['options'].get('reviewer'))
@@ -101,14 +103,15 @@ class Planning:
             mgr=project_manager(self.hub,record=s)
             prompt=('目前仅讨论需求和拟定计划，用户尚未批准执行。只输出 JSON：{\"done\":false,\"report\":\"给用户的简洁Markdown中文答复与可阅读计划（含范围、分工、阶段、验收、风险，尽量简明，通常1000至3000字，必要时最多20000字符）\",\"tasks\":[{\"agent\":\"获准参与者ID\",\"instruction\":\"首批独立可执行任务及验收，最多6000字\"}]}。'
                     '请同时给出 preview:{pages:[{id,title,parent,kind}]} 列出产品全部页面/弹窗/状态层级；视频列出每个镜头，长文档列出各章版式，最后列架构页(kind=architecture)。默认批准先做静态产品演示，用户可跳过。信息不足时先问问题，tasks=[]；计划可以执行时给出首批 tasks，后续阶段写入 report。可调度成员与额度见系统消息中的本项目快照，只有team内成员可以派工，manager是你自己，可以把需亲自完成的任务列给manager；没有成员时由manager独立执行。不要调用工具，不实施工作，不启动其他 Agent。不论用户提到何种执行词，都只回复计划，平台单独决定执行。上下文：'+json.dumps(context,ensure_ascii=False))
-            if files_recreated:prompt+='\n状态变化：项目文件已由用户清理，上下文保留；旧成果与旧验收不代表当前目录，请按新需求重建。'
+            if s.get('mode')=='alignment':prompt=body
+            if files_recreated and s.get('mode')!='alignment':prompt+='\n状态变化：项目文件已由用户清理，上下文保留；旧成果与旧验收不代表当前目录，请按新需求重建。'
             registry=getattr(self.hub,'integrations',None)
             changes=registry.changes(s.get('project_id')) if registry else []
-            if changes:prompt+='\n'+registry.change_text(changes)
+            if changes and s.get('mode')!='alignment':prompt+='\n'+registry.change_text(changes)
             if len(prompt)>60000:raise HubError('讨论请求包含设置后超过60000字符，请精简设置或需求')
             rt=self.workflows.runtime(mgr)
             with self.hub.lock:
-                run=self.submit_discussion(rt,mgr,prompt,'hub-project:'+(s.get('project_id') or 'default'),s['options']['cwd'])
+                run=self.submit_discussion(rt,mgr,prompt,'hub-project:'+(s.get('project_id') or 'default'),s['options']['cwd'],purpose='alignment' if s.get('mode')=='alignment' else 'discussion')
                 with self.hub.tx():self.hub.db.execute('INSERT INTO discussion_prompt_context VALUES(?,?)',(run['id'],json.dumps(system_snapshot,ensure_ascii=False)))
             if changes:registry.acknowledge_changes(changes)
             s.pop('error',None);s.pop('notice',None)
@@ -182,6 +185,11 @@ class Planning:
                         s.update(state='draft',notice='本轮已按用户请求中断，等待处理插入消息');self.save(s);continue
                     if r['status']!='completed':raise HubError(mgr+' 讨论未完成：'+str(r['result'])[:1200])
                     raw=(r['result'] or '').strip()
+                    if s.get('mode')=='alignment':
+                        if not raw:raise HubError('经理没有返回可显示内容')
+                        s['history'].append({'role':mgr,'text':raw,'revision':s['revision'],'run_id':r['id'],'created':r['finished'] or r['created']})
+                        s.update(state='chatting',plan=None)
+                        self.save(s);continue
                     if raw.startswith('```'):raw=raw.split('\n',1)[1].rsplit('```',1)[0].strip()
                     try:
                         data=proposal(raw,allow_idle=True)
@@ -228,7 +236,32 @@ class Planning:
             with self.hub.tx():self.hub.audit(actor,'plan.result_reparsed',{'session':s['id'],'run_id':r['id'],'execution_authorized':False,'inference_started':False})
             return self.get(s['id'])
 
+    def supersede_rounds(self,s):
+        """Approval replaces this project's earlier execution rounds, never another project."""
+        project=s.get('project_id')
+        if not project:return
+        for old in self.workflows.snapshot('user'):
+            if old.get('project_id')!=project or old['id']==s.get('workflow_id') or old.get('status') not in ('active','needs_attention','paused','blocked'):continue
+            self.workflows.stop('user',old['id'])
+            old=next(w for w in self.workflows.snapshot('user') if w['id']==old['id'])
+            old.pop('steps',None)
+            old.update(superseded_by=s['id'],report='用户已批准新一轮计划，本轮已停止；成果与历史保留')
+            self.workflows.save(old)
+            with self.hub.tx():self.hub.audit('user','plan.round_superseded',{'workflow':old['id'],'session':s['id'],'project':project})
+        for previous in self.snapshot('user'):
+            if previous['id']==s['id'] or previous.get('project_id')!=project:continue
+            previous.update(state='archived',superseded_by=s['id']);self.save(previous)
+            designs=getattr(self.hub,'designs',None)
+            if designs and previous.get('design_id'):
+                design=designs.get(previous['design_id'])
+                design.update(state='superseded',superseded_by=s['id']);designs.save(design)
+
     def approve(self,s,revision,options):
+        with self.lock,self.workflows.lock:
+            return self._approve(self.get(s['id']),revision,options)
+
+    def _approve(self,s,revision,options):
+        if s.get('superseded_by') or s.get('state')=='archived':raise HubError('此轮已被新计划替代，请审阅当前计划')
         if s['state']=='executing':return s
         if s['pending'] or s['state']!='awaiting_approval' or not s['plan']:raise HubError('请等待 项目经理 提供可执行计划')
         if time.time()>s['expires']:raise HubError('计划讨论授权已到期，请重新讨论')
@@ -244,6 +277,12 @@ class Planning:
         if removed:s['roster_replan']={'unavailable':removed,'available':current_options['agents']};self.save(s)
 
         if any(r.config()['permission']!=s.get('permissions',{}).get(r.provider) for r in self.workflows.runtimes if r.provider in s.get('permissions',{})):raise HubError('访问权限已变化，请先让 项目经理 更新计划')
+        # Validate authorization before interrupting any earlier round.
+        for agent in [manager]+s['options']['agents']:
+            if not self.workflows.runtime(agent).config().get('enabled'):raise HubError(agent+' 的真实执行尚未启用')
+            if getattr(self.hub,'coordination',None) and self.hub.coordination.is_stopped(agent):raise HubError('参与者存在紧急停止锁，先由用户解除')
+        if s.get('design_approved'):self.hub.designs.verify_baseline(s['design_approved'])
+        self.supersede_rounds(s)
         if getattr(self.hub,'designs',None) and s['options'].get('preview_mode','demo')!='skip' and not s.get('design_approved'):
             result=self.hub.designs.start('user',s['id'],revision,s.get('project_id'))
             design=self.hub.designs.get(result['design_id'])

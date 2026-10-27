@@ -32,6 +32,7 @@ def definitions(self,run):
         from hub.user_followup import manager as followup_manager
         allowed={'project_vm','publish_artifact'}
         if followup_manager(self.hub,run):allowed|={'project_assign','project_status','project_complete','project','project_stop_task','project_queue'}
+    if run.get('purpose')=='alignment':allowed={n for n,_,_ in TOOLS}
     if manager:allowed|={'project','project_assign','project_complete','project_set_role','project_cancel_task','project_stop_task','project_queue','project_schedule_wake'}
     from .long_term_memory import is_manager
     if is_manager(self.hub,run):allowed.add('memory')
@@ -46,6 +47,7 @@ def definitions(self,run):
 
 def tool(self,run,name,args,allowed):
     self.guard(run)
+    if run.get('purpose')=='alignment' and name!='project_vm' and name in {n for n,_,_ in TOOLS}:raise HubError('需求对齐阶段平台工具尚未启用，请由用户点击开始计划')
     readonly=self.read_only(run) if hasattr(self,'read_only') else run.get('purpose') in ('discussion','question')
     if readonly and name in ('write_file','run_command'):raise HubError('本轮只读，不能执行写入或命令工具')
     if name not in allowed:raise HubError('本轮未授权该工具')

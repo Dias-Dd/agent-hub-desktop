@@ -31,6 +31,9 @@ def compact_manager_input(self,run):
 
 
 def execution_instructions(self,run):
+    if run.get('purpose')=='alignment':
+        from .long_term_memory import user_context
+        return user_context(self.hub,run)
     from .long_term_memory import context
     return context(self.hub,run)+_execution_instructions(self,run)
 
@@ -85,6 +88,7 @@ def _execution_instructions(self,run):
 
 
 def report_instructions(self,run):
+    if run.get('purpose')=='alignment':return ''
     if not getattr(self.hub,'coordination',None):return ''
     from hub.prompt_identity import identity
     if identity(self.hub,run)['manager']==run['agent']:return ''
@@ -99,6 +103,9 @@ def report_instructions(self,run):
 
 
 def tool_agent_instructions(runtime,run,project,read_only,dialogue):
+    if run.get('purpose')=='alignment':
+        from .long_term_memory import user_context
+        return user_context(runtime.hub,run)
     from .long_term_memory import context
     return context(runtime.hub,run)+_tool_agent_instructions(runtime,run,project,read_only,dialogue)
 
@@ -140,6 +147,9 @@ def persona_prefix(agent,role,manager,model):
     return persona
 
 def api_instructions(self,run,w,manager):
+    if run.get('purpose')=='alignment':
+        from .long_term_memory import user_context
+        return user_context(self.hub,run)
     with self.hub.lock:identity=self.hub.db.execute('SELECT prompt FROM agents WHERE id=?',(run['agent'],)).fetchone()
     policy=(identity[0] if identity else '你是 DeepSeek。')+'\n'+self.execution_instructions(run)+self.report_instructions(run)
     if run.get('purpose')=='discussion':policy=self.execution_instructions(run)

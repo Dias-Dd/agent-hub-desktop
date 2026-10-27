@@ -120,7 +120,7 @@ class AntigravityStream:
         if not run.get('_defer_prompt'):self.start_prompt(run,instructions)
     def start_prompt(self,run,instructions):
         try:
-            actual_content=run.get('_manager_content',instructions+'\n\n用户任务（按以下内容实际执行）：\n'+run['prompt'])
+            actual_content=instructions+'\n'+run['prompt'] if run.get('purpose')=='alignment' else run.get('_manager_content',instructions+'\n\n用户任务（按以下内容实际执行）：\n'+run['prompt'])
             self.proc.stdin.write(json.dumps({'event':'user','message':{'content':actual_content}},ensure_ascii=False)+'\n');self.proc.stdin.flush();self.proc.stdin.close()
         except Exception:
             self.close();raise
@@ -245,7 +245,7 @@ class AntigravityRuntime(CodexRuntime):
                 if session:run['_conversation']=session['session_id']
                 run['_hub_env']=self.run_environment(run)
                 if self.stream_factory is AntigravityStream:self.ensure_mcp()
-                actual_content=run.get('_manager_content',instructions+'\n\n用户任务（按以下内容实际执行）：\n'+run['prompt'])
+                actual_content=instructions+'\n'+run['prompt'] if run.get('purpose')=='alignment' else run.get('_manager_content',instructions+'\n\n用户任务（按以下内容实际执行）：\n'+run['prompt'])
                 with self.hub.tx():self.hub.db.execute('UPDATE executions SET actual_input=? WHERE id=?',(actual_content,run['id']))
                 if self.stream_factory is AntigravityStream:run['_defer_prompt']=True
                 stream=self.stream_factory(run,instructions);self.track_client(run,stream)

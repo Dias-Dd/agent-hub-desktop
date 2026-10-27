@@ -1,7 +1,7 @@
 import os,tempfile,threading,unittest
 from pathlib import Path
 from unittest.mock import patch
-from desktop.native_popups import popup_request
+from desktop.native_popups import popup_request,popup_style
 
 class Request(unittest.TestCase):
  def test_origin_and_modality(self):
@@ -12,6 +12,13 @@ class Request(unittest.TestCase):
   self.assertTrue(popup_request(base+'popup.html#id=confirm&modal=1',base)['modal'])
   self.assertFalse(popup_request(base+'popup.html#id=settings&modal=0',base)['modal'])
   self.assertEqual(popup_request(base+'popup.html#id=x&width=100000&height=bad',base)['width'],2400)
+
+class CaptionControls(unittest.TestCase):
+ def test_review_retains_minimize_and_maximize(self):
+  self.assertEqual(popup_style({'id':'designReviewDialog'}) & 0x30000,0x30000)
+ def test_other_dialogs_keep_existing_controls(self):
+  for identity in ('configModal','connectionTestDialog','newProjectDialog'):
+   self.assertEqual(popup_style({'id':identity}),0x00CC0000)
 
 @unittest.skipUnless(os.environ.get('HUB_NATIVE_UI_TEST')=='1','explicit isolated visible-window test')
 class Native(unittest.TestCase):
@@ -55,7 +62,7 @@ class Native(unittest.TestCase):
     self.assertEqual(result['native_close_hit'],20)
     self.assertEqual(result['native_snap_hit'],9)
     self.assertEqual(result['rounded_corner_preference'],2)
-    self.assertTrue(result['custom_chrome']);self.assertTrue(result['popup_modal_verified']);self.assertTrue(result['popup_modeless_verified'])
+    self.assertTrue(result['review_caption_verified']);self.assertTrue(result['custom_chrome']);self.assertTrue(result['popup_modal_verified']);self.assertTrue(result['popup_modeless_verified'])
     self.assertEqual(result['popup_counts'],{'created':6,'closed':6,'remaining':0})
     print('PASS round DWM corners, real HWNDs, modeless main enabled, modal owner disabled, native close, drafts, reopen, all controllers released',result['popup_counts'])
   finally:server.shutdown();server.server_close();thread.join()

@@ -66,7 +66,7 @@ class ManagerInbox:
     s=self.planning.get(row['session_id'])
     if s.get('pending'):continue
     # Approval is never replayed against an unseen newer revision.
-    if row['body'].strip()=='按计划执行':
+    if row['body'].strip()=='按计划执行' and s.get('mode')!='alignment':
      with self.hub.tx():self.hub.db.execute("UPDATE messages SET status='failed',result='请审阅最新计划后明确批准；排队审批口令不自动重放' WHERE id=?",(row['message_id'],))
      continue
     try:result=self.planning.message('user',row['body'],session_id=s['id'],project_id=s.get('project_id'))

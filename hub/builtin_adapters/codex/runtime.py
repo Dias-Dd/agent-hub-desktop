@@ -175,7 +175,7 @@ class CodexRuntime:
         if confirmed is not True:raise HubError('请确认启动真实任务，将消耗订阅账号额度')
         if agent not in self.models:raise HubError('该身份不属于 '+self.title+' 真实执行器')
         text(instruction,60000)
-        if purpose not in ('task','discussion','question'):raise HubError('讨论仅支持 项目经理')
+        if purpose not in ('task','discussion','question','alignment'):raise HubError('讨论仅支持 项目经理')
         with self.hub.tx():
             from hub.project_activity import require_available,run_project
             require_available(self.hub,run_project(self.hub,{'session_scope':session_scope,'task_id':task_id,'message_id':source_message_id}))

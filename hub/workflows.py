@@ -835,6 +835,7 @@ class Workflows:
             with self.hub.lock:row=self.hub.db.execute('SELECT body FROM workflows WHERE id=?',(workflow_id,)).fetchone()
             if not row:raise HubError('项目不存在')
             w=json.loads(row[0])
+            if w.get('superseded_by'):raise HubError('此轮已由新计划替代，不能恢复旧任务')
             if w['status'] not in ('paused','stopped'):raise HubError('仅能恢复已暂停或由用户停止的项目；停止锁须先由用户解除')
             from .project_activity import require_available
             require_available(self.hub,w.get('project_id'))

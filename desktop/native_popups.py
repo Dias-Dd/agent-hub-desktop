@@ -23,6 +23,11 @@ def popup_request(uri, origin):
             'width':dimension('width',900),'height':dimension('height',700)}
 
 
+def popup_style(config):
+    # Review is a full workspace; small dialogs keep their existing caption controls.
+    return 0x00CC0000 | (0x00030000 if config['id']=='designReviewDialog' else 0)
+
+
 class NativePopups:
     def __init__(self,user,kernel,ole,call,check,handler,environment,parent,origin,instance,icon,theme,log,zoom=lambda:1):
         self.user,self.ole,self.call,self.check,self.handler=user,ole,call,check,handler
@@ -76,7 +81,7 @@ class NativePopups:
         except AttributeError:scale=1
         width=min(round(config['width']*scale),area.right-area.left-32);height=min(round(config['height']*scale),area.bottom-area.top-32)
         x=max(area.left,min(area.right-width,(rect.left+rect.right-width)//2));y=max(area.top,min(area.bottom-height,(rect.top+rect.bottom-height)//2))
-        hwnd=self.user.CreateWindowExW(0,self.name,config['title']+' · Agent Hub',0x00CC0000,x,y,width,height,owner,None,self.instance,None)
+        hwnd=self.user.CreateWindowExW(0,self.name,config['title']+' · Agent Hub',popup_style(config),x,y,width,height,owner,None,self.instance,None)
         item={**config,'owner_hwnd':owner,'args':args,'deferral':deferral,'controller':None,'core':None}
         if not hwnd:
             self.release_request(item);self.log('popup_create_failed');return
@@ -198,7 +203,7 @@ POPUP_PROBE=r"""(()=>{
    if(name.value!=='window test')throw Error('Form draft lost');
    toggle.checked=true;e=await attached('configModal');if(document.getElementById('storageRoot').value!=='native draft')throw Error('Reopen draft lost');
    e.win.HubPopupClose();await wait(250);
-   const review=document.getElementById('designReviewDialog');review.hidden=false;e=await attached(review.id);
+   const review=document.getElementById('designReviewDialog');review.hidden=false;e=await attached(review.id);await wait(1300);
    const stage=document.getElementById('designStage'),canvas=document.getElementById('designCanvas');
    if(stage.clientHeight<150||stage.clientWidth<150)throw Error('Review canvas clipped');
    const overall=document.getElementById('designOverallFeedback');overall.value='review draft';

@@ -14,9 +14,26 @@ def schema(properties=None,required=None):
 
 S={'type':'string'}
 N={'type':'number'}
+def vm_tool_description(platform=None):
+    platform = sys.platform if platform is None else platform
+    common = ('虚拟机工具：status查连接、backend/capabilities及request_id异步结果；queued仅入队，'
+              'exec/push/pull须查到completed，failed要读error，不能据queued宣称成功。'
+              'push/pull传cwd相对path。桌面优先windows→ui_tree(window_handle)→ui_invoke/ui_set_value(element_id)；'
+              'screenshot返回图片。控件ID绑定项目/Agent/窗口，60秒过期且每次输入后重新读取ui_tree；'
+              '失败不自动重试。操作后desktop_release释放120秒桌面租约；不要重复提交。')
+    if platform == 'darwin':
+        return common + ('当前后端为Tart：exec必须显式shell=posix，依赖Guest Agent；macOS命令使用独立进程和sudo -n，'
+                         'status.root_verified须为真。桌面为实验性VNC，支持screenshot/key/mouse/text/drag/scroll；'
+                         'ASCII文本用text(value)，快捷键用keys字符串数组(cmd/option/shift/enter等)。'
+                         'drag用end_x/end_y，scroll用steps(正数向下)。仅此macOS访客的控件通道依赖Peekaboo，需安装并授权。')
+    return common + ('当前后端为Hyper-V：控件树和控件操作使用Windows UI Automation。'
+                     'exec在Session 0运行PowerShell；GUI用desktop_launch(path相对exe路径,value可选参数)在登录桌面启动，'
+                     '再windows/ui_tree/screenshot验证；不得仅凭无窗口推断缺OpenGL。'
+                     'key(key_codes虚拟键码组合)/mouse(x,y最新截图物理像素，button=0移动/1左键/2右键)仅作备用。')
+
 TOOLS=[
     ('memory','当前项目经理跨项目长期记忆：read读取实时内容与revision；add追加、patch唯一原文替换、remove删除。写入必须带expected_revision，锁定或冲突会拒绝。target=user用户偏好或memory经验笔记。不保存密钥、临时状态或整段聊天。',schema({'operation':{'enum':['read','add','patch','remove']},'target':{'enum':['user','memory']},'content':S,'old_text':S,'expected_revision':{'type':'integer','minimum':0}},['operation'])),
-    ('project_vm','虚拟机工具：status查连接/用request_id查异步结果；queued仅入队，exec/push/pull须查到completed，failed要读error，不能据queued宣称成功。先查status的backend/capabilities。Tart的exec必须显式shell=posix，依赖Guest Agent；macOS命令使用独立进程和sudo -n，status.root_verified须为真；桌面为实验性VNC，支持screenshot/key/mouse/text/drag/scroll，ASCII文本用text(value)，快捷键用keys字符串数组(cmd/option/shift/enter等)。drag用end_x/end_y，scroll用steps(正数向下)。控件通道由访客Peekaboo提供，需用户安装并授予权限；windows→ui_tree(window_handle)→ui_invoke/ui_set_value(element_id)。控件ID绑定项目/Agent/窗口，60秒过期且每次输入后必须重新读取ui_tree；失败不自动重试。Hyper-V exec在Session 0；GUI用desktop_launch(path相对exe路径,value可选参数)在登录桌面启动，再windows/screenshot验证；不得仅凭无窗口推断缺OpenGL。push/pull传cwd相对path。桌面优先windows→ui_tree→ui_invoke/ui_set_value；screenshot返回图片。key(key_codes虚拟键码组合)/mouse(x,y屏幕像素，button=0移动/1左键/2右键)仅作Hyper-V备用。操作后desktop_release释放120秒桌面租约；不要重复提交。',schema({'action':{'enum':['status','exec','push','pull','desktop_launch','desktop_status','desktop_release','screenshot','windows','ui_tree','ui_invoke','ui_set_value','key','mouse','text','drag','scroll']},'request_id':S,'script':S,'shell':{'enum':['posix']},'path':S,'timeout_seconds':{'type':'integer','minimum':1,'maximum':3600},'window_handle':{'type':'integer'},'element_id':S,'value':S,'keys':{'type':'array','items':{'type':'string'}},'end_x':{'type':'integer'},'end_y':{'type':'integer'},'steps':{'type':'integer'},'key_codes':{'type':'array','items':{'type':'integer'}},'x':{'type':'integer'},'y':{'type':'integer'},'button':{'type':'integer'}})),
+    ('project_vm',vm_tool_description(),schema({'action':{'enum':['status','exec','push','pull','desktop_launch','desktop_status','desktop_release','screenshot','windows','ui_tree','ui_invoke','ui_set_value','key','mouse','text','drag','scroll']},'request_id':S,'script':S,'shell':{'enum':['posix']},'path':S,'timeout_seconds':{'type':'integer','minimum':1,'maximum':3600},'window_handle':{'type':'integer'},'element_id':S,'value':S,'keys':{'type':'array','items':{'type':'string'}},'end_x':{'type':'integer'},'end_y':{'type':'integer'},'steps':{'type':'integer'},'key_codes':{'type':'array','items':{'type':'integer'}},'x':{'type':'integer'},'y':{'type':'integer'},'button':{'type':'integer'}})),
     ('project_git','独立Git工作区：status查看成员分支；commit保存自己的修改；经理用integrate加agent合并成员提交。冲突保留现场，解决后commit，不自动覆盖。',schema({'action':{'enum':['status','commit','integrate']},'agent':S,'message':S})),
     ('browser_render','用独立浏览器渲染项目或已确认设计基线内的本地HTML，返回PNG图片及证据；只读检查也可用，不修改源码。不接受远程URL。',schema({'path':S,'width':{'type':'integer'},'height':{'type':'integer'}},['path'])),
     ('schedule_wake','设置持久定时提醒：自己或同项目成员，附言按队列投递。相同request_key更新原提醒；仅经理只剩关键成员时用wait_for_agent记录自动等待，项目仍active，quota_recovered检测该成员而非收件人；不绕过停止锁/人工暂停/项目授权。额度未知保持等待。',schema({'delay_seconds':N,'recipient':S,'note':S,'request_key':S,'interval_seconds':N,'condition':{'enum':['time','quota_recovered']},'wait_for_agent':S},['request_key'])),

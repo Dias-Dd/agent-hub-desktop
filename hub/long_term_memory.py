@@ -47,6 +47,17 @@ def current(hub):
     return {**result, 'limits': LIMITS.copy()}
 
 
+def user_context(hub, run):
+    """Only the user's stable preferences are provided during requirements chat."""
+    if not is_manager(hub, run):
+        return ''
+    if '_alignment_user_memory' not in run:
+        state = current(hub)
+        run['_alignment_user_memory'] = ('\n用户长期偏好（跨项目参考，当前用户要求优先）：\n' +
+            json.dumps({'user': state['user']}, ensure_ascii=False) + '\n') if state['user'] else ''
+    return run['_alignment_user_memory']
+
+
 def context(hub, run):
     if not is_manager(hub, run):
         return ''
