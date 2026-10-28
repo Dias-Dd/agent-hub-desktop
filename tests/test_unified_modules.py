@@ -18,6 +18,45 @@ class UnifiedModules(unittest.TestCase):
   self.registry.probe('user','custom-'+name)
   a=self.registry.wizard_add('user','custom-'+name,'local-model',confirmed=True)
   return a,self.registry.instances['custom-'+name]
+ def test_worker_passes_started_timestamp_to_guarded_custom_module(self):
+  self.module('guarded-worker',"def execute(ctx,run):\n ctx.guard(run)\n return {'status':'completed','text':'guarded worker finished'}\n")
+  agent,rt=self.connect('guarded-worker');rt.start()
+  try:
+   job=rt.submit('user',agent['id'],'hello',True,session_scope='hub-project:worker-guard')
+   deadline=time.monotonic()+5
+   while time.monotonic()<deadline:
+    row=self.h.db.execute('SELECT status,result FROM executions WHERE id=?',(job['id'],)).fetchone()
+    if row['status'] not in ('queued','running'):break
+    time.sleep(.02)
+   self.assertEqual(row['status'],'completed',row['result'])
+  finally:rt.close()
+ def test_module_runtime_view_preserves_class_level_connection_identity(self):
+  from hub.module_sdk import runtime_view
+  from hub.codex_runtime import CodexRuntime
+  connection=self.f.connection('codex',True)
+  agent=self.registry.save_agent('user',{'name':'Codex','connection_id':connection['id'],'model':'gpt-6-luna','effort':'medium','role':'engineer','enabled':True})
+  host=self.f.server.workflows.runtime(agent['id'])
+  view=runtime_view(host,CodexRuntime,provider='codex')
+  self.assertEqual(view.provider,host.provider)
+  self.assertEqual(view.config_key,host.config_key)
+  self.assertIs(view.models,host.models)
+ def test_native_module_does_not_start_turn_if_stop_arrives_during_open(self):
+  from test_codex_runtime import FakeAppServer
+  connection=self.f.connection('codex',True)
+  agent=self.registry.save_agent('user',{'name':'Codex','connection_id':connection['id'],'model':'gpt-6-luna','effort':'medium','role':'engineer','enabled':True})
+  host=self.f.server.workflows.runtime(agent['id'])
+  job=host.submit('user',agent['id'],'hello',True)
+  with self.h.tx():self.h.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),job['id']))
+  class StopOnOpen(FakeAppServer):
+   def rpc(client,method,params,timeout=25):
+    result=super().rpc(method,params,timeout)
+    if method=='thread/start':
+     with self.h.tx():self.h.db.execute('UPDATE executions SET stop_requested=1 WHERE id=?',(job['id'],))
+    return result
+  host.factory=StopOnOpen
+  run=dict(self.h.db.execute('SELECT * FROM executions WHERE id=?',(job['id'],)).fetchone());host.execute(run)
+  self.assertEqual(self.h.db.execute('SELECT status FROM executions WHERE id=?',(job['id'],)).fetchone()[0],'interrupted')
+  self.assertFalse(any(method=='turn/start' for method,_ in StopOnOpen.instances[-1].calls))
  def turn(self,rt,agent,text='hello',purpose='task'):
   job=rt.submit('user',agent['id'],text,True,purpose=purpose,session_scope='hub-project:module-test')
   with self.h.tx():self.h.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),job['id']))

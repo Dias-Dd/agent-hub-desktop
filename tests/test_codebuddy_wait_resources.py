@@ -1,3 +1,4 @@
+from module_fixture import implementation
 import io,json,time,tempfile,unittest
 from pathlib import Path
 from datetime import datetime
@@ -17,7 +18,7 @@ class CodeBuddyDirectory(unittest.TestCase):
  agent=base.RegistryTests.agent
  def job(self,rt,a,scope):
   job=rt.submit('user',a,'Create current project files',True,session_scope=scope)
-  with self.server.hub.tx():self.server.hub.db.execute("UPDATE executions SET status='running' WHERE id=?",(job['id'],))
+  with self.server.hub.tx():self.server.hub.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),job['id']))
   return dict(self.server.hub.db.execute('SELECT * FROM executions WHERE id=?',(job['id'],)).fetchone())
  def test_resume_from_original_directory_and_add_current_workspace(self):
   c=self.connection('workbuddy',True);a=self.agent(c,model='hy3');rt=self.server.workflows.runtime(a['id']);h=self.server.hub
@@ -27,7 +28,7 @@ class CodeBuddyDirectory(unittest.TestCase):
   class Input(io.StringIO):
    def close(self):pass
   proc=SimpleNamespace(pid=42,stdin=Input(),stdout=io.StringIO('null\n[]\n'+json.dumps({'type':'assistant','message':None})+'\n'+json.dumps({'type':'result','session_id':'keep-context','result':'done'})+'\n'),stderr=io.StringIO(''),wait=lambda **k:0,poll=lambda:0)
-  with patch('hub.integrations.locate',return_value='codebuddy.cmd'),patch('hub.integrations.command',side_effect=lambda x:x),patch('hub.integration_runtime.subprocess.Popen',return_value=proc) as spawn,patch('hub.integration_runtime.ProcessJob',return_value=SimpleNamespace(close=lambda:None)),patch.object(rt,'track_client'):
+  with patch('hub.integrations.locate',return_value='codebuddy.cmd'),patch('hub.integrations.command',side_effect=lambda x:x),patch('hub.integration_runtime.subprocess.Popen',return_value=proc) as spawn,patch.object(implementation(h,'workbuddy'),'ProcessJob',return_value=SimpleNamespace(close=lambda:None)),patch.object(rt,'track_client'):
    rt.execute(run)
   argv=spawn.call_args.args[0];self.assertEqual(spawn.call_args.kwargs['cwd'],str(old));self.assertEqual(argv[argv.index('--resume')+1],'keep-context');self.assertEqual(argv[argv.index('--add-dir')+1],str(Path(run['cwd']).resolve()))
   delivered=json.loads(proc.stdin.getvalue())['message']['content'];self.assertIn(str(old),delivered);self.assertIn(str(Path(run['cwd']).resolve()),delivered);self.assertIn('--input-format',argv)

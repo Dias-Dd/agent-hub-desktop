@@ -1,4 +1,4 @@
-import json
+import json,time
 import unittest
 import test_nine_deepseek as base
 from hub.core import HubError
@@ -15,10 +15,10 @@ class ManagerOwnedPlan(unittest.TestCase):
 
     def plan(self,agents=None,tasks=None,mode='skip'):
         opts={'agents':agents or [],'cwd':self.f.t.name,'preview_mode':mode}
-        session=self.p.message('user','Build hello page',options=opts,confirmed=True,project_id='solo')
+        session=self.p.message('user','Build hello page',options=opts,confirmed=True,project_id='solo',start_planning=True)
         result={'done':False,'report':'Readable approved scope','tasks':tasks if tasks is not None else [{'agent':self.manager,'instruction':'Build the hello page yourself'}]}
-        self.f.api.answers.append(json.dumps(result))
-        self.f.d.execute(self.f.running(session['pending']));self.p.patrol()
+        with self.h.tx():self.h.db.execute("UPDATE executions SET status='completed',finished=?,result=? WHERE id=?",(time.time(),json.dumps(result),session['pending']))
+        self.p.patrol()
         return self.p.get(session['id'])
 
     def test_manager_only_plan_waits_for_approval_then_runs_with_manager_authority(self):

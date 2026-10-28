@@ -14,7 +14,7 @@ class TartAccessibility:
   path=self.root/'peekaboo-receipts';path.mkdir(exist_ok=True);return path
  def ax_state(self,name):
   try:
-   data=json.loads((self.root/'peekaboo-status.json').read_text())
+   data=json.loads((self.root/'peekaboo-status.json').read_text(encoding='utf-8'))
    if data.get('vm_identity')==self.ax_identity(name):return data
   except (OSError,ValueError):pass
   return {'ready':False,'provider':'peekaboo','note':'请在虚拟机设置中安装并授权 Peekaboo 控件驱动'}
@@ -37,7 +37,7 @@ class TartAccessibility:
   return self.ax_directory()/('windows-'+hashlib.sha256((project+'\0'+agent).encode()).hexdigest()+'.json')
  def ax_window(self,project,agent,name,handle):
   if type(handle) is not int or handle<=0:raise HubError('请提供 windows 返回的 window_handle')
-  try:record=json.loads(self.ax_windows_path(project,agent).read_text())
+  try:record=json.loads(self.ax_windows_path(project,agent).read_text(encoding='utf-8'))
   except (OSError,ValueError):raise HubError('请先读取本 Agent 的 windows') from None
   if record['vm_identity']!=self.ax_identity(name) or time.time()-record['created']>120:raise HubError('窗口清单已过期，请重新读取 windows')
   window=record['windows'].get(str(handle))
@@ -85,7 +85,7 @@ class TartAccessibility:
    match=re.fullmatch(r'tartax_([a-f0-9]{32})_([0-9]{1,3})',str(args.get('element_id','')))
    if not match:raise HubError('请使用 ui_tree 返回的 element_id')
    path=self.ax_directory()/(match[1]+'.json')
-   try:record=json.loads(path.read_text())
+   try:record=json.loads(path.read_text(encoding='utf-8'))
    except (OSError,ValueError):raise HubError('控件快照不存在，请重新读取 ui_tree') from None
    if record['project']!=project or record['agent']!=agent or record['vm_identity']!=self.ax_identity(name) or record['window_handle']!=handle:
     raise HubError('控件快照不属于当前 Agent、项目或虚拟机窗口')

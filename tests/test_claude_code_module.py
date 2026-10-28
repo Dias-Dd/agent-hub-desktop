@@ -71,9 +71,10 @@ class ClaudeModule(unittest.TestCase):
     def turn(self,mode='ok',scope='hub-project:claude-test',purpose='task',max_seconds=None):
         os.environ['TEST_CLAUDE_MODE']=mode
         job=self.rt.submit('user',self.agent['id'],'test prompt',True,purpose=purpose,session_scope=scope)
-        with self.h.tx():self.h.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),job['id']))
+        with self.h.tx():
+            self.h.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),job['id']))
+            if max_seconds is not None:self.h.db.execute('UPDATE executions SET max_seconds=? WHERE id=?',(max_seconds,job['id']))
         run=dict(self.h.db.execute('SELECT * FROM executions WHERE id=?',(job['id'],)).fetchone())
-        if max_seconds is not None:run['max_seconds']=max_seconds
         self.rt.execute(run)
         return dict(self.h.db.execute('SELECT * FROM executions WHERE id=?',(job['id'],)).fetchone())
 

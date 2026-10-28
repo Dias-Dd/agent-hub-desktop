@@ -54,7 +54,7 @@ class LiveTests(unittest.TestCase):
 class HarnessPrivacy(unittest.TestCase):
  def test_public_deltas_arrive_before_provider_end_without_private_thought(self):
   import test_harness as harness
-  fixture=harness.HarnessTests();fixture.setUp();fixture.h.url='http://127.0.0.1:8765';Projects(fixture.h);fixture.h.live=LiveReplies(fixture.h)
+  fixture=harness.HarnessTests();fixture.setUp();fixture.h.url='http://127.0.0.1:8765';projects=Projects(fixture.h);project=projects.create('user','fixture');fixture.h.live=LiveReplies(fixture.h)
   observed=[]
   class Stream(harness.FakeACP):
    def wait(self,ident,guard=None,timeout=60):
@@ -62,10 +62,10 @@ class HarnessPrivacy(unittest.TestCase):
     self.update({'update':{'sessionUpdate':'agent_thought_chunk','content':{'type':'text','text':'PRIVATE_THOUGHT_SENTINEL'}}})
     self.update({'update':{'sessionUpdate':'agent_message_chunk','content':{'type':'text','text':'public reply'}}})
     ident=fixture.h.db.execute('SELECT id FROM executions').fetchone()[0]
-    observed.append(fixture.h.live.read(ident,'fixture')['text'])
+    observed.append(fixture.h.live.read(ident,project['id'])['text'])
     return {'stopReason':'end_turn'}
   try:
-   run=fixture.d.submit('user','deepseek-1','new input only',True,purpose='question',session_scope='hub-project:fixture')
-   with patch('hub.deepseek_harness.ACP',Stream),patch('hub.deepseek_harness.installation',return_value=('fixture.exe','cli.js')):fixture.d.execute(fixture.f.running(run['id']))
-   self.assertEqual(observed,['public reply'],dict(fixture.h.db.execute('SELECT status,result FROM executions').fetchone()));draft=fixture.h.live.read(run['id'],'fixture');self.assertNotIn('PRIVATE_THOUGHT_SENTINEL',str(draft))
+   run=fixture.d.submit('user','deepseek-1','new input only',True,purpose='question',session_scope='hub-project:'+project['id'])
+   with patch.object(fixture.adapter_module,'ACP',Stream),patch.object(fixture.adapter_module,'installation',return_value=('fixture.exe','cli.js')):fixture.d.execute(fixture.f.running(run['id']))
+   self.assertEqual(observed,['public reply'],dict(fixture.h.db.execute('SELECT status,result FROM executions').fetchone()));draft=fixture.h.live.read(run['id'],project['id']);self.assertNotIn('PRIVATE_THOUGHT_SENTINEL',str(draft))
   finally:fixture.tearDown()

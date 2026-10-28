@@ -71,7 +71,7 @@ def call(name,args):
         run_id=os.environ.get('HUB_RUN_ID')
         if not run_id:raise ValueError('tool requires a Hub-owned active execution')
         args={**args,'run_id':run_id}
-    req=urllib.request.Request(base.rstrip('/')+'/api/action',data=json.dumps({'action':name,'args':args},allow_nan=False).encode(),headers={'Authorization':'Bearer '+os.environ.get('HUB_TOKEN',''),'Content-Type':'application/json'})
+    req=urllib.request.Request(base.rstrip('/')+'/api/action',data=json.dumps({'action':name,'args':args},allow_nan=False).encode(),headers={'Authorization':'Bearer '+os.environ.get('HUB_TOKEN',''),'Content-Type':'application/json',**({'X-Hub-Run':os.environ['HUB_RUN_ID']} if os.environ.get('HUB_RUN_ID') else {})})
     try:
         with urllib.request.urlopen(req,timeout=45 if name=='browser_render' else 10) as response:return json.load(response)['result']
     except urllib.error.HTTPError as e:

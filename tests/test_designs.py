@@ -18,7 +18,7 @@ class DesignFlow(unittest.TestCase):
   self.w=Workflows(self.h,[self.c,self.a,self.d]);self.co=Coordination(self.h,[self.c,self.a,self.d],self.w);self.p=Planning(self.h,self.d,self.w);self.ds=Designs(self.h,self.p,self.w)
  def tearDown(self):self.h.db.close();self.t.cleanup()
  def plan(self,mode='demo'):
-  s=self.p.message('user','Build a beautiful app',options={'preview_mode':mode,'cwd':self.t.name,'agents':['deepseek-1','deepseek-2','deepseek-3'],'reviewer':'deepseek-4','max_seconds':600},project_id='p')
+  s=self.p.message('user','Build a beautiful app',options={'preview_mode':mode,'cwd':self.t.name,'agents':['deepseek-1','deepseek-2','deepseek-3'],'reviewer':'deepseek-4','max_seconds':600},project_id='p',start_planning=True)
   result={'done':False,'report':'Home, settings and architecture','tasks':[{'agent':'deepseek-1','instruction':'IMPLEMENT_REAL_PRODUCT'}],'preview':{'pages':[{'id':'home'},{'id':'settings'},{'id':'architecture'}]}}
   with self.h.tx():self.h.db.execute("UPDATE executions SET status='completed',finished=?,result=? WHERE id=?",(time.time(),json.dumps(result),s['pending']))
   self.p.patrol();return self.p.get(s['id'])

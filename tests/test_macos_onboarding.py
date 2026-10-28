@@ -9,6 +9,20 @@ from hub.tart_bridge import TartBridge
 
 
 class FirstRun(unittest.TestCase):
+    def test_non_ascii_request_roundtrip_and_dead_owner_is_not_replayed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bridge=TartBridge(directory);ident='a'*32
+            bridge.write(bridge.requests/(ident+'.json'),{'owner_pid':123,'note':'连接虚拟机 🔎'})
+            bridge.write(bridge.results/(ident+'.json'),{'state':'running','note':'正在连接'})
+            with patch.object(bridge,'process_alive',return_value=False):job,result=bridge.record(ident)
+            self.assertEqual(job['note'],'连接虚拟机 🔎');self.assertEqual(result['state'],'failed')
+            with patch.object(bridge,'process_alive',return_value=None):self.assertEqual(bridge.record(ident)[1]['state'],'running')
+
+    @unittest.skipUnless(__import__('os').name=='nt','Windows process probe')
+    def test_windows_probe_does_not_send_process_signal(self):
+        with patch('hub.vm_bridge.VmBridge._process_alive',return_value=True) as probe,patch('hub.tart_bridge.os.kill') as kill:
+            self.assertTrue(TartBridge.process_alive(123));probe.assert_called_once_with(123);kill.assert_not_called()
+
     def test_missing_tart_requires_install_action_and_does_not_claim_homebrew_installed(self):
         with tempfile.TemporaryDirectory() as directory:
             bridge=TartBridge(directory)

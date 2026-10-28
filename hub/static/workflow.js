@@ -6,7 +6,7 @@
   const miniResize=new ResizeObserver(()=>requestAnimationFrame(measureMiniNames));if(document.getElementById('agentMiniStates'))miniResize.observe(document.getElementById('agentMiniStates'));
 
   const { $, store, node, value, checked, number, text, bind, list, record, longText } = H;
-  let fresh = false;
+  let fresh = false, startingPlan = false;
   let project = H.client.getSelectedProjectId();
   const session = () => fresh ? null : H.view.managerStream.planning;
   const workflow = () => H.view.managerStream.workflow;
@@ -24,8 +24,12 @@
     const selected=H.view.rawSnapshot?.projects?.find(p=>p.id===H.client.getSelectedProjectId());
     if(!selected)throw Error('请先通过左侧新建项目按钮创建项目');
     const options=H.projectDiscussionOptions?H.projectDiscussionOptions(selected):settings();
-    await store.sendPlanChat({body:value('workflowRequirement'), options, confirmed:true});
-    fresh = false; $('workflowConfirm').checked = false; render(H.view);
+    if(startingPlan)return;
+    const projectId=H.client.getSelectedProjectId();startingPlan=true;render(H.view);
+    try {
+      await store.sendPlanChat({body:value('workflowRequirement'), options, confirmed:true});
+      if(projectId===H.client.getSelectedProjectId()){fresh=false;$('workflowConfirm').checked=false;}
+    } finally {startingPlan=false;render(H.view);}
   });
   let sendingInput=false, insertingInput=false;
   const armedInputs=new Map();
@@ -96,16 +100,23 @@
     H.notice(`已成功切换项目经理为 ${target}（已继承上下文）`, 'status');
   });
   const onNewDiscussion = async () => {
+    if(startingPlan)return;
     const p=session(),newRound=!!p && p.mode!=='alignment';
     if(p?.pending)throw Error('请等待经理本轮回复后开始计划');
-    const draft=p ? value('discussionReply').trim() : value('workflowRequirement').trim();
+    const editor=p ? $('discussionReply') : $('workflowRequirement'),originalDraft=editor.value,projectId=H.client.getSelectedProjectId();
+    const draft=originalDraft.trim();
     const body=draft || (newRound ? '请根据当前项目的已有上下文制定新一轮计划，等待我审阅批准后再启动新一轮执行。' : p ? '请根据我们刚才对齐的需求制定计划。' : '');
     if(!body){$('workflowRequirement').focus();H.notice('填写需求后点击开始计划，即可直接制定计划','status');return;}
     const selected=H.view.rawSnapshot?.projects?.find(x=>x.id===H.client.getSelectedProjectId());
     if(!selected)throw Error('请先创建项目');
-    await store.sendPlanChat({body,sessionId:newRound ? null : p?.sessionId,options:(!newRound && p?.options) || H.projectDiscussionOptions(selected),confirmed:true,startPlanning:true});
-    if(p)$('discussionReply').value='';
-    fresh=false;render(H.view);
+    startingPlan=true;render(H.view);
+    try {
+      await store.sendPlanChat({body,sessionId:newRound ? null : p?.sessionId,options:(!newRound && p?.options) || H.projectDiscussionOptions(selected),confirmed:true,startPlanning:true});
+      if(projectId===H.client.getSelectedProjectId()){
+        if(editor.value===originalDraft){editor.value='';editor.dispatchEvent(new Event('input',{bubbles:true}));}
+        fresh=false;
+      }
+    } finally {startingPlan=false;render(H.view);}
   };
   bind('newDiscussion','click', onNewDiscussion);
   if ($('newDiscussionInline')) bind('newDiscussionInline','click', onNewDiscussion);
@@ -141,7 +152,7 @@
   let rosterSignature='';
   function render(v) {
     const current=session();
-    for(const id of ['newDiscussion','newDiscussionInline']){const b=$(id);if(b){b.textContent=(!current || current.mode==='alignment')?'开始计划':'新建讨论';b.disabled=!!current?.pending;b.classList.toggle('primary-btn',!current || current.mode==='alignment');b.classList.toggle('secondary-btn',!!current && current.mode!=='alignment');}}
+    for(const id of ['newDiscussion','newDiscussionInline']){const b=$(id);if(b){b.textContent=(!current || current.mode==='alignment')?'开始计划':'新建讨论';b.disabled=startingPlan || !!current?.pending;b.classList.toggle('primary-btn',!current || current.mode==='alignment');b.classList.toggle('secondary-btn',!!current && current.mode!=='alignment');}}
     const roster=JSON.stringify([v.managerStream.manager,v.agents.map(a=>[a.id,a.name,a.model])]);
     if(roster!==rosterSignature){rosterSignature=roster;const chosen=new Set([...$('workflowAgents').querySelectorAll('input:checked')].map(c=>c.value));list('workflowAgents',v.agents.filter(a=>a.id!==v.managerStream.manager).map(a=>{const label=node('label',a.name+' · '+a.model,'setupConsent'),c=node('input');c.type='checkbox';c.value=a.id;c.checked=chosen.has(a.id);label.prepend(c);return label;}));H.updateReviewerOptions();}
 

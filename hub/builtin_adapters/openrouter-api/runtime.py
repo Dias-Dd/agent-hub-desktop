@@ -242,10 +242,8 @@ class DeepSeekRuntime(CodexRuntime):
                 self.hub.db.execute('INSERT INTO tasks(id,agent,title,assigned_by,created) VALUES(?,?,?,?,?)',(task_id,agent,instruction,actor,time.time()))
                 self.hub.db.execute("INSERT INTO messages(id,sender,recipient,mode,body,status,created) VALUES(?,?,?,'queue',?,'pending',?)",(message_id,actor,agent,'[task:'+task_id+'] '+instruction,time.time()))
             if self.hub.db.execute('SELECT 1 FROM executions WHERE task_id=?',(task_id,)).fetchone():raise HubError('该任务已有真实执行记录，不自动重试；请检查后创建新任务')
-            design_work=self.hub.db.execute('SELECT w.body FROM workflows w JOIN workflow_steps s ON s.workflow=w.id WHERE s.task=?',(task_id,)).fetchone()
-            if design_work:
-                workflow=json.loads(design_work[0])
-                if workflow.get('design_dir'):cfg={**cfg,'cwd':workflow['design_dir']}
+            from hub.module_sdk import execution_directory
+            cfg={**cfg,'cwd':execution_directory(self.hub,{'task_id':task_id,'message_id':message_id,'session_scope':session_scope},cfg['cwd'])}
             run_id=uid()
             self.hub.db.execute("INSERT INTO executions(id,task_id,message_id,agent,model,prompt,actual_input,cwd,permission,max_seconds,grant_id,status,created,provider) VALUES(?,?,?,?,?,?,?,?,?,?,?,'queued',?,?)",(run_id,task_id,message_id,agent,self.models[agent],instruction,instruction,cfg['cwd'],cfg['permission'],cfg['max_seconds'],cfg['grant_id'],time.time(),self.provider))
             self.hub.db.execute('UPDATE executions SET purpose=?,session_scope=? WHERE id=?',(purpose,session_scope,run_id))

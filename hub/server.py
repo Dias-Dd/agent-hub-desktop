@@ -168,6 +168,13 @@ class Handler(BaseHTTPRequestHandler):
             action=data.get('action');args=data.get('args',{})
             if not isinstance(args,dict):raise HubError('arguments must be object')
             if actor!='user':
+                bound=self.headers.get('X-Hub-Run')
+                if bound:
+                    with self.server.hub.lock:execution=self.server.hub.db.execute('SELECT * FROM executions WHERE id=? AND agent=?',(bound,actor)).fetchone()
+                    if not execution:raise HubError('工具调用不属于当前执行身份')
+                    if args.get('run_id',bound)!=bound:raise HubError('工具调用的执行编号不一致')
+                    from .module_tools import guard as execution_guard
+                    execution_guard(self.server.workflows.runtime(actor),dict(execution))
                 with self.server.hub.lock:
                     aligning=self.server.hub.db.execute("SELECT 1 FROM executions WHERE agent=? AND purpose='alignment' AND status IN ('queued','running','interrupting','waiting_quota') LIMIT 1",(actor,)).fetchone()
                 if aligning and action!='project_vm':raise HubError('需求对齐阶段平台工具尚未启用，请由用户点击开始计划')

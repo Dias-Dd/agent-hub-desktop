@@ -46,10 +46,19 @@ class PlanNotices(unittest.TestCase):
         _,w=self.approve();task=self.w.steps(w['id'])[0]
         instruction=self.h.db.execute('SELECT title FROM tasks WHERE id=?',(task['task'],)).fetchone()[0]
         job=self.fixture.f.d.submit('user',self.fixture.manager,instruction,True,task['task'])
-        self.fixture.f.api.answers.append('Manager received the milestone')
-        self.fixture.f.d.execute(self.fixture.f.running(job['id']))
-        run=self.h.db.execute('SELECT status,actual_input FROM executions WHERE id=?',(job['id'],)).fetchone()
-        self.assertEqual(run['status'],'completed')
+        import test_harness as harness
+        self.h.url='http://127.0.0.1:8765'
+        from unittest.mock import patch
+        from module_fixture import implementation
+        self.fixture.f.d.key=lambda:'fixture-key-not-real'
+        cfg=self.fixture.f.d.config();cfg['engine']='harness'
+        with self.h.tx():self.h.db.execute("UPDATE settings SET value=? WHERE key='deepseek_runtime'",(json.dumps(cfg),))
+        runtime=implementation(self.h,'deepseek-harness')
+        harness.FakeACP.calls=[];harness.FakeACP.stop='end_turn';harness.FakeACP.model='["deepseek-official","deepseek-flash"]';harness.FakeACP.missing=False;harness.FakeACP.bad_permission=False;harness.FakeACP.bad_root=False
+        with patch.object(runtime,'ACP',harness.FakeACP),patch.object(runtime,'installation',return_value=('fixture.exe','cli.js')),patch.object(__import__(runtime.__package__+'.account',fromlist=['auth']),'auth',return_value=('deepseek-official',None,{'DEEPSEEK_API_KEY':'fixture-key-not-real'})):
+            self.fixture.f.d.execute(self.fixture.f.running(job['id']))
+        run=self.h.db.execute('SELECT status,actual_input,result FROM executions WHERE id=?',(job['id'],)).fetchone()
+        self.assertEqual(run['status'],'completed',run['result'])
         self.assertIn('[长期记忆通知]',run['actual_input'])
         self.assertEqual(run['actual_input'].count('[长期记忆通知]'),1)
 

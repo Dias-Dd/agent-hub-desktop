@@ -59,7 +59,7 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
         return next((str(p) for p in (Path('/opt/homebrew/bin/brew'),Path('/usr/local/bin/brew')) if p.is_file()),None)
 
     def preferences(self):
-        try:return json.loads((self.root/'preferences.json').read_text())
+        try:return json.loads((self.root/'preferences.json').read_text(encoding='utf-8'))
         except (OSError,ValueError):return {'auto_connect':True}
 
     def inventory(self):
@@ -83,7 +83,7 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
 
     def selected(self):
         try:
-            return json.loads((self.root / 'connection.json').read_text())
+            return json.loads((self.root / 'connection.json').read_text(encoding='utf-8'))
         except (OSError, ValueError):
             return {}
 
@@ -168,15 +168,27 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
         if not isinstance(request_id, str) or not re.fullmatch('[a-f0-9]{32}', request_id):
             raise HubError('请求编号无效')
         try:
-            job=json.loads((self.requests / (request_id + '.json')).read_text())
-            result=json.loads((self.results / (request_id + '.json')).read_text())
+            job=json.loads((self.requests / (request_id + '.json')).read_text(encoding='utf-8'))
+            result=json.loads((self.results / (request_id + '.json')).read_text(encoding='utf-8'))
+            if not isinstance(job,dict) or not isinstance(result,dict):raise ValueError('invalid request record')
             if result.get('state') in ('queued','running') and job.get('owner_pid'):
-                try:os.kill(job['owner_pid'],0)
-                except ProcessLookupError:
+                if self.process_alive(job['owner_pid']) is False:
                     result={**result,'state':'failed','error':'上次应用已退出；操作结果未知，请检查虚拟机现场，未自动重试。'}
             return job,result
         except (OSError, ValueError):
             raise HubError('Tart 请求不存在或结果不可读') from None
+
+    @staticmethod
+    def process_alive(pid):
+        if type(pid) is not int or pid<=0:return None
+        if os.name=='nt':
+            # Windows os.kill(pid, 0) terminates the target instead of probing it.
+            from .vm_bridge import VmBridge
+            return VmBridge._process_alive(pid)
+        try:os.kill(pid,0)
+        except ProcessLookupError:return False
+        except PermissionError:return None
+        return True
 
     def control(self, action='status', request_id=None, vm_name='', username='', password='', remember=True, unattended=None,
                 auto_connect=None, image='macos', confirmed=False, **options):

@@ -43,6 +43,8 @@ class Workflows:
             for table in ('tasks','messages'):
                 if 'project_id' not in {r[1] for r in hub.db.execute('PRAGMA table_info('+table+')')}:hub.db.execute('ALTER TABLE '+table+' ADD COLUMN project_id TEXT')
             hub.db.execute('CREATE TABLE IF NOT EXISTS workflows(id TEXT PRIMARY KEY,body TEXT)')
+            hub.db.execute("CREATE INDEX IF NOT EXISTS workflows_by_status ON workflows(json_extract(body,'$.status'))")
+            hub.db.execute("CREATE INDEX IF NOT EXISTS workflows_by_project ON workflows(json_extract(body,'$.project_id'))")
             hub.db.execute('CREATE TABLE IF NOT EXISTS workflow_events(id TEXT PRIMARY KEY,workflow TEXT,source_run TEXT,body TEXT,status TEXT,manager_task TEXT,created REAL)')
             hub.db.execute('CREATE TABLE IF NOT EXISTS project_dispatches(workflow TEXT,request_key TEXT,task TEXT,PRIMARY KEY(workflow,request_key))')
             hub.db.execute('CREATE TABLE IF NOT EXISTS workflow_resources(task TEXT PRIMARY KEY,kind TEXT,paths TEXT)')
@@ -163,6 +165,17 @@ class Workflows:
 
     def patrol_seconds(self):return self.patrol_config()['interval_minutes']*60
 
+    def records(self,project_id=None,statuses=None):
+        """Internal state queries must not inherit the UI's history page limit."""
+        query="SELECT body FROM workflows WHERE coalesce(json_extract(body,'$.phase'),'')!='cleaned'"
+        values=[]
+        if project_id is not None:
+            query+=" AND json_extract(body,'$.project_id')=?";values.append(project_id)
+        if statuses is not None:
+            if not statuses:return []
+            query+=" AND json_extract(body,'$.status') IN ("+','.join('?' for _ in statuses)+')';values.extend(statuses)
+        with self.hub.lock:return [json.loads(row[0]) for row in self.hub.db.execute(query+' ORDER BY rowid DESC',values)]
+
     def snapshot(self,actor):
         self.hub.require(actor,{'user'})
         with self.lock,self.hub.lock:
@@ -173,7 +186,7 @@ class Workflows:
 
     def start(self,actor,requirement,agents,max_calls=6,expires_minutes=60,confirmed=False,auto_wake=True,reviewer=None,delegate_stop=False,max_hops=4,max_messages=12,max_parallel=1,approved_proposal=None,approval_key=None,project_id=None,manager_instruction=None,manager=None):
         self.hub.require(actor,{'user'})
-        if project_id and getattr(self.hub,'projects',None):self.hub.projects.get(project_id)
+        project=self.hub.projects.get(project_id) if project_id and getattr(self.hub,'projects',None) else None
         if confirmed is not True:raise HubError('请确认项目范围、参与者、调用次数、有效期及现有执行权限')
         manager=manager or project_manager(self.hub,project_id)
         self.runtime(manager)
@@ -199,14 +212,20 @@ class Workflows:
                 with self.hub.lock:existing=self.hub.db.execute("SELECT body FROM workflows WHERE json_extract(body,'$.approval_key')=?",(approval_key,)).fetchone()
                 if existing:return json.loads(existing[0])
             if getattr(self.hub,'coordination',None) and any(self.hub.coordination.is_stopped(a) for a in [manager]+agents):raise HubError('参与者存在紧急停止锁，先由用户解除')
-            if any(w['status'] in ('active','needs_attention') for w in self.snapshot(actor)):raise HubError('请先结束当前项目')
+            if self.hub.db.execute("SELECT 1 FROM workflows WHERE json_extract(body,'$.status') IN ('active','needs_attention') LIMIT 1").fetchone():raise HubError('请先结束当前项目')
             configs={}
             for agent in [manager]+agents:
                 rt=self.runtime(agent);cfg=rt.config()
                 if not cfg['enabled']:raise HubError(agent+' 的真实执行尚未启用')
                 configs[rt.provider]=cfg
-            if len({c['cwd'] for c in configs.values()})!=1:raise HubError('参与者的工作目录必须相同')
+            if project:
+                from .module_sdk import working_directory
+                cwd=working_directory(project['cwd'],'项目工作目录')
+            else:
+                if len({c['cwd'] for c in configs.values()})!=1:raise HubError('参与者的工作目录必须相同')
+                cwd=next(iter(configs.values()))['cwd']
             w={'project_id':project_id,'approval_key':approval_key,'initial_manager_instruction':manager_instruction,'manager':manager,'backup_manager':None,'approved_plan':approved_proposal,'max_parallel':max_parallel,'auto_wake':True,'reviewer':reviewer,'delegate_stop':delegate_stop,'max_hops':max_hops,'max_messages':max_messages,'id':uid(),'requirement':requirement,'agents':agents,'unlimited_calls':True,'max_calls':max_calls,'expires':time.time()+expires_minutes*60,'created':time.time(),'status':'active','phase':'planning','report':'已授权，等待项目经理分解需求','processed':0,'patrolled':None,'inspection_policy':{'supervisor_seconds':0.25,'manager_interval_seconds':self.patrol_seconds(),'model_checks':'消息驱动；定期忙闲巡检'},'grants':{k:v['grant_id'] for k,v in configs.items()},'cwd':next(iter(configs.values()))['cwd']}
+            w['cwd']=cwd
             self.save(w)
             with self.hub.tx():self.hub.db.execute("INSERT OR REPLACE INTO settings VALUES('max_parallel',?)",(str(max_parallel),))
             with self.hub.tx():self.hub.audit('user','project.authorized',w)
@@ -344,12 +363,34 @@ class Workflows:
     def stop(self,actor,workflow_id):
         self.hub.require(actor,{'user'})
         with self.lock:
-            w=next((x for x in self.snapshot(actor) if x['id']==workflow_id),None)
-            if not w:raise HubError('项目不存在')
-            for s in self.steps(w['id']):
-                if s['status'] in ACTIVE:self.runtime(s['agent']).stop('user',s['run_id'])
+            with self.hub.lock:row=self.hub.db.execute('SELECT body FROM workflows WHERE id=?',(workflow_id,)).fetchone()
+            if not row:raise HubError('项目不存在')
+            w=json.loads(row[0])
+            with self.hub.lock:runs=[dict(r) for r in self.hub.db.execute("SELECT * FROM executions WHERE status IN ('queued','waiting_quota','running','interrupting') AND (task_id IN (SELECT task FROM workflow_steps WHERE workflow=?) OR session_scope=?)",(w['id'],'project:'+w['id']))]
+            for run in runs:self.stop_run(actor,run)
             w.pop('steps',None);w['status']='stopped';w['report']='用户已停止项目，执行中的任务遵循提供商停止确认规则';self.save(w)
         return {'ok':True}
+
+    def stop_run(self,actor,run):
+        runtime=next((r for r in self.runtimes if r.provider==run['provider']),None)
+        if runtime:
+            try:return runtime.stop(actor,run['id'])
+            except HubError:
+                with self.hub.lock:current=self.hub.db.execute('SELECT status FROM executions WHERE id=?',(run['id'],)).fetchone()
+                if current and current[0] in ACTIVE:raise
+                return
+        # A removed module cannot authorize further work or leave an eternal run.
+        with self.hub.tx():
+            current=self.hub.db.execute('SELECT status FROM executions WHERE id=?',(run['id'],)).fetchone()
+            if not current or current[0] not in ACTIVE:return
+            status='cancelled' if current[0] in ('queued','waiting_quota') else 'interrupted'
+            note='执行接入已移除；本地授权已停止，远端执行结果未知，不自动重试。'
+            self.hub.db.execute('INSERT OR IGNORE INTO execution_revocations VALUES(?,?,?,?)',(run['id'],actor,note,time.time()))
+            self.hub.db.execute('UPDATE executions SET status=?,stop_requested=1,finished=?,result=? WHERE id=?',(status,time.time(),note,run['id']))
+            self.hub.db.execute('UPDATE messages SET status=?,lease=NULL,result=? WHERE id=?',(status,note,run['message_id']))
+            self.hub.db.execute("UPDATE tasks SET status='blocked',note=? WHERE id=?",(note,run['task_id']))
+            self.hub.db.execute("UPDATE agents SET status='idle',active=NULL WHERE id=? AND active=?",(run['agent'],run['message_id']))
+            self.hub.audit(actor,'execution.removed_module_stopped',{'run_id':run['id'],'remote_cancel_confirmed':False})
 
     def reconcile_manager_receipts(self):
         # Repair receipts only for provider-confirmed turns already consumed by the
@@ -366,9 +407,9 @@ class Workflows:
     def patrol(self):
         with self.lock:
             self.reconcile_manager_receipts()
-            for item in self.snapshot('user'):
-                self.reconcile_stops(item)
-                if item['status'] not in ('active','needs_attention'):continue
+            with self.hub.lock:pending_stops=[json.loads(r[0]) for r in self.hub.db.execute("SELECT body FROM workflows WHERE id IN (SELECT r.workflow FROM workflow_stop_requests r JOIN executions e ON e.id=r.run WHERE e.stop_requested=1 AND e.status IN ('running','interrupting'))")]
+            for item in pending_stops:self.reconcile_stops(item)
+            for item in self.records(statuses=('active','needs_attention')):
                 from .project_activity import owner
                 active_project=owner(self.hub)
                 if active_project and item.get('project_id') and active_project!=item['project_id']:continue
@@ -395,7 +436,9 @@ class Workflows:
                     except HubError as invalid:safety_error=invalid
                     if safety_error:
                         for step in self.steps(w['id']):
-                            if step['run_id'] and step['status'] in ACTIVE:self.runtime(step['agent']).stop('user',step['run_id'])
+                            if step['run_id'] and step['status'] in ACTIVE:
+                                with self.hub.lock:run=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(step['run_id'],)).fetchone()
+                                if run:self.stop_run('user',dict(run))
                         w['status']='blocked';w['report']=str(safety_error)[:2000]
                     else:
                         w['status']='needs_attention';w['report']='调度待恢复（成员继续执行）：'+str(e)[:1800];w['next_recovery']=time.time()+180
@@ -406,7 +449,8 @@ class Workflows:
         if w['status'] not in ('active','needs_attention'):raise HubError('项目未运行；停止锁不会自动解除')
         if time.time()>w['expires']:raise HubError('项目授权已到期')
         for provider,grant in w['grants'].items():
-            rt=next(r for r in self.runtimes if r.provider==provider)
+            rt=next((r for r in self.runtimes if r.provider==provider),None)
+            if rt is None:raise HubError('项目接入已被移除：'+str(provider)+'；请重新选择可用接入并确认计划')
             if not rt.config()['enabled'] or rt.config()['grant_id']!=grant:raise HubError('执行权限或提供商预算已变化')
         if getattr(self.hub,'coordination',None) and self.hub.coordination.is_stopped(self.manager(w)):raise HubError('项目经理 紧急停止锁有效')
 
@@ -507,12 +551,14 @@ class Workflows:
             with self.hub.lock:raw=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(run_id,)).fetchone()
             candidate=dict(raw) if raw else {}
             if candidate.get('agent')==actor and candidate.get('status')=='running' and direct(self.hub,candidate):
+                if candidate.get('stop_requested'):raise HubError('本轮已请求停止，工具权限已暂停')
                 w=context(self.hub,candidate)
                 if w.get('grants'):
                     rt=self.runtime(actor);rt.check_latch(candidate)
                     self.valid({**w,'status':'active'})
                     if candidate['grant_id']!=w['grants'].get(candidate['provider']):raise HubError('执行授权已变化')
                     return w,{**candidate,'step_kind':'message'}
+        if row and row['stop_requested']:raise HubError('本轮已请求停止，工具权限已暂停')
         if row and self.hub.db.execute('SELECT 1 FROM execution_revocations WHERE run=?',(run_id,)).fetchone():raise HubError('此执行已由经理强制停止，工具权限已撤销')
         if not row or row['agent']!=actor or row['purpose'] not in ('task','question') or row['status'] not in (('running','completed') if allow_completed else ('running',)):raise HubError('工具仅供当前项目内的有效执行使用')
         w=json.loads(wrow[0]);self.valid(w)
@@ -883,7 +929,8 @@ class Workflows:
         self.hub.require(actor,{'user'})
         session=self.hub.planning.get(session_id) if session_id else None
         with self.lock:
-            w=next((w for w in self.snapshot('user') if w['id']==(workflow_id or (session or {}).get('workflow_id'))),None)
+            with self.hub.lock:row=self.hub.db.execute('SELECT body FROM workflows WHERE id=?',(workflow_id or (session or {}).get('workflow_id'),)).fetchone()
+            w=json.loads(row[0]) if row else None
             project=(w or session or {}).get('project_id')
             if project and getattr(self.hub,'integrations',None):
                 return self.hub.integrations.set_manager(actor,project,target_manager)

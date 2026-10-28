@@ -24,8 +24,11 @@ class Interruptions(unittest.TestCase):
   w=self.w.snapshot('user')[0];self.assertEqual(w['status'],'needs_attention');self.assertGreater(w['next_recovery'],time.time())
  def test_expired_authorization_still_stops_live_execution(self):
   w=self.workflow();w['expires']=time.time()-1;self.w.save(w)
-  with patch.object(self.w,'advance',side_effect=HubError('expired')),patch.object(self.w,'steps',return_value=[{'run_id':'live','status':'running','agent':'deepseek-1'}]),patch.object(self.d,'stop') as stop:
-   self.w.patrol();stop.assert_called_once_with('user','live')
+  step=self.w.steps(w['id'])[0];title=self.h.db.execute('SELECT title FROM tasks WHERE id=?',(step['task'],)).fetchone()[0]
+  job=self.d.submit('user',step['agent'],title,True,task_id=step['task'])
+  with self.h.tx():self.h.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),job['id']))
+  with patch.object(self.w,'advance',side_effect=HubError('expired')),patch.object(self.d,'stop') as stop:
+   self.w.patrol();stop.assert_called_once_with('user',job['id'])
   self.assertEqual(self.w.snapshot('user')[0]['status'],'blocked')
  def test_long_history_produces_short_reference_not_full_trace(self):
   w=self.workflow();steps=[{'agent':'deepseek-1','kind':'work','status':'completed','run_id':'r','task':'t','result':'x'*100000}]

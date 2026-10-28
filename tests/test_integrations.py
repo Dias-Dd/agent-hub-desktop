@@ -91,10 +91,21 @@ class RegistryTests(unittest.TestCase):
   project=self.setup_change_project();self.registry.set_effort('user','deepseek-1','low',project)
   planning=self.server.hub.planning
   with patch.object(self.server.deepseek,'submit',side_effect=HubError('provider unavailable')):
-   with self.assertRaises(HubError):planning.message('user','discuss',project_id=project)
+   with self.assertRaises(HubError):planning.message('user','discuss',project_id=project,start_planning=True)
   self.assertEqual(len(self.registry.changes(project)),1)
   with patch.object(self.server.deepseek,'submit',return_value={'id':'fake-discussion-run'}) as submit:
-   planning.message('user','discuss',project_id=project)
+   planning.message('user','discuss',project_id=project,start_planning=True)
+  self.assertIn('high → low',submit.call_args.args[2]);self.assertEqual(self.registry.changes(project),[])
+
+ def test_alignment_preserves_roster_notices_until_planning_actually_receives_them(self):
+  project=self.setup_change_project();self.registry.set_effort('user','deepseek-1','low',project)
+  planning=self.server.hub.planning
+  with patch.object(self.server.deepseek,'submit',return_value={'id':'chat-input'}) as submit:
+   session=planning.message('user','just chat',project_id=project)
+  self.assertEqual(submit.call_args.args[2],'just chat');self.assertEqual(len(self.registry.changes(project)),1)
+  session.update(pending=None,state='chatting');planning.save(session)
+  with patch.object(self.server.deepseek,'submit',return_value={'id':'plan-input'}) as submit:
+   planning.message('user','now plan',project_id=project,session_id=session['id'],start_planning=True)
   self.assertIn('high → low',submit.call_args.args[2]);self.assertEqual(self.registry.changes(project),[])
 
  def test_reverted_changes_and_create_delete_do_not_notify(self):

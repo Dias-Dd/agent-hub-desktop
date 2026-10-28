@@ -11,8 +11,15 @@ class WebSocket:
         key=base64.b64encode(os.urandom(16)).decode()
         self.sock.sendall(('GET '+u.path+' HTTP/1.1\r\nHost: '+u.netloc+'\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: '+key+'\r\nSec-WebSocket-Version: 13\r\n\r\n').encode())
         response=b''
-        while not response.endswith(b'\r\n\r\n'):response+=self.sock.recv(1)
-        if not response.startswith(b'HTTP/1.1 101'):raise HubError('独立截图浏览器的 DevTools 连接被拒绝')
+        try:
+            while not response.endswith(b'\r\n\r\n'):
+                part=self.sock.recv(1)
+                if not part:raise HubError('截图浏览器在 DevTools 握手时断开连接')
+                response+=part
+                if len(response)>16384:raise HubError('截图浏览器握手响应过大')
+            if not response.startswith(b'HTTP/1.1 101'):raise HubError('独立截图浏览器的 DevTools 连接被拒绝')
+        except Exception:
+            self.sock.close();raise
     def read(self,n):
         data=b''
         while len(data)<n:
@@ -29,11 +36,12 @@ class WebSocket:
             a,b=self.read(2);n=b&127
             if n==126:n=struct.unpack('!H',self.read(2))[0]
             elif n==127:n=struct.unpack('!Q',self.read(8))[0]
-            if n>50000000:raise HubError('截图浏览器响应过大')
+            if n>50000000 or len(message)+n>50000000:raise HubError('截图浏览器响应过大')
             mask=self.read(4) if b&128 else None;data=self.read(n)
             if mask:data=bytes(c^mask[i%4] for i,c in enumerate(data))
             if a&15==8:raise HubError('截图浏览器已关闭连接')
             if a&15==9:self.send(data,10);continue
+            if a&15==10:continue
             message+=data
             if a&128:return json.loads(message)
     def call(self,method,params=None):

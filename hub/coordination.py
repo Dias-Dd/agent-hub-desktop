@@ -30,7 +30,7 @@ class Coordination:
         text(reason,1000)
         if agent!='*':self.hub.agent(agent)
         with self.workflows.lock:
-            projects=[w for w in self.workflows.snapshot('user') if w['status'] in ('active','needs_attention')]
+            projects=self.workflows.records(statuses=('active','needs_attention'))
             if actor!='user':
                 if not any(actor==self.workflows.manager(w) for w in projects):raise HubError('此身份没有紧急停止权限')
                 owned=[w for w in projects if w.get('delegate_stop') and self.workflows.manager(w)==actor]
@@ -67,7 +67,10 @@ class Coordination:
                         self.hub.db.execute("UPDATE agents SET active=NULL,status='idle' WHERE id=?",(target,))
             for r in affected:
                 if r['status'] in ('running','interrupting'):
-                    rt=self.workflows.runtime(r['agent']);client=rt.clients.get(r['id']) or (rt.active_client if getattr(rt,'active_run',None)==r['id'] else None)
+                    rt=next((runtime for runtime in self.runtimes if runtime.provider==r['provider']),None)
+                    if rt is None:
+                        self.workflows.stop_run('user',r);continue
+                    client=rt.clients.get(r['id']) or (rt.active_client if getattr(rt,'active_run',None)==r['id'] else None)
                     # Kill only Hub-owned local process trees. Never claim server-side cancellation.
                     if client:
                         if getattr(client,'job',None):client.job.close()
@@ -114,11 +117,11 @@ class Coordination:
         if not project_id and getattr(self.hub,'workflows',None):
             w = None
             if actor == 'user':
-                w = next((x for x in self.hub.workflows.snapshot('user') if x.get('status') in ('active','needs_attention','blocked','paused','executing')), None)
+                w = next(iter(self.workflows.records(statuses=('active','needs_attention','blocked','paused','executing'))), None)
             else:
                 w, _ = self.context({'sender': actor, 'request_key': request_key})
                 if not w:
-                    w = next((x for x in self.hub.workflows.snapshot('user') if x.get('status') in ('active','needs_attention','blocked','paused','executing')), None)
+                    w = next(iter(self.workflows.records(statuses=('active','needs_attention','blocked','paused','executing'))), None)
             if w:
                 project_id = w.get('project_id') or w.get('id')
         if mode=='immediate' and actor!='user':
@@ -153,13 +156,18 @@ class Coordination:
             with self.hub.lock:
                 prior=self.hub.db.execute('SELECT status,note FROM wakeups WHERE message=?',(ident,)).fetchone()
                 row=self.hub.db.execute('SELECT * FROM messages WHERE id=?',(ident,)).fetchone()
-            if not row or row['recipient']=='user':return
+            if not row or row['recipient']=='user' or row['status']!='pending':return
+            # Manager discussion inputs have a single owner, including while a
+            # reply is running. Generic wakeups must not execute them a second time.
+            with self.hub.lock:
+                owned=self.hub.db.execute("SELECT 1 FROM sqlite_master WHERE name='manager_discussion_inputs'").fetchone()
+                if owned and self.hub.db.execute('SELECT 1 FROM manager_discussion_inputs WHERE message_id=?',(ident,)).fetchone():return
             m=dict(row)
             if prior and prior['status']!='held':return
             if m['body'].startswith('[task:'):return
             w,run=(project,source_run) if project else self.context(m)
             if m['sender']=='user' and not w:
-                w=next((x for x in self.workflows.snapshot('user') if (x['status'] in ('active','needs_attention','blocked','paused','stopped') or (x['status']=='completed' and m['recipient']==self.workflows.manager(x) and m.get('project_id')==x.get('project_id'))) and m['recipient'] in [self.workflows.manager(x)]+x['agents'] and (not m.get('project_id') or x.get('project_id')==m['project_id'])),None)
+                w=next((x for x in self.workflows.records(project_id=m.get('project_id')) if (x['status'] in ('active','needs_attention','blocked','paused','stopped') or (x['status']=='completed' and m['recipient']==self.workflows.manager(x) and m.get('project_id')==x.get('project_id'))) and m['recipient'] in [self.workflows.manager(x)]+x['agents']),None)
                 run={'task_id':None} if w else None
                 # Completed projects remain available for dialogue. Keep their identity
                 # and context without reopening implementation or replaying old work.
@@ -218,7 +226,15 @@ class Coordination:
                             if count>=w.get('max_messages',12):raise HubError('项目消息数上限已达，保留消息')
                         rt=self.workflows.runtime(m['recipient'])
                         scope='project:'+w['id'] if w else ('chat:'+m['project_id'] if m.get('project_id') else 'chat:default')
-                        job=rt.submit('user',m['recipient'],m['body'],True,source_message_id=ident,purpose='task' if m['sender']=='user' else 'question',session_scope=scope)
+                        from .module_sdk import working_directory
+                        project_id=m.get('project_id') or (w or {}).get('project_id')
+                        target=self.hub.projects.get(project_id)['cwd'] if project_id and getattr(self.hub,'projects',None) else (w or {}).get('cwd',rt.config()['cwd'])
+                        target=working_directory(target,'项目工作目录')
+                        # Fence worker pickup until this execution is bound to its
+                        # project; shared runtime defaults may belong to another one.
+                        with self.hub.lock:
+                            job=rt.submit('user',m['recipient'],m['body'],True,source_message_id=ident,purpose='task' if m['sender']=='user' else 'question',session_scope=scope)
+                            with self.hub.tx():self.hub.db.execute('UPDATE executions SET cwd=? WHERE id=?',(target,job['id']))
                         task=job['task_id'];status='queued';note='消息已唤醒；忙碌时排队。按本轮新请求处理，不自动恢复旧项目执行'
                     except HubError as error:note=str(error)
             if prior and status=='held' and prior['note']==note:return

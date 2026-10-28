@@ -69,8 +69,10 @@ class GitWorkflow(unittest.TestCase):
  def test_original_absolute_paths_are_redirected_to_worktree(self):
   a=self.job('deepseek-1','Modify '+str(self.root/'shared.txt'));self.assertNotIn(str(self.root/'shared.txt'),a['prompt']);self.assertIn(str(Path(a['cwd'])/'shared.txt'),a['prompt'])
  def test_demo_stays_in_original_directory(self):
-  self.flow['design_review']='demo';self.w.save(self.flow)
-  a=self.job('deepseek-1');self.assertEqual(a['cwd'],self.d.config()['cwd']);self.assertFalse((self.root/'.git').exists())
+  demo=self.root/'.hub-design'/'draft';demo.mkdir(parents=True)
+  self.flow.update(design_review='demo',design_dir=str(demo));self.w.save(self.flow)
+  a=self.job('deepseek-1');self.assertEqual(a['cwd'],str(demo));self.assertFalse((self.root/'.git').exists())
+  self.assertNotEqual(a['cwd'],self.d.config()['cwd'])
  def test_worker_cannot_integrate_using_manager_tool(self):
   a=self.job('deepseek-1')
   with self.assertRaises(HubError):self.g.tool(a['agent'],a['id'],action='integrate',agent='deepseek-2')

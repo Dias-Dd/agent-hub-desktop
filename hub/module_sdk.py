@@ -13,6 +13,28 @@ def working_directory(value,label='执行工作目录'):
     raise HubError(label+'已不存在或不是有效目录：'+str(value)+'。请检查项目目录；未启动 Harness，不会自动新建会话或重放任务。')
 
 
+def execution_directory(hub,run,default):
+    """Resolve each queued execution from its owner, never another project's config."""
+    scope=run.get('session_scope') or ''
+    if scope.startswith('connection-test:'):return default
+    with hub.lock:
+        tables={r[0] for r in hub.db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if 'workflow_steps' in tables and 'workflows' in tables:
+            row=hub.db.execute('SELECT w.body FROM workflows w JOIN workflow_steps s ON s.workflow=w.id WHERE s.task=?',(run.get('task_id'),)).fetchone()
+            if not row and scope.startswith('project:'):
+                row=hub.db.execute('SELECT body FROM workflows WHERE id=?',(scope[8:],)).fetchone()
+            if row:
+                workflow=json.loads(row[0])
+                return working_directory(workflow.get('design_dir') or workflow['cwd'],'项目工作目录')
+        if scope.startswith('project:'):
+            from .core import HubError
+            raise HubError('原项目执行流程不存在，未使用其它工作目录，也未启动 Harness')
+        from .project_activity import run_project
+        project=run_project(hub,{'task_id':run.get('task_id'),'message_id':run.get('message_id'),'session_scope':scope})
+        if project and getattr(hub,'projects',None):return working_directory(hub.projects.get(project)['cwd'],'项目工作目录')
+    return default
+
+
 def runtime_view(host, implementation=None, provider=None):
     """Use a module-owned implementation with the current host grant and scope.
 
@@ -21,6 +43,9 @@ def runtime_view(host, implementation=None, provider=None):
     """
     view = object.__new__(implementation or type(host))
     view.__dict__.update(host.__dict__)
+    # Connection identity may live on a generated runtime class, not its dict.
+    for name in ('provider','config_key','models'):
+        if hasattr(host,name):setattr(view,name,getattr(host,name))
     manifest=getattr(host,'_module_manifest',{})
     settings=manifest.get('settings',{})
     view.config=lambda:{**settings,**host.config()}

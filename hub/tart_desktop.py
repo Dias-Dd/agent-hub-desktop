@@ -14,7 +14,7 @@ class TartDesktop:
     def endpoint(self, name):
         try:
             # Console passwords are kept only in a private local runtime log.
-            text=(self.root/(name+'.log')).read_text(errors='replace')[-65536:]
+            text=(self.root/(name+'.log')).read_text(encoding='utf-8',errors='replace')[-65536:]
             matches=re.findall(r'vnc://[^\s\x1b]+',text)
             return matches[-1] if matches else None
         except OSError:return None
@@ -34,7 +34,7 @@ class TartDesktop:
         with open(self.root/'desktop.lock','a') as handle:
             fcntl.flock(handle,fcntl.LOCK_EX)
             path=self.root/'desktop-lease.json'
-            try:state=json.loads(path.read_text())
+            try:state=json.loads(path.read_text(encoding='utf-8'))
             except (OSError,ValueError):state={}
             busy=state.get('expires',0)>time.time() and state.get('vm')==name
             if inspect:return {'busy':busy,'owned':busy and state.get('owner')==key,'expires':state.get('expires') if busy else None}

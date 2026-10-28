@@ -1,3 +1,4 @@
+from module_fixture import implementation
 import io,json,time,unittest
 from unittest.mock import patch
 from types import SimpleNamespace
@@ -67,13 +68,13 @@ class PrintAdapter(unittest.TestCase):
  def execute(self,empty=False):
   c=self.connection('workbuddy',True);a=self.agent(c,'CodeBuddy','hy3');rt=self.server.workflows.runtime(a['id']);h=self.server.hub
   job=rt.submit('user',a['id'],'检查新版本',True,session_scope='hub-project:keep');run=dict(h.db.execute('SELECT * FROM executions WHERE id=?',(job['id'],)).fetchone())
-  with h.tx():h.db.execute("UPDATE executions SET status='running' WHERE id=?",(run['id'],))
+  with h.tx():h.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),run['id']))
   rt.sessions.bind(run,'keep-session',cwd=run['cwd'])
   values=[{'type':'assistant','uuid':'old','message':{'content':[{'type':'text','text':'上轮交付'}]}},{'type':'user','uuid':run['id'],'message':{'content':run['prompt']}},{'type':'assistant','uuid':'new','message':{'content':[{'type':'text','text':'本轮核查'}]}},{'type':'result','session_id':'keep-session','result':'' if empty else '本轮结论','is_error':False}]
   class Input(io.StringIO):
    def close(self):pass
   proc=SimpleNamespace(pid=42,stdin=Input(),stdout=io.StringIO('\n'.join(json.dumps(x,ensure_ascii=False) for x in values)+'\n'),stderr=io.StringIO(''),wait=lambda **k:0,poll=lambda:0)
-  with patch('hub.integrations.locate',return_value='codebuddy.cmd'),patch('hub.integrations.command',side_effect=lambda a:a),patch('hub.integration_runtime.subprocess.Popen',return_value=proc) as spawn,patch('hub.integration_runtime.ProcessJob',return_value=SimpleNamespace(close=lambda:None)),patch.object(rt,'track_client'):
+  with patch('hub.integrations.locate',return_value='codebuddy.cmd'),patch('hub.integrations.command',side_effect=lambda a:a),patch('hub.integration_runtime.subprocess.Popen',return_value=proc) as spawn,patch.object(implementation(h,'workbuddy'),'ProcessJob',return_value=SimpleNamespace(close=lambda:None)),patch.object(rt,'track_client'):
    rt.execute(run)
   argv=spawn.call_args.args[0];self.assertIn('--replay-user-messages',argv);self.assertIn('--resume',argv)
   self.assertEqual(json.loads(proc.stdin.getvalue())['message']['content'],run['prompt']);self.assertEqual(rt.sessions.get(run)['session_id'],'keep-session')

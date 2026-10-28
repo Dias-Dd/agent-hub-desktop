@@ -13,6 +13,7 @@ class Planning:
         self.hub=hub;hub.planning=self;self.runtime=runtime;self.workflows=workflows;self.lock=threading.RLock()
         with hub.tx():
             hub.db.execute('CREATE TABLE IF NOT EXISTS planning_sessions(id TEXT PRIMARY KEY,body TEXT)')
+            hub.db.execute("CREATE INDEX IF NOT EXISTS planning_pending ON planning_sessions(json_extract(body,'$.pending')) WHERE coalesce(json_extract(body,'$.state'),'')!='archived' AND json_extract(body,'$.pending') IS NOT NULL")
             hub.db.execute('CREATE TABLE IF NOT EXISTS discussion_prompt_context(run_id TEXT PRIMARY KEY,body TEXT)')
 
     def save(self,s):
@@ -61,8 +62,7 @@ class Planning:
         if mode not in (None,'alignment','planning') or type(start_planning)!=bool:raise HubError('讨论模式无效')
         with self.lock:
             s=self.get(session_id) if session_id else None
-            if s and s.get('state')=='archived':
-                project_id=project_id or s.get('project_id');s=None
+            if s and (s.get('state')=='archived' or s.get('superseded_by')):raise HubError('此讨论已被替代或归档，请在当前讨论中发送消息')
             from .project_activity import require_available
             require_available(self.hub,project_id or (s or {}).get('project_id'))
             files_recreated=False
@@ -113,7 +113,7 @@ class Planning:
             with self.hub.lock:
                 run=self.submit_discussion(rt,mgr,prompt,'hub-project:'+(s.get('project_id') or 'default'),s['options']['cwd'],purpose='alignment' if s.get('mode')=='alignment' else 'discussion')
                 with self.hub.tx():self.hub.db.execute('INSERT INTO discussion_prompt_context VALUES(?,?)',(run['id'],json.dumps(system_snapshot,ensure_ascii=False)))
-            if changes:registry.acknowledge_changes(changes)
+            if changes and s.get('mode')!='alignment':registry.acknowledge_changes(changes)
             s.pop('error',None);s.pop('notice',None)
             s['history'].append({'role':'user','text':body,'created':time.time(),'input_run_id':run['id'],'message_id':run.get('message_id')});s['pending']=run['id'];s['state']='thinking';s['turns']+=1;s['plan']=None;s['revision']+=1
             self.save(s)
@@ -172,10 +172,14 @@ class Planning:
 
     def patrol(self):
         with self.lock:
-            for s in self.snapshot('user'):
+            with self.hub.lock:pending=[json.loads(row[0]) for row in self.hub.db.execute("SELECT body FROM planning_sessions WHERE coalesce(json_extract(body,'$.state'),'')!='archived' AND json_extract(body,'$.pending') IS NOT NULL")]
+            for s in pending:
                 if not s.get('pending'):continue
                 with self.hub.lock:r=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(s['pending'],)).fetchone()
-                if not r or r['status'] in ('queued','running','interrupting','waiting_quota'):continue
+                if not r:
+                    s.update(pending=None,state='error',error='本轮执行记录不存在，请检查接入后重新发送；平台不会自动重放请求')
+                    self.save(s);continue
+                if r['status'] in ('queued','running','interrupting','waiting_quota'):continue
                 s['last_run']=r['id'];s['pending']=None;s.pop('error',None);s.pop('notice',None)
                 mgr=project_manager(self.hub,record=s)
                 try:
@@ -240,17 +244,22 @@ class Planning:
         """Approval replaces this project's earlier execution rounds, never another project."""
         project=s.get('project_id')
         if not project:return
-        for old in self.workflows.snapshot('user'):
-            if old.get('project_id')!=project or old['id']==s.get('workflow_id') or old.get('status') not in ('active','needs_attention','paused','blocked'):continue
+        with self.hub.lock:old_rounds=[json.loads(r[0]) for r in self.hub.db.execute("SELECT body FROM workflows WHERE json_extract(body,'$.project_id')=? AND json_extract(body,'$.status') IN ('active','needs_attention','paused','blocked')",(project,))]
+        for old in old_rounds:
+            if old['id']==s.get('workflow_id'):continue
             self.workflows.stop('user',old['id'])
-            old=next(w for w in self.workflows.snapshot('user') if w['id']==old['id'])
+            with self.hub.lock:old=json.loads(self.hub.db.execute('SELECT body FROM workflows WHERE id=?',(old['id'],)).fetchone()[0])
             old.pop('steps',None)
             old.update(superseded_by=s['id'],report='用户已批准新一轮计划，本轮已停止；成果与历史保留')
             self.workflows.save(old)
             with self.hub.tx():self.hub.audit('user','plan.round_superseded',{'workflow':old['id'],'session':s['id'],'project':project})
-        for previous in self.snapshot('user'):
+        with self.hub.lock:previous_sessions=[json.loads(r[0]) for r in self.hub.db.execute("SELECT body FROM planning_sessions WHERE json_extract(body,'$.project_id')=? AND coalesce(json_extract(body,'$.state'),'')!='archived'",(project,))]
+        for previous in previous_sessions:
             if previous['id']==s['id'] or previous.get('project_id')!=project:continue
-            previous.update(state='archived',superseded_by=s['id']);self.save(previous)
+            if previous.get('pending'):
+                with self.hub.lock:run=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(previous['pending'],)).fetchone()
+                if run:self.workflows.stop_run('user',dict(run))
+            previous.update(state='archived',pending=None,superseded_by=s['id']);self.save(previous)
             designs=getattr(self.hub,'designs',None)
             if designs and previous.get('design_id'):
                 design=designs.get(previous['design_id'])
@@ -282,11 +291,13 @@ class Planning:
             if not self.workflows.runtime(agent).config().get('enabled'):raise HubError(agent+' 的真实执行尚未启用')
             if getattr(self.hub,'coordination',None) and self.hub.coordination.is_stopped(agent):raise HubError('参与者存在紧急停止锁，先由用户解除')
         if s.get('design_approved'):self.hub.designs.verify_baseline(s['design_approved'])
+        from .module_sdk import working_directory
+        working_directory(s['options']['cwd'],'项目工作目录')
         self.supersede_rounds(s)
         if getattr(self.hub,'designs',None) and s['options'].get('preview_mode','demo')!='skip' and not s.get('design_approved'):
             result=self.hub.designs.start('user',s['id'],revision,s.get('project_id'))
             design=self.hub.designs.get(result['design_id'])
-            workflow=next(w for w in self.workflows.snapshot('user') if w['id']==design['workflow_id'])
+            with self.hub.lock:workflow=json.loads(self.hub.db.execute('SELECT body FROM workflows WHERE id=?',(design['workflow_id'],)).fetchone()[0])
             from .memory_notices import notify
             notify(self.hub,workflow,'plan','plan:'+s['id']+':'+str(revision))
             return result

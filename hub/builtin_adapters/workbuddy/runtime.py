@@ -13,7 +13,7 @@ def execute(self,run):
   if not exe:raise HubError('尚未安装或未找到所选 CLI；未调用模型')
   readonly=self.read_only(run);run['_read_only']=readonly
   if not readonly and run['permission']!='full':raise HubError('此 CLI 尚未验证工作区沙箱；需要用户显式授权完全访问')
-  allowed=[t['function']['name'] for t in self.definitions(run) if t['function']['name'] not in ('read_file','write_file','run_command')] if run.get('purpose') not in ('discussion','question') else []
+  allowed=[t['function']['name'] for t in self.definitions(run) if t['function']['name'] not in ('read_file','write_file','run_command')]
   stage='配置消息工具'
   mcp=bridge(self,run,allowed);mcp_cfg={'mcpServers':{'agent-message-hub':{'command':mcp['command'],'args':mcp['args'],'env':{v['name']:v['value'] for v in mcp['env']}}}}
   home=self.hub.directory/'integrations'/run['id'];home.mkdir(parents=True,exist_ok=True)

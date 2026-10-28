@@ -135,8 +135,7 @@ class Projects:
         with planning.workflows.lock:
             registry=getattr(self.hub,'integrations',None)
             if registry and project['options'].get('agents',[])!=merged['agents']:registry.queue_change('__roster__',{'agents':project['options'].get('agents',[])},{'agents':merged['agents']},project_id)
-            for w in planning.workflows.snapshot('user'):
-                if w.get('project_id')!=project_id:continue
+            for w in planning.workflows.records(project_id,statuses=('active','needs_attention','blocked','paused')):
                 before_agents=list(w['agents']);w['agents']=merged['agents']
                 for agent in merged['agents']:
                     rt=planning.workflows.runtime(agent)
@@ -160,16 +159,18 @@ class Projects:
         self.hub.require(actor,{'user'});self.get(project_id)
         workflows=self.hub.planning.workflows
         with workflows.lock:
-            for w in workflows.snapshot('user'):
-                if w.get('project_id')==project_id:workflows.stop(actor,w['id'])
+            for w in workflows.records(project_id,statuses=('active','needs_attention','blocked','paused')):
+                workflows.stop(actor,w['id'])
+            from .project_activity import has,run_project
+            with self.hub.lock:active_runs=[dict(row) for row in self.hub.db.execute("SELECT * FROM executions WHERE status IN ('queued','waiting_quota','running','interrupting')")] if has(self.hub,'executions') else []
+            for run in active_runs:
+                if run_project(self.hub,run)==project_id:workflows.stop_run(actor,run)
             for row in self.hub.db.execute("SELECT body FROM planning_sessions WHERE json_extract(body,'$.project_id')=?",(project_id,)).fetchall():
                 plan=json.loads(row[0])
                 if plan.get('pending'):
-                    run=self.hub.db.execute('SELECT provider,id FROM executions WHERE id=?',(plan['pending'],)).fetchone()
-                    if run:
-                        rt=next((r for r in workflows.runtimes if r.provider==run['provider']),None)
-                        if rt:rt.stop(actor,run['id'])
-                plan['pending']=None;plan['status']='cancelled';self.hub.planning.save(plan)
+                    with self.hub.lock:run=self.hub.db.execute('SELECT * FROM executions WHERE id=?',(plan['pending'],)).fetchone()
+                    if run:workflows.stop_run(actor,dict(run))
+                plan['pending']=None;plan['state']='archived';plan['status']='cancelled';self.hub.planning.save(plan)
             with self.hub.tx():
                 for row in self.hub.db.execute("SELECT id,body FROM hub_timers WHERE json_extract(body,'$.project_id')=?",(project_id,)).fetchall():
                     timer=json.loads(row['body']);timer['state']='cancelled';timer['reason']='项目已删除';self.hub.db.execute('UPDATE hub_timers SET body=? WHERE id=?',(json.dumps(timer,ensure_ascii=False),row['id']))

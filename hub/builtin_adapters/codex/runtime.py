@@ -207,6 +207,8 @@ class CodexRuntime:
                 self.hub.db.execute('INSERT INTO tasks(id,agent,title,assigned_by,created) VALUES(?,?,?,?,?)',(task_id,agent,instruction,actor,time.time()))
                 self.hub.db.execute("INSERT INTO messages(id,sender,recipient,body,mode,status,created) VALUES(?,?,?,?,'queue','pending',?)",(message_id,actor,agent,'[task:'+task_id+'] '+instruction,time.time()))
             if self.hub.db.execute('SELECT 1 FROM executions WHERE task_id=?',(task_id,)).fetchone():raise HubError('该任务已有真实执行记录，不自动重试；请检查后创建新任务')
+            from hub.module_sdk import execution_directory
+            cfg={**cfg,'cwd':execution_directory(self.hub,{'task_id':task_id,'message_id':message_id,'session_scope':session_scope},cfg['cwd'])}
             run_id=uid()
             self.hub.db.execute("INSERT INTO executions(id,task_id,message_id,agent,model,prompt,actual_input,cwd,permission,max_seconds,grant_id,status,created,provider) VALUES(?,?,?,?,?,?,?,?,?,?,?,'queued',?,?)",(run_id,task_id,message_id,agent,self.models[agent],instruction,instruction,cfg['cwd'],cfg['permission'],cfg['max_seconds'],cfg['grant_id'],time.time(),self.provider))
             self.hub.db.execute('UPDATE executions SET purpose=?,session_scope=? WHERE id=?',(purpose,session_scope,run_id))
@@ -290,8 +292,8 @@ class CodexRuntime:
                                 self.hub.db.execute("UPDATE tasks SET status='blocked',note='项目授权已失效' WHERE id=?",(row['task_id'],))
                                 row=None
                     if row:
-                        run=dict(row)
-                        self.hub.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(time.time(),run['id']))
+                        run={**dict(row),'status':'running','started':time.time()}
+                        self.hub.db.execute("UPDATE executions SET status='running',started=? WHERE id=?",(run['started'],run['id']))
                         self.hub.db.execute("UPDATE agents SET status='busy',active=?,heartbeat=? WHERE id=?",(run['message_id'],time.time(),run['agent']))
                         self.hub.db.execute("UPDATE messages SET status='acknowledged',acked=?,lease=?,attempts=attempts+1 WHERE id=?",(time.time(),time.time()+30,run['message_id']))
                         self.hub.db.execute("UPDATE tasks SET status='working',note=? WHERE id=?",(self.title+' 官方执行器正在启动',run['task_id']))
@@ -358,6 +360,8 @@ class CodexRuntime:
             self.sessions.state(run,'inflight');submitted=True
             input_text=run.get('_manager_content') or run['prompt']
             with self.hub.tx():self.hub.db.execute('UPDATE executions SET actual_input=? WHERE id=?',(input_text,run['id']))
+            from hub.module_tools import guard as execution_guard
+            execution_guard(self,run)
             turn=client.rpc('turn/start',{'threadId':thread_id,'input':[{'type':'text','text':input_text}],'model':run['model'],'effort':self.effort(run['agent']) if hasattr(self,'effort') else 'medium','approvalPolicy':'never','sandboxPolicy':policy})['turn']
             turn_id=turn['id']
             with self.hub.tx():self.hub.db.execute('UPDATE executions SET turn_id=? WHERE id=?',(turn_id,run['id']))
@@ -401,7 +405,8 @@ class CodexRuntime:
         except QuotaWait as e:
             status='failed';result='官方额度耗尽，本任务已取消；预计恢复时间 '+str(e.resets)+'。请经理改派或设置恢复提醒。'
         except Exception as e:
-            status='uncertain' if submitted else 'failed'
+            with self.hub.lock:requested=self.hub.db.execute('SELECT stop_requested FROM executions WHERE id=?',(run['id'],)).fetchone()
+            status='interrupted' if self.stop_event.is_set() or (requested and requested[0]) else ('uncertain' if submitted else 'failed')
             result=str(e)[:5000]
         finally:
             renew_stop.set();renewal.join(timeout=5)

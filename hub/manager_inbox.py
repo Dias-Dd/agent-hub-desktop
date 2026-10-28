@@ -11,6 +11,7 @@ class ManagerInbox:
    hub.db.execute('CREATE TABLE IF NOT EXISTS manager_preemptions(run_id TEXT PRIMARY KEY,project_id TEXT,created REAL)')
  def context(self,session_id,project_id=None):
   s=self.planning.get(session_id)
+  if s.get('state')=='archived' or s.get('superseded_by'):raise HubError('此讨论已被替代或归档，请在当前讨论中发送消息')
   if project_id and s.get('project_id')!=project_id:raise HubError('讨论不属于当前项目')
   manager=project_manager(self.hub,record=s)
   with self.hub.lock:row=self.hub.db.execute("SELECT body FROM workflows WHERE json_extract(body,'$.project_id')=? ORDER BY rowid DESC LIMIT 1",(s.get('project_id'),)).fetchone()
@@ -64,6 +65,9 @@ class ManagerInbox:
    with self.hub.lock:rows=self.hub.db.execute("SELECT q.*,m.body,m.status FROM manager_discussion_inputs q JOIN messages m ON m.id=q.message_id WHERE q.run_id IS NULL AND m.status='pending' ORDER BY CASE m.mode WHEN 'immediate' THEN 0 ELSE 1 END,m.created").fetchall()
    for row in rows:
     s=self.planning.get(row['session_id'])
+    if s.get('state')=='archived' or s.get('superseded_by'):
+     with self.hub.tx():self.hub.db.execute("UPDATE messages SET status='cancelled',result='原讨论已被替代或归档；消息内容保留，不自动转入新一轮' WHERE id=?",(row['message_id'],))
+     continue
     if s.get('pending'):continue
     # Approval is never replayed against an unseen newer revision.
     if row['body'].strip()=='按计划执行' and s.get('mode')!='alignment':

@@ -10,7 +10,7 @@ class CleanupGit(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory();self.h=Hub(Path(self.temp.name)/'data')
   with patch.object(Projects,'tag'):self.p=Projects(self.h)
   self.project=self.p.create('user','Fixture');self.root=Path(self.project['cwd']);self.ident=self.project['id'];self.stopped=[]
-  flow=SimpleNamespace(lock=threading.RLock(),snapshot=lambda actor:[{'id':'w','project_id':self.ident}],stop=lambda actor,w:self.stopped.append(w))
+  flow=SimpleNamespace(lock=threading.RLock(),records=lambda project_id=None,statuses=None:[{'id':'w','project_id':self.ident}],snapshot=lambda actor:[{'id':'w','project_id':self.ident}],stop=lambda actor,w:self.stopped.append(w))
   self.h.planning=SimpleNamespace(workflows=flow)
   with self.h.tx():
    self.h.db.execute('CREATE TABLE IF NOT EXISTS planning_sessions(id TEXT PRIMARY KEY,body TEXT)')

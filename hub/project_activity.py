@@ -12,6 +12,9 @@ def run_project(hub, run):
  if scope.startswith('connection-test:'):return None
  for prefix in ('hub-project:', 'chat:'):
   if scope.startswith(prefix):return scope[len(prefix):]
+ if scope.startswith('project:') and has(hub,'workflows'):
+  row=hub.db.execute('SELECT body FROM workflows WHERE id=?',(scope[len('project:'):],)).fetchone()
+  if row:return json.loads(row[0]).get('project_id')
  if has(hub,'workflow_steps'):
   row=hub.db.execute('SELECT w.body FROM workflows w JOIN workflow_steps s ON s.workflow=w.id WHERE s.task=?',(run['task_id'],)).fetchone()
   if row:return json.loads(row[0]).get('project_id')

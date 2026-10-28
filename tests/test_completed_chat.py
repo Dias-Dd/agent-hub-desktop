@@ -22,7 +22,7 @@ class CompletedChat(DesignFlow):
   self.assertEqual(self.h.db.execute('SELECT status FROM messages WHERE id=?',(worker,)).fetchone()[0],'archived')
  def check_dialogue(self,demo):
   w=self.completed(demo)
-  with patch.object(self.d,'submit',return_value={'task_id':'chat-task'}) as submit:
+  with patch.object(self.d,'submit',return_value={'id':'chat-run','task_id':'chat-task'}) as submit:
    ident=self.co.send('user','deepseek-4','五个字问题',project_id='p')[0]
    self.co.patrol()
    self.assertEqual(submit.call_count,1)

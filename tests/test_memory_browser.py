@@ -11,6 +11,7 @@ from pathlib import Path
 import test_nine_browser as base
 from hub.browser_cdp import WebSocket
 from hub.browser_render import spawn_browser
+from hub.process_job import ProcessJob
 
 
 @unittest.skipUnless(base.m.EDGE.exists(), 'Edge unavailable')
@@ -19,13 +20,17 @@ class Memory(unittest.TestCase):
         server = base.Server(('127.0.0.1', 0), base.Fixture)
         thread = threading.Thread(target=server.serve_forever)
         thread.start()
-        browser = page = None
+        browser = page = job = None
         with tempfile.TemporaryDirectory(prefix='hub-memory-', ignore_cleanup_errors=True) as folder:
             process = spawn_browser([str(base.m.EDGE), '--headless=new', '--disable-gpu',
                 '--no-first-run', '--no-proxy-server', '--remote-debugging-port=0',
+                '--disable-background-networking', '--disable-extensions',
+                '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
+                '--disable-backgrounding-occluded-windows',
                 '--user-data-dir=' + folder, 'about:blank'],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             try:
+                job = ProcessJob(process)
                 port_file = Path(folder) / 'DevToolsActivePort'
                 deadline = time.monotonic() + 12
                 while not port_file.exists() and time.monotonic() < deadline:
@@ -42,6 +47,7 @@ class Memory(unittest.TestCase):
                     self.assertNotIn('exceptionDetails', result, str(result))
                     return result.get('result', {}).get('value')
                 page.call('Page.navigate', {'url': f'http://127.0.0.1:{server.server_port}/'})
+                page.call('Page.bringToFront')
                 deadline = time.monotonic() + 15
                 while time.monotonic() < deadline:
                     if evaluate("document.getElementById('result')?.textContent.startsWith('PASS')"):
@@ -76,6 +82,8 @@ class Memory(unittest.TestCase):
                     browser.close()
                 if page:
                     page.close()
+                if job:
+                    job.close()
                 if process.poll() is None:
                     process.kill()
                 server.shutdown()

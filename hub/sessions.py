@@ -70,7 +70,7 @@ class Sessions:
             if scope.startswith('hub-project:'):
                 # Reuse the most recent existing project conversation, including old scope formats.
                 for old in self.hub.db.execute('SELECT * FROM agent_sessions WHERE provider=? AND agent=? ORDER BY updated DESC',(run['provider'],run['agent'])).fetchall():
-                    if old['updated']>=epoch and self.scope({**run,'session_scope':old['scope']})==scope:
+                    if old['updated']>=epoch and self.scope({'session_scope':old['scope'],'task_id':None,'grant_id':'legacy','purpose':'task'})==scope:
                         model=self.hub.db.execute('SELECT model FROM executions WHERE provider=? AND agent=? AND thread_id=? ORDER BY created DESC LIMIT 1',(run['provider'],run['agent'],old['session_id'])).fetchone()
                         if not model or model[0]==run['model']:return self.session_details(old,run)
                 for old in self.hub.db.execute("SELECT * FROM executions WHERE provider=? AND agent=? AND model=? AND thread_id IS NOT NULL AND status='completed' AND id!=? ORDER BY created DESC",(run['provider'],run['agent'],run['model'],run['id'])).fetchall():

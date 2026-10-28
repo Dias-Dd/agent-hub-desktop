@@ -8,12 +8,15 @@ from .manager_identity import resolve as project_manager
 def guard(self,run):
     self.check_latch(run)
     with self.hub.lock:
-        state=self.hub.db.execute('SELECT status,stop_requested FROM executions WHERE id=?',(run['id'],)).fetchone()
-        row=self.hub.db.execute('SELECT w.body FROM workflows w JOIN workflow_steps s ON s.workflow=w.id WHERE s.task=?',(run['task_id'],)).fetchone()
+        state=self.hub.db.execute('SELECT status,stop_requested,started,max_seconds,grant_id,agent,provider,task_id FROM executions WHERE id=?',(run['id'],)).fetchone()
+        row=self.hub.db.execute('SELECT w.body FROM workflows w JOIN workflow_steps s ON s.workflow=w.id WHERE s.task=?',(state['task_id'] if state else None,)).fetchone()
     cfg=self.config()
     if not state or state['status']!='running' or state['stop_requested'] or self.stop_event.is_set():raise HubError('执行已停止；不发送下一次请求或运行工具')
-    if time.time()>run['started']+run['max_seconds']:raise HubError('任务时间预算已到：本轮最长 '+str(run['max_seconds'])+' 秒；平台已停止本轮，并非模型额度耗尽。会话保留，请经理核查后续接。')
-    if cfg['grant_id']!=run['grant_id'] or not cfg['enabled']:raise HubError('接入授权已变化')
+    if state['agent']!=run.get('agent') or state['provider']!=self.provider:raise HubError('执行身份或接入不匹配')
+    started=state['started']
+    if started is None:raise HubError('执行尚未确认启动')
+    if time.time()>started+state['max_seconds']:raise HubError('任务时间预算已到：本轮最长 '+str(run['max_seconds'])+' 秒；平台已停止本轮，并非模型额度耗尽。会话保留，请经理核查后续接。')
+    if cfg['grant_id']!=state['grant_id'] or not cfg['enabled']:raise HubError('接入授权已变化')
     if row:
         project=json.loads(row[0])
         if not (project.get('status')=='completed' and project.get('completion',{}).get('run_id')==run['id']):self.hub.workflows.valid(project)
