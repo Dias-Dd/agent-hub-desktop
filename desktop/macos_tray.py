@@ -19,7 +19,7 @@ class MacTray(F.NSObject):
             path.setLineWidth_(1.5);path.stroke()
         path=A.NSBezierPath.bezierPath();path.moveToPoint_((8,12));path.lineToPoint_((11,12));path.moveToPoint_((8,5));path.lineToPoint_((11,5));path.stroke()
         image.unlockFocus();image.setTemplate_(True)
-        self.item.button().setImage_(image);self.item.button().setToolTip_('Agent Hub')
+        self.item.button().setImage_(image);self.item.button().setToolTip_('Deskfellows')
         self.menu=A.NSMenu.alloc().init();self.menu.setDelegate_(self);self.item.setMenu_(self.menu)
         return self
 
@@ -63,7 +63,7 @@ class MacTray(F.NSObject):
     def observe(self,event):
         self.pending=([event]+self.pending)[:20]
         self.item.button().setTitle_('•')
-        self.item.button().setToolTip_('Agent Hub · '+(event.get('name') or 'New completion'))
+        self.item.button().setToolTip_('Deskfellows · '+(event.get('name') or 'New completion'))
 
     @objc.python_method
     def close(self):

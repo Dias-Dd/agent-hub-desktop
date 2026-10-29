@@ -136,4 +136,4 @@
 | AIComing | 1 | 已生成 |
 
 
-配置表单已迁移到模块声明字段，完整格式和脚本读取方式见 [MODULE_CONFIGURATION.md](https://github.com/Dias-Dd/agent-hub-desktop/blob/main/docs/MODULE_CONFIGURATION.md)。
+配置表单已迁移到模块声明字段，完整格式和脚本读取方式见 [MODULE_CONFIGURATION.md](https://github.com/Dias-Dd/deskfellows/blob/main/docs/MODULE_CONFIGURATION.md)。

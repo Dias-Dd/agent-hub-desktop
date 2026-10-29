@@ -23,7 +23,7 @@ $callback = [HubMaintenanceWindows+Callback]{ param($window,$data)
     [uint32]$targetId=0
     [void][HubMaintenanceWindows]::GetWindowThreadProcessId($window,[ref]$targetId)
     if($ids.ContainsKey($targetId)) {
-        # A normal close hides Agent Hub in the tray. Maintenance must exit it.
+        # A normal close hides Deskfellows in the tray. Maintenance must exit it.
         $message = if($ids[$targetId] -eq 'AgentMessageHubDesktop'){0x8014}else{0x10}
         [void][HubMaintenanceWindows]::PostMessage($window,$message,[IntPtr]::Zero,[IntPtr]::Zero)
     }

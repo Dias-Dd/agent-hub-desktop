@@ -53,7 +53,7 @@
  function set(value,persist=true){
   if(!['en','zh-CN'].includes(value))return;language=value;document.documentElement.lang=value;
   if(persist){try{localStorage.setItem(key,value);}catch{}window.chrome?.webview?.postMessage({type:'hub-window',command:'language',language:value});window.webkit?.messageHandlers?.hubNative?.postMessage({language:value});}
-  for(const doc of documents){doc.documentElement.lang=value;if(doc._hubWindowTitleSource)doc.title=translate(doc._hubWindowTitleSource)+' · Agent Hub';visit(doc.body);}
+  for(const doc of documents){doc.documentElement.lang=value;if(doc._hubWindowTitleSource)doc.title=translate(doc._hubWindowTitleSource)+' · Deskfellows';else if(doc===document)doc.title=translate('搭班 · Deskfellows');visit(doc.body);}
   const select=document.getElementById('interfaceLanguage');if(select)select.value=value;
   document.dispatchEvent(new CustomEvent('hub-language-change',{detail:value}));
  }

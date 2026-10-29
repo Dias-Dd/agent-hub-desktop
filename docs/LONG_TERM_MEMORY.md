@@ -2,7 +2,7 @@
 
 长期记忆在同一应用数据目录内跨项目共享。更换经理或创建新项目后，当前经理会自动收到记忆快照，不需要翻找旧聊天。
 
-参考了 [Hermes 的持久记忆设计](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)：区分用户资料与经验笔记、限制容量、通过工具明确保存。Agent Hub 使用事务数据库和版本检查，以支持多个项目的经理并发访问，以及用户回滚和锁定。
+参考了 [Hermes 的持久记忆设计](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)：区分用户资料与经验笔记、限制容量、通过工具明确保存。Deskfellows 使用事务数据库和版本检查，以支持多个项目的经理并发访问，以及用户回滚和锁定。
 
 ## 使用
 

@@ -2,7 +2,7 @@
 
 [Project home](../README.en.md) · [简体中文](HARNESS_INTEGRATION.md)
 
-This guide covers custom CLIs, compatible APIs and agent platforms. A **harness** is the program or service that invokes models, maintains sessions and executes tools. An adapter translates its protocol into Agent Hub's interface. Adding an integration does not require changing the application.
+This guide covers custom CLIs, compatible APIs and agent platforms. A **harness** is the program or service that invokes models, maintains sessions and executes tools. An adapter translates its protocol into Deskfellows's interface. Adding an integration does not require changing the application.
 
 ## 1. Choose an integration method
 
@@ -121,7 +121,7 @@ The declaration generates inputs in Add Agent. Enter the service's complete Chat
 
 ## 5. Who implements each capability?
 
-| Capability | Agent Hub | Adapter |
+| Capability | Deskfellows | Adapter |
 | --- | --- | --- |
 | Projects, identities, grants, queues, stop locks, delivery | Manage and persist state | Use the current request without expanding authority |
 | Model invocation, login, credential protocol | Provide setup entry points | Connect to the actual provider |

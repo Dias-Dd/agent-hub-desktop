@@ -32,7 +32,7 @@
 
 2026-10-18 最新：已加入 Argon 自动项目分工、巡检、验收与回报；真实三调用闭环通过。详见 docs/ARGON_PROJECTS.md（测试报告同目录时为 ARGON_PROJECTS.md）。
 
-# Agent Message Hub v0.1 · Codex 真实执行版
+# Deskfellows v0.1 · Codex 真实执行版
 
 ## Antigravity Google 订阅接入
 

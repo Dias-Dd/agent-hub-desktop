@@ -19,7 +19,7 @@ def popup_request(uri, origin):
         except ValueError:return default
     identity=value('id')
     if not identity:return None
-    return {'id':identity,'owner':value('owner'),'modal':value('modal')=='1','title':value('title','Agent Hub')[:160],
+    return {'id':identity,'owner':value('owner'),'modal':value('modal')=='1','title':value('title','Deskfellows')[:160],
             'width':dimension('width',900),'height':dimension('height',700)}
 
 
@@ -81,7 +81,7 @@ class NativePopups:
         except AttributeError:scale=1
         width=min(round(config['width']*scale),area.right-area.left-32);height=min(round(config['height']*scale),area.bottom-area.top-32)
         x=max(area.left,min(area.right-width,(rect.left+rect.right-width)//2));y=max(area.top,min(area.bottom-height,(rect.top+rect.bottom-height)//2))
-        hwnd=self.user.CreateWindowExW(0,self.name,config['title']+' · Agent Hub',popup_style(config),x,y,width,height,owner,None,self.instance,None)
+        hwnd=self.user.CreateWindowExW(0,self.name,config['title']+' · Deskfellows',popup_style(config),x,y,width,height,owner,None,self.instance,None)
         item={**config,'owner_hwnd':owner,'args':args,'deferral':deferral,'controller':None,'core':None}
         if not hwnd:
             self.release_request(item);self.log('popup_create_failed');return

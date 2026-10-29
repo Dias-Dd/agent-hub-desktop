@@ -4,7 +4,7 @@
 
 ## 已核对的上游实现
 
-- OpenClaw 的 macOS computer provider 提供 Peekaboo（默认）和 CUA，窗口/控件能力按 provider descriptor 声明。其应用配对、策略和 Gateway 生命周期并非 Agent Hub 的接口，不直接照搬。
+- OpenClaw 的 macOS computer provider 提供 Peekaboo（默认）和 CUA，窗口/控件能力按 provider descriptor 声明。其应用配对、策略和 Gateway 生命周期并非 Deskfellows 的接口，不直接照搬。
   https://github.com/openclaw/openclaw/blob/main/docs/nodes/computer-use.md
 - Hermes 的 computer_use 是 cua-driver 的 MCP 适配层，含驱动发现、版本契约、会话/权限和动作转换。复制 Hermes 包装层本身不会得到原生 AX 实现。
   https://github.com/NousResearch/hermes-agent/blob/main/tools/computer_use/cua_backend_driver.py

@@ -4,18 +4,18 @@
 
 ## 状态与起点
 
-- 仓库：<https://github.com/Dias-Dd/agent-hub-desktop>。
+- 仓库：<https://github.com/Dias-Dd/deskfellows>。
 - Windows 最新发布：`v0.2.1`，源码提交 `333843055f0cefc9b6ca438aeca23800dbb9b77b`。
 - 本次交接使用 `macos-port` 分支；创建时与上述提交相同。
-- [Windows 0.2.1 Release](https://github.com/Dias-Dd/agent-hub-desktop/releases/tag/v0.2.1) 已发布安装包和 SHA-256 校验文件。
+- [Windows 0.2.1 Release](https://github.com/Dias-Dd/deskfellows/releases/tag/v0.2.1) 已发布安装包和 SHA-256 校验文件。
 - **交接时 macOS 移植尚未开始**。本文件保留交接基线；后续本地实现、验证与剩余限制见 [MACOS_PORT.md](MACOS_PORT.md)，不代表新版本已发布。
 - 用户已授权将交接文档提交并推送到远程 `macos-port` 分支。Mac 应检出这个分支；单独检出 `main` 不会得到这两份交接文件。此次授权仅用于交接分支，不延续到后续开发提交或发布。
 
-本文件不包含聊天全文、账号凭据、应用运行数据或用户长期记忆。Agent Hub 的长期记忆属于产品本身，不是 Codex 开发聊天的同步机制。
+本文件不包含聊天全文、账号凭据、应用运行数据或用户长期记忆。Deskfellows 的长期记忆属于产品本身，不是 Codex 开发聊天的同步机制。
 
 ## 项目是什么
 
-Agent Hub 是本地优先的 AI Agent 协作桌面应用。用户在项目中选择经理、添加成员，先讨论并批准计划，再制作演示或直接实施。经理通过工具派工、检查、调度并交付成果。单个 Agent 也可以兼任经理独立完成工作。
+Deskfellows 是本地优先的 AI Agent 协作桌面应用。用户在项目中选择经理、添加成员，先讨论并批准计划，再制作演示或直接实施。经理通过工具派工、检查、调度并交付成果。单个 Agent 也可以兼任经理独立完成工作。
 
 保留 Python 服务、HTML/CSS/JavaScript 前端和现有适配器接口，先识别平台依赖，再增加 macOS 实现。不要因为更换桌面宿主就重写业务逻辑或重做全部界面。
 

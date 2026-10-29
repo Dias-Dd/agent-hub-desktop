@@ -23,7 +23,7 @@ def main_executable():
     relative=Path(manifest['main'])
     target=(root/relative).resolve()
     if relative.is_absolute() or not target.is_relative_to(root.resolve()) or target.suffix.lower()!='.exe' or not target.is_file():
-        raise RuntimeError('安装目录缺少主程序，请重新安装 Agent Hub。')
+        raise RuntimeError('安装目录缺少主程序，请重新安装 Deskfellows。')
     return target
 
 
@@ -35,7 +35,7 @@ class Wizard:
         self.skip_agents=True;self.skip_vm=True;self.manager='';self.pending=False
         self.events=queue.Queue();self.connections=[];self.catalog=[];self.selected_connection=''
         self.worker=None;self.closing=False
-        root.title('Agent Hub · 初次配置');root.geometry('860x690');root.minsize(640,540)
+        root.title('Deskfellows · 初次配置');root.geometry('860x690');root.minsize(640,540)
         icon=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parents[1]))/'desktop/app.ico'
         if icon.is_file():root.iconbitmap(default=str(icon))
         root.configure(bg='#f7f8f8')
@@ -48,7 +48,7 @@ class Wizard:
         style.configure('Title.TLabel',font=('Microsoft YaHei UI',21,'bold'))
         style.configure('Heading.TLabel',font=('Microsoft YaHei UI',12,'bold'))
         self.header=ttk.Frame(root,padding=(28,20,28,14));self.header.pack(fill='x')
-        ttk.Label(self.header,text='AGENT HUB',foreground='#087d70').pack(anchor='w')
+        ttk.Label(self.header,text='DESKFELLOWS',foreground='#087d70').pack(anchor='w')
         self.title=ttk.Label(self.header,style='Title.TLabel');self.title.pack(anchor='w',pady=(8,0))
         self.progress=ttk.Label(self.header);self.progress.pack(anchor='w',pady=(8,0))
         self.language_box=ttk.Combobox(self.header,state='readonly',values=['简体中文','English'],width=14)
@@ -86,7 +86,7 @@ class Wizard:
         finally:self.translating=False
 
     def localize(self):
-        self.root.title(self.t('Agent Hub · 初次配置'))
+        self.root.title(self.t('Deskfellows · 初次配置'))
         def visit(parent):
             for widget in parent.winfo_children():
                 if isinstance(widget,(ttk.Label,ttk.Button,ttk.Checkbutton)) and widget!=self.status_label:
@@ -171,7 +171,7 @@ class Wizard:
     def page_0(self):
         self.label('使用你自己的模型账号、订阅或 API。接入后，选择一位经理来统筹项目。',True)
         self.label('这份引导独立于工作台运行。配置过程中不会启动 Agent 任务，也不会发送付费推理请求。')
-        self.label('虚拟机通过 Windows Hyper‑V 连接。没有准备好也没关系，Agent 和虚拟机都可以跳过，稍后从开始菜单打开“Agent Hub 配置引导”继续。')
+        self.label('虚拟机通过 Windows Hyper‑V 连接。没有准备好也没关系，Agent 和虚拟机都可以跳过，稍后从开始菜单打开“Deskfellows 配置引导”继续。')
         self.next('开始配置',1)
 
     def page_1(self):
@@ -365,7 +365,7 @@ def main():
             subprocess.Popen([str(launch)],cwd=launch.parent).wait()
     except Exception as error:
         from desktop.localization import translate
-        messagebox.showerror('Agent Hub Setup',translate(str(error),args.language or 'zh-CN'));root.destroy()
+        messagebox.showerror('Deskfellows Setup',translate(str(error),args.language or 'zh-CN'));root.destroy()
 
 
 if __name__=='__main__':main()

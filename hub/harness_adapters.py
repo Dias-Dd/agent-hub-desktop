@@ -73,7 +73,7 @@ def prepare_layout(directory, install_builtins=True):
         custom.parent.mkdir(parents=True, exist_ok=True)
         readme = custom.parent / 'README.md'
         if not readme.exists():
-            readme.write_text('# Agent Hub 接入目录\n\n'
+            readme.write_text('# Deskfellows 接入目录\n\n'
                 '- builtin：应用维护的内置接入，每项包含 adapter.json 与 adapter.py，实际用于执行。\n'
                 '- custom：用户自定义接入，采用 hub-jsonl-v1；示例和完整协议说明在 custom/README.md。\n'
                 '- 旧 harness-adapters 自动迁入 custom；账号、Agent 和会话仍在原应用数据中。\n'

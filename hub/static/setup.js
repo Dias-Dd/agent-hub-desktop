@@ -20,7 +20,7 @@
   void H.connectSavedVm?.();
  }
  async function render(){
-  error('');$('setupTitle').textContent='欢迎使用 Agent Hub';
+  error('');$('setupTitle').textContent='欢迎使用 Deskfellows';
   $('setupWizard').querySelector('.eyebrow').textContent='MACOS · 首次配置';
   $('setupSteps').replaceChildren(...['1 模型接入','2 Tart（可选）','3 完成'].map((text,index)=>{const item=H.node('li',text);item.className=index===step?'current':'';return item;}));
   $('setupBack').disabled=step===0;$('setupNext').textContent=step===2?'完成配置':'下一步';$('setupClose').textContent='稍后配置并进入工作台';

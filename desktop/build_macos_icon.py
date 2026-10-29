@@ -1,4 +1,4 @@
-"""Convert the existing Windows brand icon into Apple's multi-size ICNS."""
+"""Build Apple's multi-size icon from the approved full-resolution artwork."""
 from pathlib import Path
 import subprocess
 import tempfile
@@ -9,7 +9,7 @@ def build():
     with tempfile.TemporaryDirectory(prefix='hub-icon-') as directory:
         folder=Path(directory)/'AgentHub.iconset';folder.mkdir()
         source=Path(directory)/'source.png'
-        subprocess.run(['sips','-s','format','png',str(root/'app.ico'),'--out',str(source)],check=True,capture_output=True)
+        subprocess.run(['sips','-s','format','png',str(root.parent/'hub/static/deskfellows-icon.png'),'--out',str(source)],check=True,capture_output=True)
         for size in (16,32,128,256,512):
             for scale in (1,2):
                 output=folder/('icon_'+str(size)+'x'+str(size)+('@2x' if scale==2 else '')+'.png')

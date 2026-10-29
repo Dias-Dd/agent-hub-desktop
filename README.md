@@ -1,19 +1,23 @@
-# Agent Hub Desktop
+# 搭班 · Deskfellows
+
+<img src="hub/static/deskfellows-icon.png" width="112" height="112" alt="搭班图标：共享工作桌与两把绿色座椅">
 
 [简体中文](README.md) · [English](README.en.md)
 
+原名 **Agent Hub Desktop**，现更名为 **搭班（Deskfellows）**。已发布的旧版安装包可能仍使用旧名称。
+
 **支持 Windows 和 macOS 的 AI Agent 协作工作台。** 将不同 Harness、CLI 和 API 接入同一个项目，由经理 Agent 组织讨论、安排任务、跟进进度并交付成果。
 
-保留你已有的模型账号和执行工具，在一个桌面界面中管理协作。Agent Hub 不是模型服务，也不附带模型订阅或 API 额度。
+保留你已有的模型账号和执行工具，在一个桌面界面中管理协作。Deskfellows 不是模型服务，也不附带模型订阅或 API 额度。
 
 ## 快速上手
 
 ### 下载安装包
 
-前往 **[最新 Release](https://github.com/Dias-Dd/agent-hub-desktop/releases/latest)**，按系统下载安装包，无需自行安装 Python 或编译源码。本页描述 `main` 的当前功能，各安装包实际包含的功能以 Release 说明为准。
+前往 **[最新 Release](https://github.com/Dias-Dd/deskfellows/releases/latest)**，按系统下载安装包，无需自行安装 Python 或编译源码。本页描述 `main` 的当前功能，各安装包实际包含的功能以 Release 说明为准。
 
-- **Windows 10 2004（build 19041）及以上 / Windows 11**：下载 `AgentHub-Setup-*.exe`，运行安装程序，可选择简体中文或 English。缺少 WebView2 Runtime 时，安装程序会通过微软引导安装器联网安装。
-- **macOS 14+ / Apple Silicon（arm64）**：下载对应的 `.dmg`，打开后将 Agent Hub 拖入 Applications，再启动应用。已适配 Cocoa / WKWebView 原生窗口、菜单栏、设置与可选 Tart 虚拟机。具体构建版本、签名情况和测试范围见 Release 说明；目前提供的 Mac 安装包面向 Apple Silicon。
+- **Windows 10 2004（build 19041）及以上 / Windows 11**：下载 `Deskfellows-Setup-*.exe`（旧版为 `AgentHub-Setup-*.exe`），运行安装程序，可选择简体中文或 English。缺少 WebView2 Runtime 时，安装程序会通过微软引导安装器联网安装。
+- **macOS 14+ / Apple Silicon（arm64）**：下载对应的 `.dmg`，打开后将 Deskfellows（旧版为 Agent Hub）拖入 Applications，再启动应用。已适配 Cocoa / WKWebView 原生窗口、菜单栏、设置与可选 Tart 虚拟机。具体构建版本、签名情况和测试范围见 Release 说明；目前提供的 Mac 安装包面向 Apple Silicon。
 
 升级前请保存草稿并完全退出旧应用。首次启动会显示配置引导：添加 Agent、指定经理，并按需连接虚拟机；这两个配置流程都可以跳过，稍后在设置中完成。调用模型仍需安装并登录相应 Harness，或配置自己的 API 凭据。
 
@@ -25,7 +29,7 @@ Windows 使用可选 Hyper-V，macOS 使用可选 Tart；普通项目无需连�
 2. 安装并登录相应 Harness，或按提示配置 API 凭据，再读取模型目录。
 3. 选择模型和档位，确认执行授权后添加 Agent。**实际接入测试会调用模型，可能消耗额度。**
 4. 创建项目，指定工作目录、经理和参与成员。只添加一位 Agent 也可以使用。
-5. 在经理对话里说明需求，审阅计划，再批准执行；先制作演示时，确认设计后再正式制作。
+5. 在经理对话里对齐需求，点击 **开始计划**，审阅计划后批准执行；也可以输入需求后直接点击开始计划。先制作演示时，确认设计后再正式制作。
 6. 在对话、项目状态和右侧信息区查看进度、输出与成果，需要时使用停止控制。
 
 ### 通过 Pi 接入 API
@@ -35,6 +39,28 @@ Windows 使用可选 Hyper-V，macOS 使用可选 Tart；普通项目无需连�
 支持 OpenAI Chat Completions、OpenAI Responses、Anthropic Messages 和 Google Gemini 协议。Pi 只在 API 任务执行时启动，结束后回收；其它 Harness 不启动 Pi。安装包自带 Node.js。界面输入的密钥使用 Windows DPAPI / macOS Keychain 保存，不回显。旧 API Agent 保留原连接、环境变量凭据和历史，执行改由 Pi 完成。
 
 CLI 接入继续使用各自的登录和配置。设置用户环境变量后，请完全退出并重新打开应用。`.env.example` 是说明模板，应用**不会自动加载 `.env` 文件**。
+
+## 从设计到交付
+
+以下为当前界面的示例数据截图，展示同一项目的三个阶段；不包含真实账号和私密项目内容。
+
+### 设计审阅
+
+查看页面与层级、缩放演示、框选区域并提交修改意见，确认设计后再开始正式制作。
+
+![设计审阅：页面预览、层级列表与修改意见](docs/images/design.png)
+
+### 执行中
+
+经理汇报制作进展，右侧展示总体进度与成员状态；工作沟通与停止控制始终可用。
+
+![执行阶段：经理对话与项目进度](docs/images/execution.png)
+
+### 完成与交付
+
+交付总结、网页与项目目录入口保留在对话里，便于打开成果并继续交流。
+
+![项目完成：交付总结与成果入口](docs/images/completed.png)
 
 ## 功能概览
 
@@ -66,6 +92,8 @@ CLI 接入继续使用各自的登录和配置。设置用户环境变量后，�
 
 **没有找到你的平台？可以添加适配器，不必修改主程序。** 在数据目录的 `adapters/custom/<你的模块>/` 中放入 `adapter.json` 和脚本，再在添加 Agent 界面刷新自定义接入。也可以完整复制一个相近的内置模块，修改标识与配置。
 
+更名后仍沿用原数据目录和 MCP 协议标识，以兼容现有项目、长期记忆、账号与适配器，无需手动迁移。
+
 - Windows 安装版默认目录：`%LOCALAPPDATA%\AgentMessageHubDesktop\data\adapters\custom`
 - macOS 默认目录：`~/Library/Application Support/AgentMessageHubDesktop/data/adapters/custom`
 - 使用下方源码命令时：`.\local-data\adapters\custom`
@@ -78,8 +106,8 @@ CLI 接入继续使用各自的登录和配置。设置用户环境变量后，�
 需要 **Windows 10 2004（build 19041）及以上 / Windows 11**、**Python 3.11+（含 Tkinter）** 和 **Microsoft WebView2 Runtime**。调用模型还需要安装、登录对应 Harness，或配置自己的 API 凭据。
 
 ```powershell
-git clone https://github.com/Dias-Dd/agent-hub-desktop.git
-cd agent-hub-desktop
+git clone https://github.com/Dias-Dd/deskfellows.git deskfellows
+cd deskfellows
 # 使用 API/Pi 开发时，先安装 Node.js 22.19+ 与 npm，再执行一次准备。
 python tools/prepare_pi.py
 python desktop/launch_desktop.py --data .\local-data
@@ -97,7 +125,7 @@ python -m venv .venv
 .\desktop\build_installer.ps1 -Python .\.venv\Scripts\python.exe -Compiler "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-输出：`desktop/installer-dist/AgentHub-Setup-0.2.4.exe`，包含主程序、独立配置程序、MCP 工具通道与诊断导出工具。脚本会检查 Inno Setup 编译器和微软 WebView2 引导安装器的数字签名。
+输出：`desktop/installer-dist/Deskfellows-Setup-0.2.6.exe`，包含主程序、独立配置程序、MCP 工具通道与诊断导出工具。脚本会检查 Inno Setup 编译器和微软 WebView2 引导安装器的数字签名。
 
 ## 数据、权限与排错
 

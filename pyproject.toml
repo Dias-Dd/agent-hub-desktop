@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-message-hub"
-version = "0.2.5"
-description = "Offline-first local agent messaging, MCP and supervisor"
+version = "0.2.6"
+description = "Deskfellows: a local-first desktop workspace for agent collaboration"
 requires-python = ">=3.11"
 dependencies = []
 

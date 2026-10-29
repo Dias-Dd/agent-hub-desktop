@@ -41,7 +41,7 @@ class GitWorkspaces:
    if not w.get('project_id') or not self.hub.db.execute("SELECT 1 FROM sqlite_master WHERE name='hub_projects'").fetchone():return False
    return bool(self.hub.db.execute('SELECT 1 FROM hub_projects WHERE id=?',(w['project_id'],)).fetchone())
  def git(self,cwd,*args,check=True):
-  result=subprocess.run(['git','-c','core.longpaths=true','-c','core.quotepath=false','-c','commit.gpgsign=false','-c','user.name=Agent Hub','-c','user.email=agent-hub@localhost',*args],cwd=cwd,capture_output=True,encoding='utf8',errors='replace',timeout=120,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+  result=subprocess.run(['git','-c','core.longpaths=true','-c','core.quotepath=false','-c','commit.gpgsign=false','-c','user.name=Deskfellows','-c','user.email=agent-hub@localhost',*args],cwd=cwd,capture_output=True,encoding='utf8',errors='replace',timeout=120,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
   if check and result.returncode:raise HubError('Git: '+(result.stderr or result.stdout).strip()[-1800:])
   return result
  def checkpoint(self,cwd,message):

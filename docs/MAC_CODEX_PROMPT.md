@@ -5,15 +5,15 @@
 首次获取：
 
 ```sh
-git clone --branch macos-port https://github.com/Dias-Dd/agent-hub-desktop.git
-cd agent-hub-desktop
+git clone --branch macos-port https://github.com/Dias-Dd/deskfellows.git deskfellows
+cd deskfellows
 ```
 
 若已有本地仓库，先检查并保留未提交修改，然后获取并切换到远程 `macos-port` 对应的本地分支，不要强制重置。
 
 ---
 
-请接手 Agent Hub Desktop 的 macOS 移植开发。这是新会话，你没有 Windows 上的聊天历史，请以交接文档和实际源码为依据，不要假称记得先前讨论。
+请接手 Deskfellows 的 macOS 移植开发。这是新会话，你没有 Windows 上的聊天历史，请以交接文档和实际源码为依据，不要假称记得先前讨论。
 
 先阅读仓库根目录的 `AGENTS.md`、`README.md`、`docs/MACOS_HANDOFF.md`、`docs/HARNESS_INTEGRATION.md` 和 `docs/LONG_TERM_MEMORY.md`，再检查工作树、当前分支、macOS 版本、CPU 架构及可用开发工具。
 

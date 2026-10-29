@@ -84,7 +84,7 @@ def export(data, destination):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', default=str(Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'AgentMessageHubDesktop/data'))
-    parser.add_argument('--output', default=str(Path.home() / 'Desktop' / ('AgentHub-diagnostics-' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S') + '.zip')))
+    parser.add_argument('--output', default=str(Path.home() / 'Desktop' / ('Deskfellows-diagnostics-' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S') + '.zip')))
     parser.add_argument('--quiet', action='store_true', help='Suppress completion dialog')
     args = parser.parse_args()
     try:
@@ -92,12 +92,12 @@ def main():
         print(f'Diagnostic archive / 诊断包: {path}')
         if os.name == 'nt' and not args.quiet:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None, str(path), 'Agent Hub · Diagnostics / 诊断包已导出', 0)
+            ctypes.windll.user32.MessageBoxW(None, str(path), 'Deskfellows · Diagnostics / 诊断包已导出', 0)
         return 0
     except Exception as exc:
         if os.name == 'nt' and not args.quiet:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None, str(exc), 'Agent Hub · Export failed', 16)
+            ctypes.windll.user32.MessageBoxW(None, str(exc), 'Deskfellows · Export failed', 16)
         print(str(exc))
         return 1
 

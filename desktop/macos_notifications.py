@@ -6,7 +6,7 @@ import uuid
 def center():
     import Foundation as F
     if F.NSBundle.mainBundle().bundleIdentifier() != 'com.agenthub.desktop':
-        raise RuntimeError('系统通知需要从 Agent Hub.app 启动；源码宿主无法申请应用通知权限')
+        raise RuntimeError('系统通知需要从 Deskfellows.app 启动；源码宿主无法申请应用通知权限')
     import UserNotifications as U
     return U.UNUserNotificationCenter.currentNotificationCenter()
 
@@ -28,7 +28,7 @@ def send(title, message, project=None):
     target.getNotificationSettingsWithCompletionHandler_(settings)
     if not ready.wait(5):raise RuntimeError('读取通知权限超时')
     if observed['status'] not in (U.UNAuthorizationStatusAuthorized, U.UNAuthorizationStatusProvisional):
-        raise RuntimeError('通知未授权；请在设置中点击“允许 macOS 通知”，或在系统设置的通知中允许 Agent Hub')
+        raise RuntimeError('通知未授权；请在设置中点击“允许 macOS 通知”，或在系统设置的通知中允许 Deskfellows')
     content = U.UNMutableNotificationContent.alloc().init()
     content.setTitle_(title)
     content.setBody_(message)

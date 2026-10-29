@@ -166,7 +166,7 @@ function Connect-Guest($Name,$Login,$Unattended=$true,[bool]$Recovering=$false) 
     $probeReturn = Join-Path $root "probe-$probeId-return.txt"
     $probeGuest = Invoke-Command -Session $session -ArgumentList $probeId -ScriptBlock { param($id) Join-Path $env:TEMP "hub-probe-$id.txt" }
     try {
-        [IO.File]::WriteAllText($probeLocal, "Agent Hub transfer probe $probeId")
+        [IO.File]::WriteAllText($probeLocal, "Deskfellows transfer probe $probeId")
         Copy-Item -LiteralPath $probeLocal -Destination $probeGuest -ToSession $session
         Copy-Item -LiteralPath $probeGuest -Destination $probeReturn -FromSession $session
         if ((Get-FileHash -LiteralPath $probeLocal).Hash -ne (Get-FileHash -LiteralPath $probeReturn).Hash) { throw 'VM transfer probe hash mismatch' }

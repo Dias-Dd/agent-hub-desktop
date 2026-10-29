@@ -362,7 +362,7 @@ def main(argv=None):
                 if current_mode is not args.sim:
                     raise RuntimeError('The existing Hub has a different run mode. Close the previous desktop instance, or explicitly use --connect-only to retain its mode. No service was restarted.')
                 if sys.platform=='darwin' and current_health.get('desktop_build')!=MAC_DESKTOP_BUILD:
-                    raise RuntimeError('旧版 Agent Hub 仍在运行。请先保存草稿，从旧应用菜单退出，再打开新版本。已有任务未被强制停止。 / Quit the previous app after saving drafts, then reopen this version.')
+                    raise RuntimeError('旧版 Deskfellows 仍在运行。请先保存草稿，从旧应用菜单退出，再打开新版本。已有任务未被强制停止。 / Quit the previous app after saving drafts, then reopen this version.')
                 if args.engine in ('auto','native') and not args.window_smoke_test and restore_existing_window(port):
                     if args.result_file:args.result_file.write_text(json.dumps({'ok':True,'existing_window_restored':True}),encoding='utf8')
                     return 0
@@ -469,7 +469,7 @@ def main(argv=None):
                 app.wait(timeout=5)
         elif engine == 'pywebview' and env['pywebview']:
             import webview
-            webview.create_window('Agent Hub', url, width=1366, height=860)
+            webview.create_window('Deskfellows', url, width=1366, height=860)
             webview.start(debug=False)
         else:
             if sys.platform == 'darwin':
@@ -481,12 +481,12 @@ def main(argv=None):
         if args.result_file: args.result_file.write_text(json.dumps({'ok':False,'error':str(error)}),encoding='utf-8')
         elif getattr(sys,'frozen',False) and sys.platform == 'win32':
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None,str(error),'Agent Message Hub · 无法启动',0x10)
+            ctypes.windll.user32.MessageBoxW(None,str(error),'Deskfellows · 无法启动',0x10)
         elif getattr(sys,'frozen',False) and sys.platform=='darwin':
             import AppKit as A
             app=A.NSApplication.sharedApplication();app.setActivationPolicy_(A.NSApplicationActivationPolicyRegular)
             app.activateIgnoringOtherApps_(True)
-            alert=A.NSAlert.alloc().init();alert.setMessageText_('Agent Hub · 无法启动 / Unable to start')
+            alert=A.NSAlert.alloc().init();alert.setMessageText_('Deskfellows · 无法启动 / Unable to start')
             alert.setInformativeText_(str(error));alert.runModal()
         return 1
     finally:

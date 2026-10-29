@@ -336,7 +336,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--data',default='data');p.add_argument('--port',type=int,default=8765);p.add_argument('--no-sim',action='store_true')
     args=p.parse_args()
     server=build(args.data,args.port,not args.no_sim)
-    print(f'Agent Message Hub: http://127.0.0.1:{server.server_address[1]}',flush=True)
+    print(f'Deskfellows: http://127.0.0.1:{server.server_address[1]}',flush=True)
     print('User token: '+server.hub.tokens['user'],flush=True)
     try:server.serve_forever()
     except KeyboardInterrupt:pass

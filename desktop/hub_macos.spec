@@ -29,9 +29,9 @@ pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='AgentHub',
           debug=False, strip=False, upx=False, console=False, target_arch='arm64')
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='AgentHub')
-app = BUNDLE(coll, name='Agent Hub.app', bundle_identifier='com.agenthub.desktop',
+app = BUNDLE(coll, name='Deskfellows.app', bundle_identifier='com.agenthub.desktop',
     icon=str(root/'desktop/app.icns'),
-    info_plist={'CFBundleName':'Agent Hub', 'CFBundleDisplayName':'Agent Hub',
+    info_plist={'CFBundleName':'Deskfellows', 'CFBundleDisplayName':'Deskfellows',
                 'CFBundleShortVersionString':version, 'CFBundleVersion':version,
                 'NSHighResolutionCapable':True, 'LSMinimumSystemVersion':'14.0',
                 'NSAppTransportSecurity': {'NSAllowsLocalNetworking':True}})

@@ -144,7 +144,7 @@ class OnboardingLayoutTests(unittest.TestCase):
                             self.assertGreater(wizard.canvas.winfo_height(),80)
                             wizard.canvas.yview_moveto(1);root.update()
                             self.assertAlmostEqual(wizard.canvas.yview()[1],1,places=2)
-                    if language=='en':self.assertEqual(root.title(),'Agent Hub · First-time setup')
+                    if language=='en':self.assertEqual(root.title(),'Deskfellows · First-time setup')
             finally:root.destroy();service.close()
 
 

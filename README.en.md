@@ -1,19 +1,23 @@
-# Agent Hub Desktop
+# Deskfellows
+
+<img src="hub/static/deskfellows-icon.png" width="112" height="112" alt="Deskfellows icon: a shared desk with two green chairs">
 
 [简体中文](README.md) · [English](README.en.md)
 
+Formerly **Agent Hub Desktop**. The product is now **Deskfellows** (Chinese: **搭班**). Previously published installers may still use the former name.
+
 **An AI agent collaboration workspace for Windows and macOS.** Connect different harnesses, CLIs and APIs to a project, and let a manager agent organize discussions, assign work, track progress and deliver results.
 
-Keep your existing model accounts and execution tools while managing collaboration in one interface. Agent Hub is not a model service and does not include subscriptions or API credits.
+Keep your existing model accounts and execution tools while managing collaboration in one interface. Deskfellows is not a model service and does not include subscriptions or API credits.
 
 ## Quick start
 
 ### Download and install
 
-Visit the **[latest Release](https://github.com/Dias-Dd/agent-hub-desktop/releases/latest)** and download the installer for your system. You do not need to install Python or build the source. This README describes `main`; check the Release notes for which features are included in each installer.
+Visit the **[latest Release](https://github.com/Dias-Dd/deskfellows/releases/latest)** and download the installer for your system. You do not need to install Python or build the source. This README describes `main`; check the Release notes for which features are included in each installer.
 
-- **Windows 10 2004 (build 19041) or later / Windows 11:** download and run `AgentHub-Setup-*.exe`. Choose Simplified Chinese or English. If WebView2 Runtime is missing, the installer downloads it through Microsoft's bootstrapper.
-- **macOS 14+ / Apple Silicon (arm64):** download the matching `.dmg`, open it and drag Agent Hub into Applications, then launch the app. macOS support includes native Cocoa / WKWebView windows, the menu bar, settings and optional Tart VMs. See the Release notes for the exact build version, signing status and tested systems. Current Mac installers target Apple Silicon.
+- **Windows 10 2004 (build 19041) or later / Windows 11:** download and run `Deskfellows-Setup-*.exe` (formerly `AgentHub-Setup-*.exe`). Choose Simplified Chinese or English. If WebView2 Runtime is missing, the installer downloads it through Microsoft's bootstrapper.
+- **macOS 14+ / Apple Silicon (arm64):** download the matching `.dmg`, open it and drag Deskfellows (Agent Hub in older releases) into Applications, then launch the app. macOS support includes native Cocoa / WKWebView windows, the menu bar, settings and optional Tart VMs. See the Release notes for the exact build version, signing status and tested systems. Current Mac installers target Apple Silicon.
 
 Before upgrading, save drafts and fully quit the previous app. On first launch, the configuration guide helps you add agents, select a manager and optionally connect a VM. You can skip agent and VM setup and configure them later in settings. Model calls still require the relevant harness to be installed and signed in, or your own API credentials.
 
@@ -25,7 +29,7 @@ Optional VM tools use Hyper-V on Windows and Tart on macOS. Ordinary projects do
 2. Install and sign in to its harness, or configure API credentials as requested, then read the model catalog.
 3. Select a model and effort level, confirm execution authorization and add the agent. **A real connection test invokes the model and may consume credits.**
 4. Create a project, choose its working directory and manager, and select team members. A single-agent setup also works.
-5. Describe your goal in manager chat, review the plan and approve work. If you choose a demo first, approve the design before implementation.
+5. Discuss your requirements in manager chat, click **Start planning**, review the plan and approve work. You can also enter your requirements and click Start planning immediately. If you choose a demo first, approve the design before implementation.
 6. Follow progress, output and deliverables in chat, project status and the sidebar. Use stop controls when needed.
 
 ### Connect an API with Pi
@@ -35,6 +39,28 @@ In **Add Agent**, choose **Custom API with built-in executor (Pi)**. Select a De
 The integration supports OpenAI Chat Completions, OpenAI Responses, Anthropic Messages and Google Gemini protocols. Pi starts only while an API task runs and is reclaimed afterward; other harnesses do not start Pi. Installers bundle Node.js. Keys entered in the UI use Windows DPAPI or macOS Keychain and are not shown again. Existing API agents retain their connections, environment-variable credentials and history while moving execution to Pi.
 
 CLI integrations continue to use their own sign-in and configuration. After changing user environment variables, fully quit and reopen the app. `.env.example` is a reference template: the app **does not automatically load `.env` files**.
+
+## From design to delivery
+
+These screenshots use sample data in the current interface to show three stages of the same project. They contain no real accounts or private project content. The interface shown is Chinese; English is available in settings.
+
+### Design review
+
+Inspect pages and their hierarchy, zoom the demo, select regions and leave feedback before approving implementation.
+
+![Design review: page preview, navigation and feedback](docs/images/design.png)
+
+### Execution
+
+Follow the manager's updates, overall progress and member status while keeping the conversation and stop controls accessible.
+
+![Execution: manager conversation and project progress](docs/images/execution.png)
+
+### Completion
+
+The delivery summary, webpage and project folder links remain in the conversation so you can inspect the results and continue discussing them.
+
+![Completion: delivery summary and artifact links](docs/images/completed.png)
 
 ## Features
 
@@ -66,6 +92,8 @@ Authentication, tools, session resumption, model catalogs and balance access var
 
 **Your platform is not listed? Add an adapter without modifying the application.** Place `adapter.json` and your script under `adapters/custom/<your-module>/` in the data directory, then refresh custom integrations in the Add Agent UI. You can also copy a similar built-in module in full and change its ID and configuration.
 
+The existing data directory and MCP protocol identifiers are retained for compatibility. Projects, memory, accounts and adapters do not need to be migrated manually.
+
 - Default Windows installed path: `%LOCALAPPDATA%\AgentMessageHubDesktop\data\adapters\custom`
 - Default macOS path: `~/Library/Application Support/AgentMessageHubDesktop/data/adapters/custom`
 - With the source command below: `.\local-data\adapters\custom`
@@ -78,8 +106,8 @@ See the **[Manual Harness Integration Guide](docs/HARNESS_INTEGRATION.en.md)** f
 Requirements: **Windows 10 2004 (build 19041) or later / Windows 11**, **Python 3.11+ with Tkinter**, and **Microsoft WebView2 Runtime**. Model calls also require the relevant harness to be installed and signed in, or your own API credentials.
 
 ```powershell
-git clone https://github.com/Dias-Dd/agent-hub-desktop.git
-cd agent-hub-desktop
+git clone https://github.com/Dias-Dd/deskfellows.git deskfellows
+cd deskfellows
 # For API/Pi development: install Node.js 22.19+ and npm, then prepare once.
 python tools/prepare_pi.py
 python desktop/launch_desktop.py --data .\local-data
@@ -97,7 +125,7 @@ python -m venv .venv
 .\desktop\build_installer.ps1 -Python .\.venv\Scripts\python.exe -Compiler "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 ```
 
-Output: `desktop/installer-dist/AgentHub-Setup-0.2.4.exe`, including the main app, separate configuration program, MCP tool transport and diagnostic exporter. The script verifies the signatures of the Inno Setup compiler and Microsoft WebView2 bootstrapper.
+Output: `desktop/installer-dist/Deskfellows-Setup-0.2.6.exe`, including the main app, separate configuration program, MCP tool transport and diagnostic exporter. The script verifies the signatures of the Inno Setup compiler and Microsoft WebView2 bootstrapper.
 
 ## Data, permissions and diagnostics
 

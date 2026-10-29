@@ -58,4 +58,4 @@ Python 模块以当前应用用户身份执行，没有额外的操作系统沙�
 升级只更新未被用户修改的内置文件，用户编辑过的内容会保留；请留意新旧接口版本的兼容性。目录扫描不会运行脚本，不代表实际登录、模型或费用已验证。
 
 
-完整格式、示例和源码构建步骤见 [模块配置说明](https://github.com/Dias-Dd/agent-hub-desktop/blob/main/docs/MODULE_CONFIGURATION.md)。
+完整格式、示例和源码构建步骤见 [模块配置说明](https://github.com/Dias-Dd/deskfellows/blob/main/docs/MODULE_CONFIGURATION.md)。

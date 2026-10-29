@@ -26,7 +26,7 @@
   const cells=[];for(const y of [3,10,17])for(const x of [3,10,17])cells.push(['rect',{x,y,width:4,height:4,rx:0.7}]);
   document.getElementById('btnViewStatus')?.replaceChildren(icon(cells));
  }
- const brand=document.createElement('span');brand.className='titlebar-brand';brand.textContent='Agent Hub';
+ const brand=document.createElement('span');brand.className='titlebar-brand';brand.textContent=window.HubI18n?.t('搭班')||'搭班';
  const title=document.createElement('span');title.id='nativeProjectTitle';title.textContent='';
  const actions=document.createElement('div');actions.className='titlebar-actions';
  const system=document.createElement('div');system.className='titlebar-system';const maximize=button('最大化','□',()=>send('maximize'));

@@ -13,7 +13,7 @@ def send(title, message):
         return native_send(title,message)
     import winreg
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, 'Software\\Classes\\AppUserModelId\\' + APP_ID) as key:
-        winreg.SetValueEx(key, 'DisplayName', 0, winreg.REG_SZ, 'Agent Hub')
+        winreg.SetValueEx(key, 'DisplayName', 0, winreg.REG_SZ, 'Deskfellows')
         winreg.SetValueEx(key, 'ShowInSettings', 0, winreg.REG_DWORD, 1)
     toast = ET.Element('toast')
     binding = ET.SubElement(ET.SubElement(toast, 'visual'), 'binding', template='ToastGeneric')

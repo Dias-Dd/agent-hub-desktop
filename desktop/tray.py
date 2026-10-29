@@ -11,12 +11,12 @@ class Tray:
   self.window=window;self.user=C.windll.user32;self.shell=C.windll.shell32
   class Data(C.Structure):
    _fields_=[('cbSize',W.DWORD),('hWnd',W.HWND),('uID',W.UINT),('uFlags',W.UINT),('uCallbackMessage',W.UINT),('hIcon',W.HICON),('szTip',W.WCHAR*128),('dwState',W.DWORD),('dwStateMask',W.DWORD),('szInfo',W.WCHAR*256),('uTimeoutOrVersion',W.UINT),('szInfoTitle',W.WCHAR*64),('dwInfoFlags',W.DWORD),('guidItem',C.c_byte*16),('hBalloonIcon',W.HICON)]
-  self.data=Data();self.data.cbSize=C.sizeof(Data);self.data.hWnd=window;self.data.uID=1;self.data.uFlags=7;self.data.uCallbackMessage=self.MESSAGE;self.data.hIcon=icon;self.data.szTip='Agent Hub · 后台运行，双击打开'
+  self.data=Data();self.data.cbSize=C.sizeof(Data);self.data.hWnd=window;self.data.uID=1;self.data.uFlags=7;self.data.uCallbackMessage=self.MESSAGE;self.data.hIcon=icon;self.data.szTip='Deskfellows · 后台运行，双击打开'
   self.shell.Shell_NotifyIconW.argtypes=[W.DWORD,C.POINTER(Data)]
   self.active=bool(self.shell.Shell_NotifyIconW(0,C.byref(self.data)))
   self.set_language(self.language)
  def set_language(self,value):
-  self.language=value;self.data.szTip='Agent Hub · Running in background; double-click to open' if value=='en' else 'Agent Hub · 后台运行，双击打开'
+  self.language=value;self.data.szTip='Deskfellows · Running in background; double-click to open' if value=='en' else 'Deskfellows · 后台运行，双击打开'
   if self.active:
    self.data.uFlags=4;self.shell.Shell_NotifyIconW(1,C.byref(self.data));self.data.uFlags=7
  def close(self):
@@ -37,8 +37,8 @@ class Tray:
   if not allowed(self.status.value.get('notification_settings',{}),event,foreground_pid.value==os.getpid()):return
   english=self.language=='en';demo=event['kind']=='demo'
   self.data.szInfoTitle=wording(event['kind'],english)
-  description=('Open Agent Hub to review the demo.' if demo else 'Open Agent Hub to view the delivery.') if english else ('打开工作台审阅演示并确认设计。' if demo else '打开工作台查看交付结果。')
-  if event['kind']=='attention':description='Open Agent Hub to inspect the project.' if english else '打开工作台查看需要处理的问题。'
+  description=('Open Deskfellows to review the demo.' if demo else 'Open Deskfellows to view the delivery.') if english else ('打开工作台审阅演示并确认设计。' if demo else '打开工作台查看交付结果。')
+  if event['kind']=='attention':description='Open Deskfellows to inspect the project.' if english else '打开工作台查看需要处理的问题。'
   if event['kind']=='test':description='System notifications are working.' if english else '系统通知已成功送达。'
   message=(event.get('name','')+'\n'+description).strip()
   if not fallback:

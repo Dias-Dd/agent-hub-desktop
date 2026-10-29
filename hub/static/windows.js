@@ -73,7 +73,7 @@
   attach(child,id){
    const e=entries.get(id);if(!e){child.close();return;}e.win=child;
    const positions=savePositions(e.root);child.document.body.append(e.root);e.root.removeAttribute('data-window-pending');e.root.setAttribute('data-detached-window','');
-   e.root.setAttribute('aria-modal',String(!!e.spec.modal));child.document.title=(window.HubI18n?.t(e.spec.title)||e.spec.title)+' · Agent Hub';
+   e.root.setAttribute('aria-modal',String(!!e.spec.modal));child.document.title=(window.HubI18n?.t(e.spec.title)||e.spec.title)+' · Deskfellows';
    window.HubI18n?.attach(child.document,e.spec.title);
    const theme=()=>{for(const a of ['data-theme','class','style']){const value=document.documentElement.getAttribute(a);if(value===null)child.document.documentElement.removeAttribute(a);else child.document.documentElement.setAttribute(a,a==='class'?value.split(/\s+/).filter(c=>!['native-chrome','native-caption-buttons','native-mica','native-acrylic','native-backdrop','sidebar-collapsed'].includes(c)).join(' '):value);}child.document.body.className=document.body.className+' hub-window-body';};theme();
    e.themeObserver=new MutationObserver(theme);e.themeObserver.observe(document.documentElement,{attributes:true});e.themeObserver.observe(document.body,{attributes:true,attributeFilter:['class']});

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Hub</title>
+  <title>搭班 · Deskfellows</title>
   <link rel="icon" type="image/svg+xml" href="/hub-mark.svg">
   <link rel="stylesheet" href="/style.css">
   <script src="/i18n.js" defer></script>
@@ -64,7 +64,7 @@
   <section id="login" class="login-screen">
     <div class="login-card">
       <span class="eyebrow">LOCAL WORKSPACE · DESKTOP WORKBENCH</span>
-      <h2>连接本地 Agent Message Hub 工作台</h2>
+      <h2>连接本地搭班工作台</h2>
       <p class="login-desc">多个独立 Agent，一处协作记录。真实模型调用严格遵循本地独立授权。</p>
       <ol class="login-steps">
         <li>双击项目目录中的 <code>Start-Hub.cmd</code> 启动本地服务。</li>
@@ -109,7 +109,7 @@
 
     <!-- ==================== 左侧栏 ==================== -->
     <aside id="activityRail" class="activity-rail" aria-label="工作台导航">
-      <span class="rail-mark" title="Agent Hub"><img src="/hub-mark.svg" alt="Agent Hub" width="30" height="30"></span>
+      <span class="rail-mark" title="搭班 · Deskfellows"><img src="/hub-mark.svg" alt="Deskfellows" width="30" height="30"></span>
       <label for="viewModeChatRadio" id="btnViewChat" class="rail-icon" role="button" tabindex="0" title="工作台沟通" aria-label="工作台沟通">◷</label>
       <label for="viewModeStatusRadio" id="btnViewStatus" class="rail-icon" role="button" tabindex="0" title="Agent 面板" aria-label="Agent 面板">▦</label>
       <button id="toggleQuotaQuick" type="button" class="rail-icon" title="额度与窗口速览" aria-label="额度与窗口速览" aria-expanded="false">◔</button>
@@ -119,7 +119,7 @@
       <!-- 项目管理与切换区 -->
       <div class="sidebar-section project-section">
         <div class="section-title-row">
-          <span class="section-title workspace-brand">Agent Hub<span class="workspace-brand-caption">项目工作区</span></span>
+          <span class="section-title workspace-brand">搭班<span class="workspace-brand-caption">项目工作区</span></span>
           <span id="projectCountTag" class="count-pill">活跃</span><button id="hubProjectCreateBtn" type="button" class="project-create-icon" title="新建项目" aria-label="新建项目">＋</button>
         </div>
         <div class="project-selector-wrapper" hidden>
@@ -150,7 +150,7 @@
     <div class="workbench-content-surface">
 
     <main id="workbenchCenter" class="workbench-center">
-<section id="emptyWorkspace" class="empty-workspace" hidden><h1>欢迎使用 Agent Hub</h1><p>创建第一个项目，开始与 Agent 协作。</p><button id="createFirstProject" type="button" class="primary-btn">创建第一个项目</button></section>
+<section id="emptyWorkspace" class="empty-workspace" hidden><h1>欢迎使用搭班</h1><p>创建第一个项目，开始与 Agent 协作。</p><button id="createFirstProject" type="button" class="primary-btn">创建第一个项目</button></section>
 
 
       <!-- 额度预警、等待倒计时与备用经理接管状态横幅 (Material Design 3 Banner) -->

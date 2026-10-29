@@ -64,7 +64,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
             window = A.NSWindow.alloc().initWithContentRect_styleMask_backing_defer_(
                 A.NSMakeRect(0, 0, width, height), mask, A.NSBackingStoreBuffered, False)
             window.setReleasedWhenClosed_(False)
-            window.setTitle_('Agent Hub')
+            window.setTitle_('Deskfellows')
             window.setMinSize_(A.NSMakeSize(520, 400))
             if main:
                 window.setTitlebarAppearsTransparent_(True)
@@ -177,7 +177,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
                 from desktop.ui_preferences import language
                 english=data_directory and language(data_directory)=='en'
                 alert=A.NSAlert.alloc().init()
-                alert.setMessageText_('Quit Agent Hub?' if english else '退出 Agent Hub？')
+                alert.setMessageText_('Quit Deskfellows?' if english else '退出 Deskfellows？')
                 alert.setInformativeText_('Quitting stops background tasks. Reopen to check and resume.' if english else '退出将停止后台任务。再次打开后经理会核查现场续接。')
                 alert.addButtonWithTitle_('Cancel' if english else '取消')
                 alert.addButtonWithTitle_('Quit' if english else '退出')
@@ -431,7 +431,7 @@ def run_native(url, profile, smoke=False, data_directory=None,notification_probe
     app_item = A.NSMenuItem.alloc().init()
     menu.addItem_(app_item)
     app_menu = A.NSMenu.alloc().init()
-    app_menu.addItemWithTitle_action_keyEquivalent_('Quit Agent Hub', 'terminate:', 'q')
+    app_menu.addItemWithTitle_action_keyEquivalent_('Quit Deskfellows', 'terminate:', 'q')
     app_menu.addItemWithTitle_action_keyEquivalent_('Enable Notifications / 允许通知', 'requestNotifications:', '')
     app_menu.addItemWithTitle_action_keyEquivalent_('Configure Harness / 配置接入', 'showSetup:', ',')
     app_item.setSubmenu_(app_menu)

@@ -227,11 +227,11 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
 
     def recover_ui(recreate=False,manual=False,reason='page health'):
         if not recovery.allow(time.monotonic(),manual):
-            user.SetWindowTextW(hwnd,'Agent Message Hub · 界面恢复已暂停，按 F5 重试')
+            user.SetWindowTextW(hwnd,'Deskfellows · 界面恢复已暂停，按 F5 重试')
             log_ui('recovery_throttled',reason=reason);return
         log_ui('recovery',recreate=recreate,reason=reason)
         state['ui_checking']=False;state['ui_grace']=time.monotonic()+(1 if recovery_test else 20)
-        user.SetWindowTextW(hwnd,'Agent Message Hub · 正在恢复界面（后台任务继续）')
+        user.SetWindowTextW(hwnd,'Deskfellows · 正在恢复界面（后台任务继续）')
         if state.get('popups'):state['popups'].close_all()
         if recreate and state.get('environment'):
             if state['controller']:
@@ -249,7 +249,7 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
         try:data=json.loads(result or 'null') or {}
         except ValueError:data={}
         if data.get('hasUI'):
-            recovery.observe(True);user.SetWindowTextW(hwnd,'Agent Hub')
+            recovery.observe(True);user.SetWindowTextW(hwnd,'Deskfellows')
             if recovery_test:
                 if not state.get('blank_injected'):
                     state['blank_injected']=True
@@ -449,14 +449,14 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
             state['tray'].handle(lp);return 0
         if msg==0x8013 or (msg==0x112 and (wp&0xfff0)==0x1f20):
             english=state.get('tray') and state['tray'].language=='en'
-            prompt='Quitting stops background tasks. When reopened, the manager will check the current state before resuming. Quit Agent Hub?' if english else '退出将停止后台任务。再次打开后经理会核查现场续接。确定退出？'
-            if user.MessageBoxW(window,prompt,'Quit Agent Hub' if english else '退出 Agent Hub',0x24|0x100)!=6:return 0
+            prompt='Quitting stops background tasks. When reopened, the manager will check the current state before resuming. Quit Deskfellows?' if english else '退出将停止后台任务。再次打开后经理会核查现场续接。确定退出？'
+            if user.MessageBoxW(window,prompt,'Quit Deskfellows' if english else '退出 Deskfellows',0x24|0x100)!=6:return 0
             state['explicit_exit']=True;user.PostMessageW(window,0x10,0,0);return 0
         if (msg in (0x100,0x104) and (wp==0x74 or (wp==ord('R') and user.GetKeyState(0x11)&0x8000))) or (msg==0x112 and (wp&0xfff0)==0x1f10):
             user.PostMessageW(window,0x8009,0,1);return 0
         if msg == 0x8009:
             try:recover_ui(recreate=bool(wp),manual=bool(lp))
-            except Exception as error:log_ui('recovery_error',error=str(error));user.SetWindowTextW(window,'Agent Message Hub · 恢复失败，按 F5 重试')
+            except Exception as error:log_ui('recovery_error',error=str(error));user.SetWindowTextW(window,'Deskfellows · 恢复失败，按 F5 重试')
             return 0
         if msg == 0x113 and not smoke:
             if state.get('tray'):state['tray'].notify_pending()
@@ -562,7 +562,7 @@ def run_native(url, profile, smoke=False, recovery_test=False, popup_test=False,
     try: dpi=int(user.GetDpiForSystem())
     except AttributeError: dpi=96
     x,y,width,height=initial_geometry(dpi,(area.left,area.top,area.right,area.bottom))
-    hwnd=user.CreateWindowExW(0,name,'Agent Hub',0x00CF0000,x,y,width,height,None,None,wc.hInstance,None)
+    hwnd=user.CreateWindowExW(0,name,'Deskfellows',0x00CF0000,x,y,width,height,None,None,wc.hInstance,None)
     if not hwnd:raise C.WinError()
     # Retain the standard caption capability for DWM/Snap, but use the entire
     # frame as client content. Force NCCALCSIZE now, before the first show.

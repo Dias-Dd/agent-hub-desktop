@@ -346,7 +346,7 @@ class TartBridge(TartManagement, TartDesktop, TartAccessibility):
                 else:raise HubError('Guest Agent 尚未就绪；请在访客中安装 Tart Guest Agent。'+last)
                 transfer=False;warning='';probe='/tmp/agent-hub-probe-'+marker
                 try:
-                    raw=b'Agent Hub Tart verification\x00\xff'+marker.encode()
+                    raw=b'Deskfellows Tart verification\x00\xff'+marker.encode()
                     self.guest_write(name,probe,raw,30)
                     if self.guest_read(name,probe,30)!=raw:raise HubError('文件往返内容校验失败')
                     transfer=True

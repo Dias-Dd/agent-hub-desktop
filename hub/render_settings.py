@@ -94,7 +94,7 @@ def action(hub,actor,operation='read',mode='auto',path=''):
         from .browser_cdp import capture
         exe=resolve(hub)
         with tempfile.TemporaryDirectory(prefix='hub-render-check-') as folder:
-            root=Path(folder);page=root/'test.html';page.write_text('<html><body>Agent Hub browser test</body></html>',encoding='utf-8')
+            root=Path(folder);page=root/'test.html';page.write_text('<html><body>Deskfellows browser test</body></html>',encoding='utf-8')
             capture(exe,page.as_uri(),root/'test.png',640,480,spawn_browser)
             if not (root/'test.png').read_bytes().startswith(b'\x89PNG'):raise HubError('浏览器未生成有效截图')
         return {'ok':True,'path':exe}

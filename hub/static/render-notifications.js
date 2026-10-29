@@ -35,7 +35,7 @@
  $('notificationPermission').hidden=!window.__HUB_NATIVE_MACOS__;
  $('notificationPermission').addEventListener('click',()=>{
   window.webkit?.messageHandlers?.hubNative?.postMessage({request_notifications:true});
-  $('notificationSaveStatus').textContent='请完成系统通知授权；若已拒绝，请在 macOS 系统设置的通知中允许 Agent Hub。';
+  $('notificationSaveStatus').textContent='请完成系统通知授权；若已拒绝，请在 macOS 系统设置的通知中允许 Deskfellows。';
  });
  $('notificationTest').addEventListener('click',()=>work(async()=>{
   const value=await api('notification_settings',{operation:'test'});

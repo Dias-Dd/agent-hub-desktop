@@ -1,5 +1,5 @@
 """
-Build and Packaging Utility for Agent Message Hub Standalone Desktop App.
+Build and Packaging Utility for Deskfellows Standalone Desktop App.
 """
 
 import os
@@ -15,7 +15,7 @@ SPEC_FILE = DESKTOP_DIR / "hub_desktop_fast.spec"
 
 def build():
     print("=" * 60)
-    print("Agent Message Hub - Desktop Packaging Script")
+    print("Deskfellows - Desktop Packaging Script")
     print("=" * 60)
 
     # Check if pyinstaller is available

@@ -53,7 +53,7 @@ class SetupService:
         try:
             self.ownership = acquire(self.directory, 'service.lock')
         except RuntimeError:
-            raise HubError('请先从托盘退出 Agent Hub，再打开配置引导。已有任务不会被强制中止。') from None
+            raise HubError('请先从托盘退出 Deskfellows，再打开配置引导。已有任务不会被强制中止。') from None
         try:
             fresh = not (self.directory/'hub.sqlite3').exists()
             self.hub = Hub(self.directory, recover=False)

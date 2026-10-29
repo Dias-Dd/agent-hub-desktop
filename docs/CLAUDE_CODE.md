@@ -5,7 +5,7 @@
 ## 使用
 
 1. 从 [Claude Code 官网](https://code.claude.com/docs/en/setup)安装 CLI；在官方终端完成登录或配置自己的服务商。
-2. 在 Agent Hub 的“添加 Agent”中选择 **Claude Code**。未安装时可打开官网；“打开登录界面”执行 `claude auth login`；“检查登录状态”只运行 `claude auth status`，不会打开 CLI 主界面，也不会调用模型。
+2. 在 Deskfellows 的“添加 Agent”中选择 **Claude Code**。未安装时可打开官网；“打开登录界面”执行 `claude auth login`；“检查登录状态”只运行 `claude auth status`，不会打开 CLI 主界面，也不会调用模型。
 3. 读取模型列表，选择模型并添加 Agent。列表包含官方 `sonnet` / `opus` / `haiku` 别名及本机配置中的模型，**不是账号可调用模型的完整目录**。订阅、API 或代理服务商的实际权限以执行结果为准。档位暂沿用 CLI 默认设置，不虚构可用档位。
 4. 确认完全访问授权后可参与项目；需要真实接入测试时，使用 Agent 卡片上的测试按钮，此操作会消耗模型额度。
 

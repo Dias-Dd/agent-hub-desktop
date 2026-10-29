@@ -183,7 +183,7 @@ class HTTPTests(unittest.TestCase):
         self.assertFalse(self.s.workflows.snapshot('user'))
 
     def test_http_simulated_assignment_dashboard_and_security(self):
-        with self.request('/') as r:self.assertIn('Agent Message Hub',r.read().decode())
+        with self.request('/') as r:self.assertIn('Deskfellows',r.read().decode())
         with self.request('/api/action',{'action':'assign','args':{'agent':'flash-1','title':'HTTP E2E'}}) as r:task=json.load(r)['result']['id']
         deadline=time.monotonic()+6
         while time.monotonic()<deadline:

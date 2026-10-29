@@ -115,13 +115,13 @@ Mac 菜单栏状态项复用 Windows 的只读 StatusCache：显示进行中的�
 .venv/bin/python desktop/build_macos_icon.py
 .venv/bin/python -m PyInstaller --noconfirm \
   --distpath desktop/macos-dist --workpath desktop/macos-build desktop/hub_macos.spec
-.venv/bin/python desktop/build_macos_dmg.py --app "desktop/macos-dist/Agent Hub.app"
-open "desktop/macos-installer-dist/AgentHub-macOS-arm64-dev.dmg"
+.venv/bin/python desktop/build_macos_dmg.py --app "desktop/macos-dist/Deskfellows.app"
+open "desktop/macos-installer-dist/Deskfellows-macOS-arm64-dev.dmg"
 ```
 
 产物为 arm64 本地开发 `.app`（约 25 MB 单个应用包），内含 Python、Cocoa 桥、服务、
-前端与模块。DMG 位于 `desktop/macos-installer-dist/AgentHub-macOS-arm64-dev.dmg`，包含
-应用、Applications 拖入快捷方式和中英文安装说明。当前新应用输出位于 `desktop/macos-next-dist/Agent Hub.app`。
+前端与模块。DMG 位于 `desktop/macos-installer-dist/Deskfellows-macOS-arm64-dev.dmg`，包含
+应用、Applications 拖入快捷方式和中英文安装说明。当前新应用输出位于 `desktop/macos-next-dist/Deskfellows.app`。下文历史构建记录中的旧包名保留原样。
 构建只做本地 ad-hoc 签名；没有 Developer ID 签名、公证、自动更新或发布。安装前需先保存草稿并退出旧版，
 新宿主发现旧版正在运行时会显示明确提示，不强制停止任务或静默恢复旧界面。
 Windows 的 WebView2 DLL 和 Inno Setup 不参与 Mac 构建。
